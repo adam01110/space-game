@@ -1,0 +1,19 @@
+[package]
+name = "project-game"
+version.workspace = true
+edition.workspace = true
+
+[features]
+default = []
+parallel = ["avian2d/parallel"]
+
+[dependencies]
+avian2d = { workspace = true, features = [
+  # keep-sorted start
+  "2d",
+  "f32",
+  "parry-f32",
+  # keep-sorted end
+] }
+bevy.workspace = true
+project-protocol.workspace = true

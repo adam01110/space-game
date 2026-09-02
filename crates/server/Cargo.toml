@@ -1,0 +1,21 @@
+[package]
+name = "project-server"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+bevy = { workspace = true, features = ["multi_threaded"] }
+lightyear = { workspace = true, features = [
+  # keep-sorted start
+  "avian2d",
+  "metrics",
+  "netcode",
+  "replication",
+  "server",
+  "std",
+  "webtransport",
+  # keep-sorted end
+] }
+log.workspace = true
+project-game = { workspace = true, features = ["parallel"] }
+project-protocol.workspace = true

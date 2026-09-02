@@ -1,0 +1,53 @@
+[workspace]
+default-members = ["crates/client"]
+members = [
+  # keep-sorted start
+  "crates/client",
+  "crates/game",
+  "crates/protocol",
+  "crates/server",
+  # keep-sorted end
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2024"
+version = "0.1.0"
+
+[workspace.dependencies]
+avian2d = { version = "0.7.0", default-features = false }
+bevy = { version = "0.19.1", default-features = false }
+bevy_resvg = "2.5.0"
+lightyear = { version = "0.29.0", default-features = false }
+log = { version = "0.4.34", features = [
+  # keep-sorted start
+  "max_level_debug",
+  "release_max_level_warn",
+  # keep-sorted end
+] }
+project-game = { path = "crates/game" }
+project-protocol = { path = "crates/protocol" }
+serde = { version = "1.0.229", features = ["derive"] }
+
+# Enable a small amount of optimization in the dev profile.
+[profile.dev]
+opt-level = 1
+
+# Enable a large amount of optimization in the dev profile for dependencies.
+[profile.dev.package."*"]
+opt-level = 3
+
+# Enable more optimization in the release profile at the cost of compile time.
+[profile.release]
+# keep-sorted start
+codegen-units = 1
+lto = "fat"
+# keep-sorted end
+
+# Optimize for size in the wasm-release profile to reduce load times and bandwidth usage on web.
+[profile.wasm-release]
+# keep-sorted start
+inherits = "release"
+opt-level = "s"
+strip = "debuginfo"
+# keep-sorted end

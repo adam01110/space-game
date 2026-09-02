@@ -1,0 +1,39 @@
+[package]
+name = "project-client"
+version.workspace = true
+edition.workspace = true
+
+[features]
+default = []
+dev = ["bevy/dynamic_linking"]
+
+[dependencies]
+bevy = { workspace = true, features = [
+  # keep-sorted start
+  "2d",
+  "audio",
+  "bevy_settings",
+  "keyboard",
+  "mouse",
+  "ui",
+  "web_asset_cache",
+  "webgpu",
+  # keep-sorted end
+] }
+bevy_resvg.workspace = true
+lightyear = { workspace = true, features = [
+  # keep-sorted start
+  "avian2d",
+  "client",
+  "interpolation",
+  "metrics",
+  "netcode",
+  "prediction",
+  "replication",
+  "std",
+  "webtransport",
+  # keep-sorted end
+] }
+log.workspace = true
+project-game.workspace = true
+project-protocol.workspace = true

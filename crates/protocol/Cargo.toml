@@ -1,0 +1,8 @@
+[package]
+name = "project-protocol"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+bevy.workspace = true
+serde.workspace = true

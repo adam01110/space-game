@@ -1,0 +1,4 @@
+# keep-sorted start
+**/.direnv/
+/target
+# keep-sorted end
