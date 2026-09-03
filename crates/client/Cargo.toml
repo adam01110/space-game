@@ -25,6 +25,7 @@ lightyear = { workspace = true, features = [
   # keep-sorted start
   "avian2d",
   "client",
+  "input_native",
   "interpolation",
   "metrics",
   "netcode",
@@ -32,6 +33,7 @@ lightyear = { workspace = true, features = [
   "replication",
   "std",
   "webtransport",
+  "webtransport_dangerous_configuration",
   # keep-sorted end
 ] }
 log.workspace = true

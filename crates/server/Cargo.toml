@@ -3,17 +3,23 @@ name = "project-server"
 version.workspace = true
 edition.workspace = true
 
+[features]
+default = []
+dev = ["bevy/dynamic_linking"]
+
 [dependencies]
 bevy = { workspace = true, features = ["multi_threaded"] }
 lightyear = { workspace = true, features = [
   # keep-sorted start
   "avian2d",
+  "input_native",
   "metrics",
   "netcode",
   "replication",
   "server",
   "std",
   "webtransport",
+  "webtransport_self_signed", # TODO
   # keep-sorted end
 ] }
 log.workspace = true

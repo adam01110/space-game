@@ -5,4 +5,13 @@ edition.workspace = true
 
 [dependencies]
 bevy.workspace = true
+lightyear = { workspace = true, features = [
+  # keep-sorted start
+  "input_native",
+  "interpolation",
+  "prediction",
+  "replication",
+  "std",
+  # keep-sorted end
+] }
 serde.workspace = true

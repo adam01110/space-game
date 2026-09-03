@@ -2,33 +2,36 @@
 default:
     @just --list
 
-# Run a development build with dynamic linking.
-dev:
-    cargo run --features dev
+# Development features shared by workspace commands.
+dev-features := "project-client/dev,project-server/dev"
 
-# Run without development-only features.
-run:
-    cargo run
+# Run a native client.
+client:
+    cargo run -p project-client --features dev
 
-# Run all Nix flake checks.
+# Run the headless server with development features.
+server:
+    cargo run -p project-server --features dev
+
+# Type-check every crate and target with development features.
 check:
-    nix flake check
+    cargo check --workspace --all-targets --features "{{dev-features}}"
 
-# Run the test suite.
-test:
-    cargo test
-
-# Format the project with the Nix formatter.
+# Format the workspace.
 fmt:
-    nix fmt
+    cargo fmt --all
 
-# Run Clippy and reject warnings.
+# Run Clippy with development features and reject warnings.
 lint:
-    cargo clippy --all-targets -- -D warnings
+    cargo clippy --workspace --all-targets --features "{{dev-features}}" -- -D warnings
 
-# Build an optimized release binary with LLVM.
+# Run the workspace test suite with development features.
+test:
+    cargo test --workspace --features "{{dev-features}}"
+
+# Build both binaries with release optimizations.
 release:
-    cargo build --release
+    cargo build --workspace --release
 
 # Optimize WebAssembly binary for size.
 wasm-opt input output:

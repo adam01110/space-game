@@ -6506,6 +6506,7 @@ version = "0.1.0"
 dependencies = [
  "avian2d",
  "bevy",
+ "lightyear",
  "project-protocol",
 ]
 
@@ -6514,6 +6515,7 @@ name = "project-protocol"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "lightyear",
  "serde",
 ]
 
