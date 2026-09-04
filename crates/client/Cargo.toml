@@ -20,7 +20,6 @@ bevy = { workspace = true, features = [
   "webgpu",
   # keep-sorted end
 ] }
-bevy_lunex.workspace = true
 bevy_resvg.workspace = true
 lightyear = { workspace = true, features = [
   # keep-sorted start
@@ -40,6 +39,3 @@ lightyear = { workspace = true, features = [
 log.workspace = true
 project-game.workspace = true
 project-protocol.workspace = true
-
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-bevy_lunex = { workspace = true, features = ["wasm"] }
