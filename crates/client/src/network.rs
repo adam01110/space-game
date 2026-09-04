@@ -2,11 +2,13 @@ use std::net::{Ipv4Addr, SocketAddr};
 
 use bevy::prelude::*;
 use lightyear::{
-    netcode::{client_plugin::NetcodeConfig, generate_key, NetcodeClient},
+    netcode::{NetcodeClient, client_plugin::NetcodeConfig, generate_key},
     prelude::{client::*, *},
 };
+
 use project_protocol::{PRIVATE_KEY, PROTOCOL_ID, SERVER_PORT};
 
+// TODO: fix this horrible shit
 pub(super) fn spawn_client(mut commands: Commands) {
     let client_id = u64::from_le_bytes(
         generate_key()[..size_of::<u64>()]

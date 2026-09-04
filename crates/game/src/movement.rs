@@ -1,9 +1,10 @@
 use bevy::{ecs::query::QueryFilter, prelude::*};
-use lightyear::prelude::{input::native::ActionState, Predicted, SyncedLocalTimeline};
+use lightyear::prelude::{Predicted, SyncedLocalTimeline, input::native::ActionState};
+
 use project_protocol::{Player, PlayerHeading, PlayerInput, PlayerPosition};
 
 const MOVE_SPEED: f32 = 512.0;
-const TURN_SPEED: f32 = 6.0;
+const TURN_SPEED: f32 = 8.0;
 
 type PlayerMovement<'a> = (
     &'a mut PlayerPosition,

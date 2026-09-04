@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use lightyear::{connection::client::Connected, prelude::server::*, prelude::*};
+
 use project_game::PlayerBundle;
 
 pub(super) fn spawn_player_for_client(

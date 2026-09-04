@@ -2,6 +2,7 @@ use std::net::SocketAddr;
 
 use bevy::prelude::*;
 use lightyear::{netcode::NetcodeServer, prelude::server::*, prelude::*};
+
 use project_protocol::{PRIVATE_KEY, PROTOCOL_ID, SERVER_PORT};
 
 pub(super) fn spawn_server(mut commands: Commands) {

@@ -1,15 +1,23 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 use lightyear::prelude::input::native::{ActionState, InputMarker};
+
 use project_protocol::{PlayerInput, PlayerPosition};
+
+type PlayerInputQuery<'w, 's> = Query<
+    'w,
+    's,
+    (
+        &'static PlayerPosition,
+        &'static mut ActionState<PlayerInput>,
+    ),
+    With<InputMarker<PlayerInput>>,
+>;
 
 pub(super) fn buffer_player_input(
     keyboard: Res<ButtonInput<KeyCode>>,
     windows: Query<&Window, With<PrimaryWindow>>,
     cameras: Query<(&Camera, &GlobalTransform)>,
-    mut players: Query<
-        (&PlayerPosition, &mut ActionState<PlayerInput>),
-        With<InputMarker<PlayerInput>>,
-    >,
+    mut players: PlayerInputQuery,
 ) {
     let Ok((position, mut action_state)) = players.single_mut() else {
         return;
@@ -17,6 +25,8 @@ pub(super) fn buffer_player_input(
 
     let horizontal = axis(&keyboard, KeyCode::KeyA, KeyCode::KeyD);
     let vertical = axis(&keyboard, KeyCode::KeyS, KeyCode::KeyW);
+
+    // Ouch
     let aim = windows
         .single()
         .ok()

@@ -5,11 +5,14 @@ use crate::{
     transform::sync_player_transforms,
 };
 
+pub const SERVER_UPS: f64 = 60.0;
+
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, sync_player_transforms);
+        app.insert_resource(Time::<Fixed>::from_hz(SERVER_UPS))
+            .add_systems(Update, sync_player_transforms);
     }
 }
 

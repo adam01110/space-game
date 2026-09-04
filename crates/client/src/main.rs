@@ -5,11 +5,12 @@ mod player;
 
 use bevy::prelude::*;
 use lightyear::prelude::{client::input::InputSystems, client::*};
+
 use project_game::{ClientSimulationPlugin, GamePlugin};
 use project_protocol::ProtocolPlugin;
 
 use crate::{
-    camera::setup_camera,
+    camera::{follow_player, setup_camera},
     input::buffer_player_input,
     network::{connect_client, spawn_client},
     player::{
@@ -34,6 +35,7 @@ fn main() {
             FixedPreUpdate,
             buffer_player_input.in_set(InputSystems::WriteClientInputs),
         )
+        .add_systems(Update, follow_player)
         .add_observer(prepare_controlled_player)
         .add_observer(add_predicted_player_visual)
         .add_observer(add_interpolated_player_visual)

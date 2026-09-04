@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+
 use project_protocol::{Player, PlayerHeading, PlayerPosition};
 
 pub(super) fn sync_player_transforms(

@@ -1,5 +1,6 @@
 use bevy::prelude::*;
-use lightyear::prelude::{input::native::InputMarker, Controlled, Interpolated, Predicted};
+use lightyear::prelude::{Controlled, Interpolated, Predicted, input::native::InputMarker};
+
 use project_protocol::{Player, PlayerInput};
 
 pub(super) fn prepare_controlled_player(

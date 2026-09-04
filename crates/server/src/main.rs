@@ -1,17 +1,17 @@
 mod network;
 mod player;
 
+use bevy::{prelude::*, state::app::StatesPlugin};
+use lightyear::prelude::{server::*, ReplicationMetadata};
+use std::time::Duration;
+
+use project_game::{GamePlugin, ServerSimulationPlugin, SERVER_UPS};
+use project_protocol::ProtocolPlugin;
+
 use crate::{
     network::{prepare_client_link, spawn_server, start_server},
     player::spawn_player_for_client,
 };
-use bevy::{prelude::*, state::app::StatesPlugin};
-use lightyear::prelude::{ReplicationMetadata, server::*};
-use project_game::{GamePlugin, ServerSimulationPlugin};
-use project_protocol::ProtocolPlugin;
-use std::time::Duration;
-
-const SERVER_UPS: f64 = 60.0;
 
 fn main() {
     App::new()
