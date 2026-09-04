@@ -12,16 +12,19 @@
 
     fenix = inputs.fenix.packages.${system};
 
-    rustToolchain = fenix.latest.withComponents [
-      # keep-sorted start
-      "cargo"
-      "clippy"
-      "rust-src"
-      "rust-std"
-      "rustc"
-      "rustc-codegen-cranelift"
-      "rustfmt"
-      # keep-sorted end
+    rustToolchain = fenix.combine [
+      (fenix.latest.withComponents [
+        # keep-sorted start
+        "cargo"
+        "clippy"
+        "rust-src"
+        "rust-std"
+        "rustc"
+        "rustc-codegen-cranelift"
+        "rustfmt"
+        # keep-sorted end
+      ])
+      fenix.targets.wasm32-unknown-unknown.latest.rust-std
     ];
   in {
     devShells.default = mkShell {
