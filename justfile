@@ -33,6 +33,8 @@ test:
 release:
     cargo build --workspace --release
 
-# Optimize WebAssembly binary for size.
-wasm-opt input output:
-    wasm-opt -Os --output "{{output}}" "{{input}}"
+# Build and optimize the WebAssembly client for size.
+wasm:
+    cargo build -p project-client --target wasm32-unknown-unknown --profile wasm-release
+    wasm-opt -Os --output target/wasm32-unknown-unknown/wasm-release/project_client.opt.wasm target/wasm32-unknown-unknown/wasm-release/project_client.wasm
+    mv target/wasm32-unknown-unknown/wasm-release/project_client.opt.wasm target/wasm32-unknown-unknown/wasm-release/project_client.wasm
