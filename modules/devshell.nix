@@ -17,7 +17,6 @@
         # keep-sorted start
         "cargo"
         "clippy"
-        "rust-src"
         "rust-std"
         "rustc"
         "rustc-codegen-cranelift"
@@ -46,7 +45,6 @@
         cargo-modules
         just
         pkg-config
-        rustlings
         # keep-sorted end
       ];
 

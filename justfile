@@ -29,8 +29,8 @@ lint:
 test:
     cargo test --workspace --features "{{dev-features}}"
 
-# Build both binaries with release optimizations.
-release:
+# Build the native binaries and optimized WebAssembly client for release.
+release: wasm
     cargo build --workspace --release
 
 # Build and optimize the WebAssembly client for size.
