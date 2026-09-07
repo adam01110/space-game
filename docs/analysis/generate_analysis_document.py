@@ -33,8 +33,11 @@ DEFAULT_OUTPUT = Path(__file__).resolve().parent / "project-1-analysis.odt"
 DOCUMENT_FRAME_NAMES = (
     "Analysis and advice",
     "MoSCoW",
+    "Project planning",
+    "Game sketch",
     "Technology study",
 )
+VISUAL_FRAME_NAMES = ("MoSCoW", "Game sketch")
 DOCUMENT_TITLE_PREFIX = "Document title:"
 
 NS = {
@@ -46,6 +49,8 @@ NS = {
     "dc": "http://purl.org/dc/elements/1.1/",
     "meta": "urn:oasis:names:tc:opendocument:xmlns:meta:1.0",
     "svg": "urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0",
+    "draw": "urn:oasis:names:tc:opendocument:xmlns:drawing:1.0",
+    "table": "urn:oasis:names:tc:opendocument:xmlns:table:1.0",
     "number": "urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0",
     "manifest": "urn:oasis:names:tc:opendocument:xmlns:manifest:1.0",
 }
@@ -87,6 +92,43 @@ def source_line(label: str, value: str) -> str:
         '<text:p text:style-name="SourceMeta">'
         f'<text:span text:style-name="Strong">{xml_text(label)}: </text:span>'
         f"{xml_text(value)}</text:p>"
+    )
+
+
+def table(rows: list[list[str]], header: bool = True) -> str:
+    if not rows:
+        return ""
+    column_count = max(len(row) for row in rows)
+    columns = "".join(
+        '<table:table-column table:style-name="TableColumn"/>'
+        for _ in range(column_count)
+    )
+    rendered_rows: list[str] = []
+    for row_index, row in enumerate(rows):
+        cells: list[str] = []
+        for value in row + [""] * (column_count - len(row)):
+            style = "TableHeaderCell" if header and row_index == 0 else "TableCell"
+            content = render_structured_lines(value.splitlines(), 4)
+            cells.append(
+                f'<table:table-cell table:style-name="{style}" office:value-type="string">'
+                f"{content or paragraph()}</table:table-cell>"
+            )
+        rendered_rows.append(f"<table:table-row>{''.join(cells)}</table:table-row>")
+    return (
+        '<table:table table:name="GeneratedTable" table:style-name="GeneratedTable">'
+        f"{columns}{''.join(rendered_rows)}</table:table>"
+    )
+
+
+def frame_image(frame_name: str) -> str:
+    filename = re.sub(r"[^a-z0-9]+", "-", frame_name.casefold()).strip("-")
+    return (
+        '<text:p text:style-name="ImageParagraph">'
+        '<draw:frame draw:style-name="FrameImage" text:anchor-type="as-char" '
+        'svg:width="16.4cm" svg:height="10.5cm">'
+        f'<draw:image xlink:href="Pictures/{filename}.svg" '
+        'xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad"/>'
+        "</draw:frame></text:p>"
     )
 
 
@@ -298,6 +340,111 @@ def clean_text_elements(
     return cleaned
 
 
+def svg_color(value: Any, default: str = "#1e1e1e") -> str:
+    color = str(value or default)
+    return "none" if color == "transparent" else color
+
+
+def svg_points(element: dict[str, Any]) -> str:
+    x = float(element.get("x", 0))
+    y = float(element.get("y", 0))
+    points = element.get("points", [])
+    return " ".join(f"{x + float(point[0])},{y + float(point[1])}" for point in points)
+
+
+def frame_svg(
+    drawing: dict[str, Any], frame: dict[str, Any], elements: list[dict[str, Any]]
+) -> bytes:
+    fx, fy, fx2, fy2 = element_bounds(frame)
+    width = fx2 - fx
+    height = fy2 - fy
+    files = drawing.get("files") if isinstance(drawing.get("files"), dict) else {}
+    parts = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        f'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="{NS["xlink"]}" '
+        f'viewBox="{fx} {fy} {width} {height}" width="{width}" height="{height}">',
+        '<defs><marker id="arrow" markerWidth="8" markerHeight="8" '
+        'refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" '
+        'fill="context-stroke"/></marker></defs>',
+        f'<rect x="{fx}" y="{fy}" width="{width}" height="{height}" fill="#ffffff"/>',
+    ]
+    for element in elements:
+        if (
+            element is frame
+            or element.get("type") == "frame"
+            or not contains(frame, element)
+        ):
+            continue
+        kind = element.get("type")
+        x, y, x2, y2 = element_bounds(element)
+        item_width = x2 - x
+        item_height = y2 - y
+        stroke = svg_color(element.get("strokeColor"))
+        fill = svg_color(element.get("backgroundColor"), "transparent")
+        stroke_width = float(element.get("strokeWidth", 1))
+        opacity = float(element.get("opacity", 100)) / 100
+        angle = float(element.get("angle", 0))
+        transform = ""
+        if angle:
+            transform = f' transform="rotate({angle * 180 / 3.141592653589793} {(x + x2) / 2} {(y + y2) / 2})"'
+        common = (
+            f' stroke="{stroke}" fill="{fill}" stroke-width="{stroke_width}" '
+            f'opacity="{opacity}"{transform}'
+        )
+        if kind == "rectangle":
+            parts.append(
+                f'<rect x="{x}" y="{y}" width="{item_width}" height="{item_height}" '
+                f'rx="{min(12, item_width / 10, item_height / 10)}"{common}/>'
+            )
+        elif kind == "ellipse":
+            parts.append(
+                f'<ellipse cx="{(x + x2) / 2}" cy="{(y + y2) / 2}" '
+                f'rx="{item_width / 2}" ry="{item_height / 2}"{common}/>'
+            )
+        elif kind == "diamond":
+            points = (
+                f"{(x + x2) / 2},{y} {x2},{(y + y2) / 2} "
+                f"{(x + x2) / 2},{y2} {x},{(y + y2) / 2}"
+            )
+            parts.append(f'<polygon points="{points}"{common}/>')
+        elif kind in {"line", "arrow"} and element.get("points"):
+            arrow = ' marker-end="url(#arrow)"' if kind == "arrow" else ""
+            parts.append(
+                f'<polyline points="{svg_points(element)}"{common} fill="none"{arrow}/>'
+            )
+        elif kind == "image":
+            file_data = files.get(element.get("fileId"), {})
+            data_url = file_data.get("dataURL") if isinstance(file_data, dict) else None
+            if data_url:
+                parts.append(
+                    f'<image x="{x}" y="{y}" width="{item_width}" height="{item_height}" '
+                    f'opacity="{opacity}" preserveAspectRatio="xMidYMid meet" '
+                    f'xlink:href="{escape(str(data_url), quote=True)}"{transform}/>'
+                )
+        elif kind == "text":
+            font_size = float(element.get("fontSize", 20))
+            line_height = font_size * float(element.get("lineHeight", 1.25))
+            text_anchor = {"center": "middle", "right": "end"}.get(
+                element.get("textAlign"), "start"
+            )
+            text_x = {"middle": (x + x2) / 2, "end": x2}.get(text_anchor, x)
+            lines = str(element.get("text", "")).splitlines() or [""]
+            tspans = "".join(
+                f'<tspan x="{text_x}" y="{y + font_size + index * line_height}">'
+                f"{xml_text(line)}</tspan>"
+                for index, line in enumerate(lines)
+            )
+            parts.append(
+                f'<text font-family="Liberation Sans, sans-serif" font-size="{font_size}" '
+                f'font-weight="{element.get("fontStyle", "normal")}" text-anchor="{text_anchor}" '
+                f'fill="{stroke}" opacity="{opacity}"{transform}>{tspans}</text>'
+            )
+    parts.append("</svg>")
+    payload = "".join(parts).encode()
+    ET.fromstring(payload)
+    return payload
+
+
 def join_wrapped(lines: list[str]) -> str:
     return " ".join(line.strip() for line in lines if line.strip()).strip()
 
@@ -410,7 +557,7 @@ def render_moscow(notes: list[CleanedText]) -> str:
         "WON’T": "Won’t",
         "WON'T": "Won't",
     }
-    output: list[str] = []
+    rows = [["Priority", "Requirements"]]
     for cleaned in sorted(notes, key=priority):
         lines = cleaned.lines.copy()
         while lines and not lines[0].strip():
@@ -418,9 +565,8 @@ def render_moscow(notes: list[CleanedText]) -> str:
         if not lines:
             continue
         label = lines.pop(0).strip()
-        output.append(heading(2, display_labels.get(label.upper(), label)))
-        output.append(render_structured_lines(lines, 3))
-    return "".join(output)
+        rows.append([display_labels.get(label.upper(), label), "\n".join(lines)])
+    return frame_image("MoSCoW") + heading(2, "Requirements table") + table(rows)
 
 
 def render_planning(notes: list[CleanedText]) -> str:
@@ -433,21 +579,21 @@ def render_planning(notes: list[CleanedText]) -> str:
         None,
     )
     week_labels = WEEK_RE.findall(" ".join(week_header.lines)) if week_header else []
+    header_y = float(week_header.element.get("y", 0)) if week_header else 0
     candidates = [
         cleaned
         for cleaned in notes
-        if cleaned is not week_header and cleaned.element.get("y", 0) < 2500
+        if cleaned is not week_header
+        and (
+            not week_header or abs(float(cleaned.element.get("y", 0)) - header_y) < 150
+        )
     ]
     candidates.sort(key=lambda cleaned: cleaned.element.get("x", 0))
-    output: list[str] = []
-    for index, cleaned in enumerate(candidates):
-        label = (
-            week_labels[index]
-            if index < len(week_labels)
-            else f"Planning block {index + 1}"
-        )
-        output.append(heading(2, label))
-        output.append(render_structured_lines(cleaned.lines, 3))
+    labels = [
+        week_labels[index] if index < len(week_labels) else f"Phase {index + 1}"
+        for index in range(len(candidates))
+    ]
+    output = [table([labels, ["\n".join(item.lines) for item in candidates]])]
 
     additional = [
         cleaned
@@ -456,8 +602,23 @@ def render_planning(notes: list[CleanedText]) -> str:
     ]
     if additional:
         output.append(heading(2, "Additional planning notes"))
-        for cleaned in sorted(additional, key=lambda note: note.element.get("x", 0)):
-            output.append(render_note(cleaned, 3))
+        output.append(
+            table(
+                [["Topic", "Detail"]]
+                + [
+                    [
+                        next(
+                            (line.strip() for line in item.lines if line.strip()),
+                            "Note",
+                        ),
+                        "\n".join(line for line in item.lines[1:] if line.strip()),
+                    ]
+                    for item in sorted(
+                        additional, key=lambda note: note.element.get("x", 0)
+                    )
+                ]
+            )
+        )
     return "".join(output)
 
 
@@ -479,10 +640,12 @@ def frame_body(frame_content: FrameContent, cleaned: dict[str, CleanedText]) -> 
         return render_moscow(notes)
     if frame_name.casefold() == "project planning":
         return render_planning(notes)
+    if frame_name.casefold() == "game sketch":
+        return frame_image("Game sketch")
     return "".join(render_note(note, 2) for note in notes)
 
 
-def document_body(drawing: dict[str, Any]) -> tuple[str, int]:
+def document_body(drawing: dict[str, Any]) -> tuple[str, int, dict[str, bytes]]:
     elements = active_elements(drawing)
     all_frames, _ = group_by_frames(elements)
     cleaned = clean_text_elements(elements)
@@ -533,13 +696,19 @@ def document_body(drawing: dict[str, Any]) -> tuple[str, int]:
         bullet_list(frame_names),
     ]
 
+    assets: dict[str, bytes] = {}
     for frame_content in frames:
         frame_name = str(frame_content.frame.get("name") or "Untitled frame")
         body.append(paragraph("", "PageBreak"))
         body.append(heading(1, frame_name))
         body.append(frame_body(frame_content, cleaned))
+        if frame_name in VISUAL_FRAME_NAMES:
+            filename = re.sub(r"[^a-z0-9]+", "-", frame_name.casefold()).strip("-")
+            assets[f"Pictures/{filename}.svg"] = frame_svg(
+                drawing, frame_content.frame, elements
+            )
 
-    return "".join(body), removed_count
+    return "".join(body), removed_count, assets
 
 
 STYLES_XML = f"""<?xml version="1.0" encoding="UTF-8"?>
