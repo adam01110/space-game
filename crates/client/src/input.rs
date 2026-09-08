@@ -3,6 +3,8 @@ use lightyear::prelude::input::native::{ActionState, InputMarker};
 
 use project_protocol::{PlayerInput, PlayerPosition};
 
+use crate::camera::GameplayCamera;
+
 type PlayerInputQuery<'w, 's> = Query<
     'w,
     's,
@@ -16,7 +18,7 @@ type PlayerInputQuery<'w, 's> = Query<
 pub(super) fn buffer_player_input(
     keyboard: Res<ButtonInput<KeyCode>>,
     windows: Query<&Window, With<PrimaryWindow>>,
-    cameras: Query<(&Camera, &GlobalTransform)>,
+    cameras: Query<(&Camera, &GlobalTransform), With<GameplayCamera>>,
     mut players: PlayerInputQuery,
 ) {
     let Ok((position, mut action_state)) = players.single_mut() else {
