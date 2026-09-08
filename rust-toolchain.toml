@@ -1,0 +1,15 @@
+[toolchain]
+channel = "nightly-2026-09-02"
+components = [
+  # keep-sorted start
+  "cargo",
+  "clippy",
+  "rust-src",
+  "rust-std",
+  "rustc",
+  "rustc-codegen-cranelift",
+  "rustfmt",
+  # keep-sorted end
+]
+profile = "minimal"
+targets = ["wasm32-unknown-unknown"]
