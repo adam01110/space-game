@@ -26,24 +26,32 @@ pub(super) fn buffer_player_input(
     let horizontal = axis(&keyboard, KeyCode::KeyA, KeyCode::KeyD);
     let vertical = axis(&keyboard, KeyCode::KeyS, KeyCode::KeyW);
 
-    // Ouch
-    let aim = windows
-        .single()
-        .ok()
-        .zip(cameras.single().ok())
-        .and_then(|(window, (camera, camera_transform))| {
-            let cursor_position = window.cursor_position()?;
-            let cursor_world = camera
-                .viewport_to_world_2d(camera_transform, cursor_position)
-                .ok()?;
-            (cursor_world - position.0).try_normalize()
-        })
-        .unwrap_or(action_state.0.aim);
+    let aim = match (windows.single(), cameras.single()) {
+        (Ok(window), Ok((camera, camera_transform))) => {
+            aim_direction(window, camera, camera_transform, position.0)
+                .unwrap_or(action_state.0.aim)
+        }
+        _ => action_state.0.aim,
+    };
 
     action_state.0 = PlayerInput {
         movement: Vec2::new(horizontal, vertical),
         aim,
     };
+}
+
+fn aim_direction(
+    window: &Window,
+    camera: &Camera,
+    camera_transform: &GlobalTransform,
+    player_position: Vec2,
+) -> Option<Vec2> {
+    let cursor_position = window.cursor_position()?;
+    let cursor_world = camera
+        .viewport_to_world_2d(camera_transform, cursor_position)
+        .ok()?;
+
+    (cursor_world - player_position).try_normalize()
 }
 
 fn axis(keyboard: &ButtonInput<KeyCode>, negative: KeyCode, positive: KeyCode) -> f32 {
