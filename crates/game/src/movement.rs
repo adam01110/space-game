@@ -7,14 +7,16 @@ use project_protocol::{Player, PlayerHeading, PlayerInput, PlayerPosition};
 const MOVE_SPEED: f32 = 512.0;
 const TURN_SPEED: f32 = 8.0;
 
+// Both movement systems update position and heading from the player's latest input.
 type PlayerMovement<'a> = (
     &'a mut PlayerPosition,
     &'a mut PlayerHeading,
     &'a ActionState<PlayerInput>,
 );
+
 type PredictedPlayer = (With<Player>, With<Predicted>);
 
-// Runs prediction only after Lightyear has synchronized the client timeline.
+// SyncedLocalTimeline prevents movement before Lightyear's local fixed clock is ready.
 pub(super) fn move_predicted_players(
     _timeline: SyncedLocalTimeline,
     time: Res<Time<Fixed>>,
@@ -36,7 +38,7 @@ fn move_players<F: QueryFilter>(players: &mut Query<PlayerMovement, F>, delta_se
     }
 }
 
-// Shared simulation used by the authoritative server and predicted clients.
+// Server and client movement use the same speed, turning, and input validation rules.
 fn apply_movement(
     position: &mut PlayerPosition,
     heading: &mut PlayerHeading,

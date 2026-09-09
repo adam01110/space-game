@@ -1,5 +1,5 @@
 use bevy::{
-    camera::{RenderTarget, visibility::RenderLayers},
+    camera::{visibility::RenderLayers, RenderTarget},
     prelude::*,
     render::render_resource::{
         Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
@@ -123,6 +123,7 @@ fn canvas_size(window_width: f32, window_height: f32) -> Extent3d {
 }
 
 fn follow_player(
+    // InputMarker<PlayerInput> is attached only to the player receiving input from this client.
     players: Query<&PlayerPosition, With<InputMarker<PlayerInput>>>,
     mut cameras: Query<&mut Transform, (With<Camera2d>, With<GameplayCamera>)>,
     time: Res<Time>,

@@ -4,7 +4,9 @@ use serde::{Deserialize, Serialize};
 // Input sent by a client for one simulation tick.
 #[derive(Clone, Debug, PartialEq, Reflect, Serialize, Deserialize)]
 pub struct PlayerInput {
+    // Desired world-space movement direction before normalization.
     pub movement: Vec2,
+    // World-space direction the ship should face.
     pub aim: Vec2,
 }
 

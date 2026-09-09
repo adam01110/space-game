@@ -13,6 +13,7 @@ impl Plugin for ServerPlayerPlugin {
 
 fn spawn_player_for_client(
     trigger: On<Add, Connected>,
+    // ClientOf selects connection entities; RemoteId provides the peer ID assigned as owner.
     clients: Query<&RemoteId, With<ClientOf>>,
     mut commands: Commands,
 ) {

@@ -27,7 +27,7 @@ impl Default for PlayerHealth {
 #[derive(Component, Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 pub struct PlayerPhaseBeam(pub u16);
 
-// Authoritative position of a player in world units.
+// A player's two-dimensional position, measured in world units.
 #[derive(Component, Clone, Debug, Default, Deref, PartialEq, Serialize, Deserialize)]
 pub struct PlayerPosition(pub Vec2);
 

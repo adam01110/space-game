@@ -7,6 +7,7 @@ use crate::{
 
 pub const SERVER_UPS: f64 = 60.0;
 
+// Sets the fixed timestep to 60 Hz and copies player state into Bevy transforms.
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
@@ -16,6 +17,7 @@ impl Plugin for GamePlugin {
     }
 }
 
+// Runs movement for entities with both `Player` and `Predicted` each fixed tick.
 pub struct ClientSimulationPlugin;
 
 impl Plugin for ClientSimulationPlugin {
@@ -24,6 +26,7 @@ impl Plugin for ClientSimulationPlugin {
     }
 }
 
+// Runs movement for every entity with `Player` each fixed tick.
 pub struct ServerSimulationPlugin;
 
 impl Plugin for ServerSimulationPlugin {

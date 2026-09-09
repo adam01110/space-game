@@ -19,6 +19,7 @@ impl Plugin for ClientInputPlugin {
     }
 }
 
+// The query returns the local player's position and writable input buffer.
 type PlayerInputQuery<'w, 's> = Query<
     'w,
     's,

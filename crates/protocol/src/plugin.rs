@@ -6,7 +6,7 @@ use crate::{
     PlayerPosition,
 };
 
-// Registers every type that crosses the network boundary.
+// Registers player input and configures how each player component is synchronized.
 pub struct ProtocolPlugin;
 
 impl Plugin for ProtocolPlugin {
