@@ -26,17 +26,17 @@
       ])
       fenix.targets.wasm32-unknown-unknown.latest.rust-std
     ];
+
+    runtimeLibraries = with pkgs; [
+      alsa-lib
+      libxkbcommon
+      udev
+      vulkan-loader
+      wayland
+    ];
   in {
     devShells.default = mkShell {
-      buildInputs = with pkgs; [
-        # keep-sorted start
-        alsa-lib
-        libxkbcommon
-        udev
-        vulkan-loader
-        wayland
-        # keep-sorted end
-      ];
+      buildInputs = runtimeLibraries;
 
       packages = with pkgs; [
         rustToolchain
@@ -50,15 +50,7 @@
         # keep-sorted end
       ];
 
-      LD_LIBRARY_PATH = makeLibraryPath (with pkgs; [
-        # keep-sorted start
-        alsa-lib
-        libxkbcommon
-        udev
-        vulkan-loader
-        wayland
-        # keep-sorted end
-      ]);
+      LD_LIBRARY_PATH = makeLibraryPath runtimeLibraries;
     };
   };
 }
