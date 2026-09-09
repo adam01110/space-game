@@ -4,4 +4,6 @@ mod plugins;
 mod transform;
 
 pub use player::PlayerBundle;
-pub use plugins::{ClientSimulationPlugin, GamePlugin, SERVER_UPS, ServerSimulationPlugin};
+pub use plugins::{
+    ClientRenderingPlugin, ClientSimulationPlugin, GamePlugin, SERVER_UPS, ServerSimulationPlugin,
+};

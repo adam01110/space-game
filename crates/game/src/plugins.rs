@@ -7,13 +7,21 @@ use crate::{
 
 pub const SERVER_UPS: f64 = 60.0;
 
-// Sets the fixed timestep to 60 Hz and copies player state into Bevy transforms.
+// Sets the simulation timestep independently of the client's render schedule.
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(Time::<Fixed>::from_hz(SERVER_UPS))
-            .add_systems(Update, sync_player_transforms);
+        app.insert_resource(Time::<Fixed>::from_hz(SERVER_UPS));
+    }
+}
+
+// Copies simulation and interpolated network state into render transforms each client frame.
+pub struct ClientRenderingPlugin;
+
+impl Plugin for ClientRenderingPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Update, sync_player_transforms);
     }
 }
 

@@ -6,7 +6,7 @@ use std::{
 use bevy::prelude::*;
 use crossbeam_channel::{Receiver, TryRecvError};
 use lightyear::{
-    netcode::{NetcodeClient, client_plugin::NetcodeConfig},
+    netcode::{client_plugin::NetcodeConfig, NetcodeClient},
     prelude::{client::*, *},
 };
 

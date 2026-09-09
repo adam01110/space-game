@@ -22,13 +22,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Duration::from_secs_f64(1.0 / SERVER_UPS),
             )),
             StatesPlugin,
-            ServerPlugins::default(),
+            ServerPlugins {
+                tick_duration: Duration::from_secs_f64(1.0 / SERVER_UPS),
+            },
             ProtocolPlugin,
             GamePlugin,
             ServerSimulationPlugin,
             server,
         ))
-        .insert_resource(ReplicationMetadata::new(Duration::from_millis(50)))
+        .insert_resource(ReplicationMetadata::new(Duration::from_secs_f64(
+            1.0 / SERVER_UPS,
+        )))
         .run();
     Ok(())
 }
