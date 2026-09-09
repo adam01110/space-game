@@ -1,19 +1,22 @@
+use avian2d::prelude::*;
 use bevy::prelude::*;
 
 use project_protocol::{
-    Player, PlayerBlasters, PlayerBoost, PlayerHeading, PlayerHealth, PlayerPhaseBeam,
-    PlayerPosition,
+    CircleBody, Player, PlayerBlasters, PlayerBoost, PlayerHealth, PlayerPhaseBeam,
 };
+
+pub const PLAYER_RADIUS: f32 = 18.0;
 
 #[derive(Bundle)]
 pub struct PlayerBundle {
     blasters: PlayerBlasters,
     boost: PlayerBoost,
-    heading: PlayerHeading,
     health: PlayerHealth,
     phase_beam: PlayerPhaseBeam,
     player: Player,
-    position: PlayerPosition,
+    circle: CircleBody,
+    position: Position,
+    rotation: Rotation,
 }
 
 impl PlayerBundle {
@@ -22,11 +25,12 @@ impl PlayerBundle {
         Self {
             blasters: PlayerBlasters::default(),
             boost: PlayerBoost::default(),
-            heading: PlayerHeading::default(),
             health: PlayerHealth::default(),
             phase_beam: PlayerPhaseBeam::default(),
             player: Player,
-            position: PlayerPosition(position),
+            circle: CircleBody::dynamic(PLAYER_RADIUS),
+            position: Position(position),
+            rotation: Rotation::default(),
         }
     }
 }

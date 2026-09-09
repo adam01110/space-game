@@ -1,9 +1,7 @@
 mod movement;
+mod physics;
 mod player;
 mod plugins;
-mod transform;
 
-pub use player::PlayerBundle;
-pub use plugins::{
-    ClientRenderingPlugin, ClientSimulationPlugin, GamePlugin, SERVER_UPS, ServerSimulationPlugin,
-};
+pub use player::{PLAYER_RADIUS, PlayerBundle};
+pub use plugins::{ClientSimulationPlugin, GamePlugin, SERVER_UPS, ServerSimulationPlugin};

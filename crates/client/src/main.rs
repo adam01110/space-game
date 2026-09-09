@@ -7,15 +7,17 @@ mod plugins;
 
 use std::time::Duration;
 
+use avian2d::prelude::{PhysicsDebugPlugin, PhysicsGizmos};
 use bevy::{
     prelude::*,
     window::{PresentMode, WindowPlugin},
 };
 use lightyear::prelude::client::*;
 
-use crate::plugins::ClientAppPlugin;
-use project_game::{ClientRenderingPlugin, ClientSimulationPlugin, GamePlugin, SERVER_UPS};
+use project_game::{ClientSimulationPlugin, GamePlugin, SERVER_UPS};
 use project_protocol::ProtocolPlugin;
+
+use crate::plugins::ClientAppPlugin;
 
 fn main() {
     App::new()
@@ -36,8 +38,22 @@ fn main() {
             ProtocolPlugin,
             GamePlugin,
             ClientSimulationPlugin,
-            ClientRenderingPlugin,
+            PhysicsDebugPlugin,
             ClientAppPlugin,
         ))
+        .insert_gizmo_config(
+            PhysicsGizmos {
+                // Avoid brightness changes as contact bodies sleep and wake.
+                sleeping_color_multiplier: None,
+                ..default()
+            },
+            GizmoConfig {
+                line: GizmoLineConfig {
+                    width: 2.0,
+                    ..default()
+                },
+                ..default()
+            },
+        )
         .run();
 }

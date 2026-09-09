@@ -1,5 +1,6 @@
+use avian2d::prelude::{Position, Rotation};
 use bevy::prelude::*;
-use lightyear::prelude::{input::native::InputMarker, Controlled, Interpolated, Predicted};
+use lightyear::prelude::{input::native::InputMarker, Controlled, Predicted};
 
 use project_protocol::{Player, PlayerInput};
 
@@ -8,14 +9,19 @@ pub(super) struct ClientPlayerPlugin;
 impl Plugin for ClientPlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_observer(prepare_controlled_player)
-            .add_observer(add_predicted_player_visual)
-            .add_observer(add_interpolated_player_visual);
+            .add_systems(Update, add_player_visuals);
     }
 }
 
+type NeedsInputMarker = (
+    With<Player>,
+    With<Controlled>,
+    Without<InputMarker<PlayerInput>>,
+);
+
 fn prepare_controlled_player(
-    trigger: On<Add, Controlled>,
-    players: Query<(), (With<Player>, Without<InputMarker<PlayerInput>>)>,
+    trigger: On<Add, (Player, Controlled)>,
+    players: Query<(), NeedsInputMarker>,
     mut commands: Commands,
 ) {
     if players.contains(trigger.entity) {
@@ -25,20 +31,32 @@ fn prepare_controlled_player(
     }
 }
 
-fn add_predicted_player_visual(trigger: On<Add, (Player, Predicted)>, mut commands: Commands) {
-    add_player_visual(&mut commands, trigger.entity, Color::srgb(0.35, 0.75, 1.0));
-}
-
-fn add_interpolated_player_visual(
-    trigger: On<Add, (Player, Interpolated)>,
+// Wait for both pose components and ownership metadata; never overwrite a physics Transform.
+#[expect(
+    clippy::type_complexity,
+    reason = "The query waits for the complete predicted physics pose before adding visuals"
+)]
+fn add_player_visuals(
+    players: Query<
+        (Entity, Has<Controlled>),
+        (
+            With<Player>,
+            With<Predicted>,
+            With<Position>,
+            With<Rotation>,
+            Without<Sprite>,
+        ),
+    >,
     mut commands: Commands,
 ) {
-    add_player_visual(&mut commands, trigger.entity, Color::srgb(1.0, 0.4, 0.35));
-}
-
-fn add_player_visual(commands: &mut Commands, entity: Entity, color: Color) {
-    commands.entity(entity).insert((
-        Sprite::from_color(color, Vec2::new(28.0, 44.0)),
-        Transform::default(),
-    ));
+    for (entity, controlled) in &players {
+        let color = if controlled {
+            Color::srgb(0.35, 0.75, 1.0)
+        } else {
+            Color::srgb(1.0, 0.4, 0.35)
+        };
+        commands
+            .entity(entity)
+            .insert(Sprite::from_color(color, Vec2::new(28.0, 44.0)));
+    }
 }

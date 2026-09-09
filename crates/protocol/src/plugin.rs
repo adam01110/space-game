@@ -2,29 +2,30 @@ use bevy::prelude::*;
 use lightyear::prelude::*;
 
 use crate::{
-    Player, PlayerBlasters, PlayerBoost, PlayerHeading, PlayerHealth, PlayerInput, PlayerPhaseBeam,
-    PlayerPosition,
+    CircleBody, Player, PlayerBlasters, PlayerBoost, PlayerHealth, PlayerInput, PlayerPhaseBeam,
 };
 
-// Registers player input and configures how each player component is synchronized.
+// Registers replicated components and the shared player input type.
 pub struct ProtocolPlugin;
 
 impl Plugin for ProtocolPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(input::native::InputPlugin::<PlayerInput>::default());
+        app.add_plugins(input::native::InputPlugin::<PlayerInput> {
+            config: input::InputConfig {
+                // All colliding players run on the prediction timeline, including remote ones.
+                rebroadcast_inputs: true,
+                ..default()
+            },
+        });
 
         app.component::<Player>().replicate();
         app.component::<PlayerBlasters>().replicate().predict();
         app.component::<PlayerBoost>().replicate().predict();
         app.component::<PlayerHealth>().replicate().predict();
         app.component::<PlayerPhaseBeam>().replicate().predict();
-        app.component::<PlayerPosition>()
-            .replicate()
-            .predict()
-            .add_linear_interpolation();
-        app.component::<PlayerHeading>()
-            .replicate()
-            .predict()
-            .add_linear_interpolation();
+        // Configuration is immutable during predicted simulation. Runtime shape changes must
+        // gain prediction/rollback support before being used as gameplay.
+        app.component::<CircleBody>().replicate();
+        // GamePlugin installs the Avian pose/velocity protocol on both client and server.
     }
 }

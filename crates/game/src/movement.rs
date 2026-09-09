@@ -1,16 +1,16 @@
+use avian2d::prelude::*;
 use bevy::{ecs::query::QueryFilter, prelude::*};
 use lightyear::prelude::input::native::ActionState;
 use lightyear::prelude::{Predicted, SyncedLocalTimeline};
 
-use project_protocol::{Player, PlayerHeading, PlayerInput, PlayerPosition};
+use project_protocol::{Player, PlayerInput};
 
 const MOVE_SPEED: f32 = 512.0;
 const TURN_SPEED: f32 = 8.0;
 
-// Both movement systems update position and heading from the player's latest input.
 type PlayerMovement<'a> = (
-    &'a mut PlayerPosition,
-    &'a mut PlayerHeading,
+    &'a mut LinearVelocity,
+    &'a mut Rotation,
     &'a ActionState<PlayerInput>,
 );
 
@@ -33,15 +33,14 @@ pub(super) fn move_authoritative_players(
 }
 
 fn move_players<F: QueryFilter>(players: &mut Query<PlayerMovement, F>, delta_seconds: f32) {
-    for (mut position, mut heading, input) in players {
-        apply_movement(&mut position, &mut heading, &input.0, delta_seconds);
+    for (mut velocity, mut rotation, input) in players {
+        apply_movement(&mut velocity, &mut rotation, &input.0, delta_seconds);
     }
 }
 
-// Server and client movement use the same speed, turning, and input validation rules.
 fn apply_movement(
-    position: &mut PlayerPosition,
-    heading: &mut PlayerHeading,
+    velocity: &mut LinearVelocity,
+    rotation: &mut Rotation,
     input: &PlayerInput,
     delta_seconds: f32,
 ) {
@@ -52,13 +51,20 @@ fn apply_movement(
         .and_then(Vec2::try_normalize);
     if let Some(aim) = normalized_aim {
         let target = aim.y.atan2(aim.x) - std::f32::consts::FRAC_PI_2;
-        heading.0 = turn_towards(heading.0, target, TURN_SPEED * delta_seconds);
+        *rotation = Rotation::radians(turn_towards(
+            rotation.as_radians(),
+            target,
+            TURN_SPEED * delta_seconds,
+        ));
     }
 
-    if input.movement.is_finite() {
-        let velocity = input.movement.clamp_length_max(1.0) * MOVE_SPEED;
-        position.0 += velocity * delta_seconds;
-    }
+    // Never translate the body directly: the solver integrates velocity and blocks/slides
+    // it at contacts. Invalid or released input must clear the previous desired velocity.
+    velocity.0 = if input.movement.is_finite() {
+        input.movement.clamp_length_max(1.0) * MOVE_SPEED
+    } else {
+        Vec2::ZERO
+    };
 }
 
 fn turn_towards(current: f32, target: f32, max_step: f32) -> f32 {
@@ -66,4 +72,60 @@ fn turn_towards(current: f32, target: f32, max_step: f32) -> f32 {
         - std::f32::consts::PI;
 
     current + difference.clamp(-max_step, max_step)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn non_finite_movement_clears_velocity() {
+        for movement in [
+            Vec2::new(f32::NAN, 0.0),
+            Vec2::new(f32::INFINITY, 0.0),
+            Vec2::new(0.0, f32::NEG_INFINITY),
+        ] {
+            let mut velocity = LinearVelocity(Vec2::splat(MOVE_SPEED));
+            let mut rotation = Rotation::default();
+            let input = PlayerInput {
+                movement,
+                aim: Vec2::ZERO,
+            };
+            apply_movement(&mut velocity, &mut rotation, &input, 1.0);
+            assert_eq!(velocity.0, Vec2::ZERO);
+        }
+    }
+
+    #[test]
+    fn non_finite_aim_does_not_change_rotation() {
+        for aim in [
+            Vec2::new(f32::NAN, 0.0),
+            Vec2::new(f32::INFINITY, 0.0),
+            Vec2::new(0.0, f32::NEG_INFINITY),
+        ] {
+            let mut velocity = LinearVelocity::default();
+            let mut rotation = Rotation::radians(0.75);
+            let input = PlayerInput {
+                movement: Vec2::ZERO,
+                aim,
+            };
+            apply_movement(&mut velocity, &mut rotation, &input, 1.0);
+            assert_eq!(rotation, Rotation::radians(0.75));
+        }
+    }
+
+    #[test]
+    fn movement_sets_normalized_velocity_and_release_stops() {
+        let mut velocity = LinearVelocity::default();
+        let mut rotation = Rotation::default();
+        let movement = Vec2::new(3.0, 4.0);
+        let input = PlayerInput {
+            movement,
+            aim: Vec2::ZERO,
+        };
+        apply_movement(&mut velocity, &mut rotation, &input, 0.5);
+        assert!(velocity.0.distance(movement.normalize() * MOVE_SPEED) < f32::EPSILON);
+        apply_movement(&mut velocity, &mut rotation, &PlayerInput::default(), 0.5);
+        assert_eq!(velocity.0, Vec2::ZERO);
+    }
 }

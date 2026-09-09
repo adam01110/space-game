@@ -84,7 +84,7 @@ allow_attributes = "warn"
 allow_attributes_without_reason = "warn"
 
 [workspace.dependencies]
-avian2d = { version = "0.7.0", default-features = false }
+avian2d = { version = "0.7.0", default-features = false, features = ["enhanced-determinism"] }
 bevy = { version = "0.19.1", default-features = false }
 bevy_resvg = "2.5.0"
 lightyear = { version = "0.29.0", default-features = false }

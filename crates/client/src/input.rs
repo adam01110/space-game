@@ -4,7 +4,7 @@ use lightyear::prelude::{
     input::native::{ActionState, InputMarker},
 };
 
-use project_protocol::{PlayerInput, PlayerPosition};
+use project_protocol::PlayerInput;
 
 use super::camera::{GameplayCamera, PIXEL_SIZE};
 
@@ -19,12 +19,13 @@ impl Plugin for ClientInputPlugin {
     }
 }
 
-// The query returns the local player's position and writable input buffer.
+// Use the last rendered player and camera poses together. Physics Position has already
+// been restored to the current tick here and would mix timelines during catch-up ticks.
 type PlayerInputQuery<'w, 's> = Query<
     'w,
     's,
     (
-        &'static PlayerPosition,
+        &'static GlobalTransform,
         &'static mut ActionState<PlayerInput>,
     ),
     With<InputMarker<PlayerInput>>,
@@ -36,7 +37,7 @@ fn buffer_player_input(
     cameras: Query<(&Camera, &GlobalTransform), With<GameplayCamera>>,
     mut players: PlayerInputQuery,
 ) {
-    let Ok((position, mut action_state)) = players.single_mut() else {
+    let Ok((player_transform, mut action_state)) = players.single_mut() else {
         return;
     };
 
@@ -44,10 +45,13 @@ fn buffer_player_input(
     let vertical = axis(&keyboard, KeyCode::KeyS, KeyCode::KeyW);
 
     let aim = match (windows.single(), cameras.single()) {
-        (Ok(window), Ok((camera, camera_transform))) => {
-            aim_direction(window, camera, camera_transform, position.0)
-                .unwrap_or(action_state.0.aim)
-        }
+        (Ok(window), Ok((camera, camera_transform))) => aim_direction(
+            window,
+            camera,
+            camera_transform,
+            player_transform.translation().truncate(),
+        )
+        .unwrap_or(action_state.0.aim),
         _ => action_state.0.aim,
     };
 

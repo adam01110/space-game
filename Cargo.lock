@@ -556,6 +556,7 @@ dependencies = [
  "disqualified",
  "glam_matrix_extras",
  "itertools 0.15.0",
+ "libm",
  "obvhs",
  "parry2d",
  "parry2d-f64",
@@ -3703,6 +3704,7 @@ checksum = "db060a7f23a5666ccbe9c770cd0e0e419b2eb94c86a7c8bfd091bacf8b4926cd"
 dependencies = [
  "bevy_reflect",
  "glam",
+ "libm",
  "serde",
 ]
 
@@ -6198,6 +6200,7 @@ dependencies = [
  "foldhash 0.2.0",
  "glamx",
  "hashbrown 0.16.1",
+ "indexmap",
  "log",
  "num-derive",
  "num-traits",
@@ -6227,6 +6230,7 @@ dependencies = [
  "foldhash 0.2.0",
  "glamx",
  "hashbrown 0.16.1",
+ "indexmap",
  "log",
  "num-derive",
  "num-traits",
@@ -6614,6 +6618,7 @@ checksum = "3d595e54a326bc53c1c197b32d295e14b169e3cfeaa8dc82b529f947fba6bcf5"
 name = "project-client"
 version = "0.1.0"
 dependencies = [
+ "avian2d",
  "bevy",
  "bevy_resvg",
  "crossbeam-channel",
@@ -6651,6 +6656,7 @@ dependencies = [
 name = "project-server"
 version = "0.1.0"
 dependencies = [
+ "avian2d",
  "bevy",
  "governor",
  "lightyear",
@@ -7521,6 +7527,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c99284beb21666094ba2b75bbceda012e610f5479dfcc2d6e2426f53197ffd95"
 dependencies = [
  "approx",
+ "libm",
  "num-complex",
  "num-traits",
  "paste",

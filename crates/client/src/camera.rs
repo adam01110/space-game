@@ -1,14 +1,16 @@
+use avian2d::prelude::PhysicsSystems;
 use bevy::{
     camera::{visibility::RenderLayers, RenderTarget},
     prelude::*,
     render::render_resource::{
         Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
     },
+    transform::TransformSystems,
     window::{PrimaryWindow, WindowResized},
 };
 use lightyear::prelude::input::native::InputMarker;
 
-use project_protocol::{PlayerInput, PlayerPosition};
+use project_protocol::PlayerInput;
 
 use super::plugins::ClientStartup;
 
@@ -18,7 +20,12 @@ impl Plugin for ClientCameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup_camera.in_set(ClientStartup::Camera))
             .add_systems(PreUpdate, resize_canvas)
-            .add_systems(Update, follow_player);
+            .add_systems(
+                PostUpdate,
+                follow_player
+                    .after(PhysicsSystems::Writeback)
+                    .before(TransformSystems::Propagate),
+            );
     }
 }
 
@@ -124,16 +131,75 @@ fn canvas_size(window_width: f32, window_height: f32) -> Extent3d {
 
 fn follow_player(
     // InputMarker<PlayerInput> is attached only to the player receiving input from this client.
-    players: Query<&PlayerPosition, With<InputMarker<PlayerInput>>>,
+    players: Query<&Transform, (With<InputMarker<PlayerInput>>, Without<GameplayCamera>)>,
     mut cameras: Query<&mut Transform, (With<Camera2d>, With<GameplayCamera>)>,
     time: Res<Time>,
 ) {
-    let (Ok(position), Ok(mut camera_transform)) = (players.single(), cameras.single_mut()) else {
+    let (Ok(player_transform), Ok(mut camera_transform)) = (players.single(), cameras.single_mut())
+    else {
         return;
     };
 
-    let target = Vec3::new(position.x, position.y, camera_transform.translation.z);
+    let target = Vec3::new(
+        player_transform.translation.x,
+        player_transform.translation.y,
+        camera_transform.translation.z,
+    );
     camera_transform
         .translation
         .smooth_nudge(&target, CAMERA_DECAY_RATE, time.delta_secs());
+}
+
+#[cfg(test)]
+mod tests {
+    use std::time::Duration;
+
+    use super::*;
+
+    #[test]
+    fn camera_smoothly_follows_visual_writeback_before_global_propagation() {
+        let mut app = App::new();
+        app.add_plugins((bevy::transform::TransformPlugin, ClientCameraPlugin));
+        app.insert_resource(Time::<()>::default());
+        app.world_mut()
+            .resource_mut::<Time>()
+            .advance_by(Duration::from_secs_f32(1.0 / 60.0));
+
+        let player = app
+            .world_mut()
+            .spawn((Transform::default(), InputMarker::<PlayerInput>::default()))
+            .id();
+        let camera = app
+            .world_mut()
+            .spawn((
+                Camera2d,
+                GameplayCamera,
+                Transform::from_xyz(0.0, 0.0, 99.0),
+            ))
+            .id();
+        app.add_systems(
+            PostUpdate,
+            (move |mut players: Query<&mut Transform, With<InputMarker<PlayerInput>>>| {
+                players.single_mut().unwrap().translation = Vec3::new(37.0, -12.0, 0.0);
+            })
+            .in_set(PhysicsSystems::Writeback),
+        );
+
+        app.world_mut().run_schedule(PostUpdate);
+
+        let camera_global = app
+            .world()
+            .get::<GlobalTransform>(camera)
+            .unwrap()
+            .translation();
+        let player_global = app
+            .world()
+            .get::<GlobalTransform>(player)
+            .unwrap()
+            .translation();
+        assert!(camera_global.x > 0.0 && camera_global.x < player_global.x);
+        assert!(camera_global.y < 0.0 && camera_global.y > player_global.y);
+        assert_eq!(camera_global.z, 99.0);
+        assert_eq!(player_global, Vec3::new(37.0, -12.0, 0.0));
+    }
 }

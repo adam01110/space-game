@@ -22,6 +22,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Duration::from_secs_f64(1.0 / SERVER_UPS),
             )),
             StatesPlugin,
+            bevy::transform::TransformPlugin,
             ServerPlugins {
                 tick_duration: Duration::from_secs_f64(1.0 / SERVER_UPS),
             },

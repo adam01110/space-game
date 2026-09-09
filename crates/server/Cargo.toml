@@ -11,6 +11,7 @@ default = []
 dev = ["bevy/dynamic_linking"]
 
 [dependencies]
+avian2d.workspace = true
 bevy = { workspace = true, features = ["multi_threaded"] }
 governor = { version = "0.10.4", default-features = false, features = ["std"] }
 lightyear = { workspace = true, features = [
@@ -27,7 +28,7 @@ lightyear = { workspace = true, features = [
   # keep-sorted end
 ] }
 log.workspace = true
-project-game = { workspace = true, features = ["parallel"] }
+project-game.workspace = true
 project-protocol.workspace = true
 serde_json = "1"
 tii = { version = "0.0.8", features = ["extras"] }

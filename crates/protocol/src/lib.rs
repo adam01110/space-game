@@ -5,8 +5,7 @@ mod plugin;
 pub mod security;
 
 pub use components::{
-    Player, PlayerBlasters, PlayerBoost, PlayerHeading, PlayerHealth, PlayerPhaseBeam,
-    PlayerPosition,
+    BodyMotion, CircleBody, Player, PlayerBlasters, PlayerBoost, PlayerHealth, PlayerPhaseBeam,
 };
 pub use config::{PROTOCOL_ID, SERVER_PORT};
 pub use input::PlayerInput;
