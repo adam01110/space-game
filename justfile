@@ -5,16 +5,9 @@ default:
 # Development features shared by workspace commands.
 dev-features := "project-client/dev,project-server/dev"
 
-# Run a local native client against the development server.
+# Run a local native client; it retries until the development server is available.
 client:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    state="${XDG_STATE_HOME:-$HOME/.local/state}/project-1/dev"
-    if [[ ! -f "$state/server.lock" ]] || flock -n "$state/server.lock" true; then
-        echo 'Start just server in another terminal first.' >&2
-        exit 1
-    fi
-    exec cargo run -p project-client --features dev
+    cargo run -p project-client --features dev
 
 # Run the local development server.
 server:

@@ -57,6 +57,6 @@ fn add_player_visuals(
         };
         commands
             .entity(entity)
-            .insert(Sprite::from_color(color, Vec2::new(42.0, 61.5)));
+            .insert(Sprite::from_color(color, Vec2::new(28.0, 44.0)));
     }
 }

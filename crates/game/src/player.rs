@@ -5,7 +5,7 @@ use project_protocol::{
     CircleBody, Player, PlayerBlasters, PlayerBoost, PlayerHealth, PlayerPhaseBeam,
 };
 
-pub const PLAYER_RADIUS: f32 = 33.0;
+pub const PLAYER_RADIUS: f32 = 18.0;
 
 #[derive(Bundle)]
 pub struct PlayerBundle {
