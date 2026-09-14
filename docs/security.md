@@ -11,6 +11,24 @@ characters without colons. Empty or malformed pins fail before connecting; a
 mismatched pin fails the TLS handshake. The dangerous certificate-verification
 bypass feature is disabled.
 
+## Automated local testing
+
+Run `just server` in one terminal, then `just client` in another once the server
+is listening. The recipes create a private development key, capture the local
+server's certificate fingerprint, and issue a fresh token before each client
+launch. Compilation happens before token issuance. Certificate verification
+remains enabled.
+
+`just client` generates a random client ID by default. Use `just client 42` to
+choose an ID explicitly; concurrent clients need distinct IDs. After restarting
+`just server`, run `just client` again to use the new fingerprint and token.
+
+Development state lives in `$XDG_STATE_HOME/project-1/dev`, defaulting to
+`$HOME/.local/state/project-1/dev`. A lock prevents multiple recipe-managed
+servers from sharing that state. These Bash recipes require `flock` and automate
+native localhost testing only; browser and remote clients still need the manual
+credential delivery described below. Do not distribute the development key.
+
 ## Operator setup
 
 Build the binaries first so compilation does not consume the token lifetime:
