@@ -6,7 +6,7 @@ use std::{
 use bevy::prelude::*;
 use crossbeam_channel::{Receiver, TryRecvError};
 use lightyear::{
-    netcode::{NetcodeClient, client_plugin::NetcodeConfig},
+    netcode::{client_plugin::NetcodeConfig, NetcodeClient},
     prelude::{client::*, *},
 };
 
@@ -91,6 +91,86 @@ fn spawn_client(commands: &mut Commands, credentials: Credentials) -> Result<Ent
     Ok(entity)
 }
 
+fn retry_connection(commands: &mut Commands, connection: &mut GuestConnection, now: Duration) {
+    if let Some(entity) = connection.client.take() {
+        commands.trigger(Disconnect { entity });
+        commands.entity(entity).despawn();
+    }
+    connection.request(now);
+}
+
+fn accept_credentials(
+    commands: &mut Commands,
+    connection: &mut GuestConnection,
+    credentials: Credentials,
+    now: Duration,
+) {
+    connection.pending = None;
+    match spawn_client(commands, credentials) {
+        Ok(entity) => {
+            connection.client = Some(entity);
+            connection.started = now;
+            "Connecting securely...".clone_into(&mut connection.message);
+        }
+        Err(message) => connection.fail(&message),
+    }
+}
+
+fn handle_empty_guest_response(connection: &mut GuestConnection, now: Duration) {
+    if now.saturating_sub(connection.started) > Duration::from_secs(15) {
+        connection.fail("Guest request timed out");
+    }
+}
+
+fn handle_guest_result(
+    commands: &mut Commands,
+    connection: &mut GuestConnection,
+    result: Result<GuestResult, TryRecvError>,
+    now: Duration,
+) {
+    match result {
+        Ok(Ok(credentials)) => accept_credentials(commands, connection, credentials, now),
+        Ok(Err(message)) => connection.fail(&message),
+        Err(TryRecvError::Disconnected) => connection.fail("Guest request ended unexpectedly"),
+        Err(TryRecvError::Empty) => handle_empty_guest_response(connection, now),
+    }
+}
+
+fn poll_guest(commands: &mut Commands, connection: &mut GuestConnection, now: Duration) {
+    let Some(receiver) = &connection.pending else {
+        return;
+    };
+    handle_guest_result(commands, connection, receiver.try_recv(), now);
+}
+
+fn monitor_client(
+    commands: &mut Commands,
+    connection: &mut GuestConnection,
+    clients: &Query<(Has<Connected>, Has<Disconnected>), With<Client>>,
+    now: Duration,
+) {
+    let Some(entity) = connection.client else {
+        return;
+    };
+    match clients.get(entity) {
+        Ok((true, _)) => connection.message.clear(),
+        Ok((false, true)) => connection.fail("Disconnected from the server"),
+        _ if now.saturating_sub(connection.started) > Duration::from_secs(15) => {
+            commands.trigger(Disconnect { entity });
+            connection.fail("Secure connection timed out");
+        }
+        _ => {}
+    }
+}
+
+fn update_status(status: &mut Query<&mut Text, With<ConnectionStatus>>, message: &str) {
+    for mut text in status {
+        if text.0 != message {
+            message.clone_into(&mut text.0);
+        }
+    }
+}
+
 pub(super) fn update_connection(
     mut commands: Commands,
     time: Res<Time<Real>>,
@@ -99,56 +179,14 @@ pub(super) fn update_connection(
     clients: Query<(Has<Connected>, Has<Disconnected>), With<Client>>,
     mut status: Query<&mut Text, With<ConnectionStatus>>,
 ) {
+    let now = time.elapsed();
     if connection.can_retry && keys.just_pressed(KeyCode::KeyR) {
-        if let Some(entity) = connection.client.take() {
-            commands.trigger(Disconnect { entity });
-            commands.entity(entity).despawn();
-        }
-        connection.request(time.elapsed());
+        retry_connection(&mut commands, &mut connection, now);
     }
-    match &connection.pending {
-        Some(receiver) => match receiver.try_recv() {
-            Ok(Ok(credentials)) => {
-                connection.pending = None;
-
-                match spawn_client(&mut commands, credentials) {
-                    Ok(entity) => {
-                        connection.client = Some(entity);
-                        connection.started = time.elapsed();
-                        "Connecting securely...".clone_into(&mut connection.message);
-                    }
-                    Err(message) => connection.fail(&message),
-                }
-            }
-            Ok(Err(message)) => connection.fail(&message),
-            Err(TryRecvError::Disconnected) => connection.fail("Guest request ended unexpectedly"),
-            Err(TryRecvError::Empty)
-                if time.elapsed().saturating_sub(connection.started) > Duration::from_secs(15) =>
-            {
-                connection.fail("Guest request timed out");
-            }
-            Err(TryRecvError::Empty) => {}
-        },
-        _ if !connection.can_retry
-            && let Some(entity) = connection.client =>
-        {
-            match clients.get(entity) {
-                Ok((true, _)) => connection.message.clear(),
-                Ok((false, true)) => connection.fail("Disconnected from the server"),
-                _ => {
-                    if time.elapsed().saturating_sub(connection.started) > Duration::from_secs(15) {
-                        commands.trigger(Disconnect { entity });
-                        connection.fail("Secure connection timed out");
-                    }
-                }
-            }
-        }
-        _ => (),
+    if connection.pending.is_some() {
+        poll_guest(&mut commands, &mut connection, now);
+    } else if !connection.can_retry {
+        monitor_client(&mut commands, &mut connection, &clients, now);
     }
-
-    for mut text in &mut status {
-        if text.0 != connection.message {
-            text.0.clone_from(&connection.message);
-        }
-    }
+    update_status(&mut status, &connection.message);
 }
