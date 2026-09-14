@@ -159,8 +159,7 @@ fn response(status: StatusCode, body: impl AsRef<[u8]>) -> TiiResult<Response> {
     Response::new(status)
         .with_body_slice(body)
         .with_header("Content-Type", MimeType::ApplicationJson)?
-        .with_header("Cache-Control", "no-store")?
-        .with_header("Connection", "close")
+        .with_header("Cache-Control", "no-store")
 }
 
 fn guest_id() -> u64 {
