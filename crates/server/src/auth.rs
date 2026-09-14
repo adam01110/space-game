@@ -171,10 +171,9 @@ fn request_has_body(request: &Request) -> bool {
         .headers()
         .iter()
         .filter(|header| header.field.equiv("Content-Length"));
-    match lengths.next() {
-        None => false,
-        Some(header) => header.value.as_str() != "0" || lengths.next().is_some(),
-    }
+    lengths
+        .next()
+        .is_some_and(|header| header.value.as_str() != "0" || lengths.next().is_some())
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -198,8 +197,10 @@ fn validate_request(method: &Method, route: &str, has_body: bool) -> RequestVali
 }
 
 fn guest_id() -> u64 {
-    let [a, b, c, d, e, f, g, h, ..] = generate_key();
-    u64::from_le_bytes([a, b, c, d, e, f, g, h])
+    let [byte_0, byte_1, byte_2, byte_3, byte_4, byte_5, byte_6, byte_7, ..] = generate_key();
+    u64::from_le_bytes([
+        byte_0, byte_1, byte_2, byte_3, byte_4, byte_5, byte_6, byte_7,
+    ])
 }
 
 fn credentials_json(
@@ -235,10 +236,10 @@ fn send_response(
     {
         return;
     }
-    if let Some(seconds) = retry_after_seconds {
-        if write!(writer, "Retry-After: {seconds}\r\n").is_err() {
-            return;
-        }
+    let retry_header_failed = retry_after_seconds
+        .is_some_and(|seconds| write!(writer, "Retry-After: {seconds}\r\n").is_err());
+    if retry_header_failed {
+        return;
     }
     if writer.write_all(b"\r\n").is_err() {
         return;
@@ -255,7 +256,7 @@ struct RateLimiter {
 }
 
 impl RateLimiter {
-    fn new(now: Instant) -> Self {
+    const fn new(now: Instant) -> Self {
         Self {
             window_started: now,
             issued: 0,

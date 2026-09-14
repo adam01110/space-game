@@ -51,7 +51,7 @@ pub(super) fn setup_connection(mut commands: Commands, time: Res<Time<Real>>) {
         ConnectionStatus,
         Text::new(connection.message.clone()),
         TextFont {
-            font_size: 20.0,
+            font_size: FontSize::Px(20.0),
             ..default()
         },
         TextColor(Color::WHITE),
