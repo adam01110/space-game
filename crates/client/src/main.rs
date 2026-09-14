@@ -11,7 +11,7 @@ use project_game::{ClientSimulationPlugin, GamePlugin};
 use project_protocol::ProtocolPlugin;
 
 use crate::{
-    camera::{follow_player, setup_camera},
+    camera::{follow_player, resize_canvas, setup_camera},
     input::buffer_player_input,
     network::{setup_connection, update_connection},
     player::{
@@ -22,13 +22,14 @@ use crate::{
 fn main() {
     App::new()
         .add_plugins((
-            DefaultPlugins,
+            DefaultPlugins.set(ImagePlugin::default_nearest()),
             ClientPlugins::default(),
             ProtocolPlugin,
             GamePlugin,
             ClientSimulationPlugin,
         ))
-        .add_systems(Startup, (setup_camera, setup_connection))
+        .add_systems(Startup, (setup_camera, setup_connection).chain())
+        .add_systems(PreUpdate, resize_canvas)
         .add_systems(
             FixedPreUpdate,
             buffer_player_input.in_set(InputSystems::WriteClientInputs),

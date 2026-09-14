@@ -3,7 +3,7 @@ use lightyear::prelude::input::native::{ActionState, InputMarker};
 
 use project_protocol::{PlayerInput, PlayerPosition};
 
-use crate::camera::GameplayCamera;
+use crate::camera::{GameplayCamera, PIXEL_SIZE};
 
 type PlayerInputQuery<'w, 's> = Query<
     'w,
@@ -49,8 +49,10 @@ fn aim_direction(
     player_position: Vec2,
 ) -> Option<Vec2> {
     let cursor_position = window.cursor_position()?;
+    let canvas_size = camera.logical_viewport_size()?;
+    let canvas_cursor = canvas_size / 2.0 + (cursor_position - window.size() / 2.0) / PIXEL_SIZE;
     let cursor_world = camera
-        .viewport_to_world_2d(camera_transform, cursor_position)
+        .viewport_to_world_2d(camera_transform, canvas_cursor)
         .ok()?;
 
     (cursor_world - player_position).try_normalize()
