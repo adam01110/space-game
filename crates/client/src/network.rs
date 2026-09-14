@@ -6,7 +6,7 @@ use std::{
 use bevy::prelude::*;
 use crossbeam_channel::{Receiver, TryRecvError};
 use lightyear::{
-    netcode::{client_plugin::NetcodeConfig, NetcodeClient},
+    netcode::{NetcodeClient, client_plugin::NetcodeConfig},
     prelude::{client::*, *},
 };
 
@@ -16,6 +16,8 @@ use super::{
 };
 
 pub(super) struct ClientNetworkPlugin;
+
+const RETRY_INTERVAL: Duration = Duration::from_secs(4);
 
 impl Plugin for ClientNetworkPlugin {
     fn build(&self, app: &mut App) {
@@ -34,9 +36,10 @@ struct GuestConnection {
 }
 
 impl GuestConnection {
-    fn fail(&mut self, message: &str) {
+    fn fail(&mut self, message: &str, now: Duration) {
         self.pending = None;
-        self.message = format!("{message}. Press R to retry.");
+        self.started = now;
+        self.message = format!("{message}. Retrying in 4 seconds. Press R to retry now.");
         self.can_retry = true;
     }
 
@@ -48,7 +51,7 @@ impl GuestConnection {
                 self.pending = Some(receiver);
                 "Requesting guest access...".clone_into(&mut self.message);
             }
-            Err(message) => self.fail(&message),
+            Err(message) => self.fail(&message, now),
         }
     }
 }
@@ -124,13 +127,13 @@ fn accept_credentials(
             connection.started = now;
             "Connecting securely...".clone_into(&mut connection.message);
         }
-        Err(message) => connection.fail(&message),
+        Err(message) => connection.fail(&message, now),
     }
 }
 
 fn handle_empty_guest_response(connection: &mut GuestConnection, now: Duration) {
     if now.saturating_sub(connection.started) > Duration::from_secs(15) {
-        connection.fail("Guest request timed out");
+        connection.fail("Guest request timed out", now);
     }
 }
 
@@ -142,8 +145,8 @@ fn handle_guest_result(
 ) {
     match result {
         Ok(Ok(credentials)) => accept_credentials(commands, connection, credentials, now),
-        Ok(Err(message)) => connection.fail(&message),
-        Err(TryRecvError::Disconnected) => connection.fail("Guest request ended unexpectedly"),
+        Ok(Err(message)) => connection.fail(&message, now),
+        Err(TryRecvError::Disconnected) => connection.fail("Guest request ended unexpectedly", now),
         Err(TryRecvError::Empty) => handle_empty_guest_response(connection, now),
     }
 }
@@ -166,10 +169,10 @@ fn monitor_client(
     };
     match clients.get(entity) {
         Ok((true, _)) => connection.message.clear(),
-        Ok((false, true)) => connection.fail("Disconnected from the server"),
+        Ok((false, true)) => connection.fail("Disconnected from the server", now),
         _ if now.saturating_sub(connection.started) > Duration::from_secs(15) => {
             commands.trigger(Disconnect { entity });
-            connection.fail("Secure connection timed out");
+            connection.fail("Secure connection timed out", now);
         }
         _ => {}
     }
@@ -192,7 +195,10 @@ fn update_connection(
     mut status: Query<&mut Text, With<ConnectionStatus>>,
 ) {
     let now = time.elapsed();
-    if connection.can_retry && keys.just_pressed(KeyCode::KeyR) {
+    if connection.can_retry
+        && (keys.just_pressed(KeyCode::KeyR)
+            || now.saturating_sub(connection.started) >= RETRY_INTERVAL)
+    {
         retry_connection(&mut commands, &mut connection, now);
     }
     if connection.pending.is_some() {
