@@ -1,7 +1,11 @@
 use bevy::{prelude::*, window::PrimaryWindow};
-use lightyear::prelude::{
-    client::input::InputSystems,
-    input::native::{ActionState, InputMarker},
+use lightyear::{
+    input::{input_message::InputMessage, native::prelude::NativeStateSequence},
+    prelude::{
+        client::input::InputSystems,
+        input::native::{ActionState, InputMarker},
+        LocalTimelineSync, MessageReceiver, MessageSystems,
+    },
 };
 
 use project_protocol::PlayerInput;
@@ -13,9 +17,31 @@ pub(super) struct ClientInputPlugin;
 impl Plugin for ClientInputPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
+            PreUpdate,
+            discard_remote_inputs_before_sync
+                .after(MessageSystems::Receive)
+                .before(InputSystems::ReceiveInputMessages),
+        )
+        .add_systems(
             FixedPreUpdate,
             buffer_player_input.in_set(InputSystems::WriteClientInputs),
         );
+    }
+}
+
+// Lightyear cannot process rebroadcast inputs until the local timeline is synchronized, but its
+// end-of-frame cleanup warns about every unread message. These packets cannot be retained across
+// frames and later packets contain redundant state, so explicitly discard them during startup.
+fn discard_remote_inputs_before_sync(
+    timeline_sync: Res<LocalTimelineSync>,
+    mut receivers: Query<&mut MessageReceiver<InputMessage<NativeStateSequence<PlayerInput>>>>,
+) {
+    if timeline_sync.is_synced() {
+        return;
+    }
+
+    for mut receiver in &mut receivers {
+        receiver.receive().for_each(drop);
     }
 }
 
