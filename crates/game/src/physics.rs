@@ -13,8 +13,10 @@ pub(super) fn install_physics(app: &mut App) {
             .disable::<PhysicsTransformPlugin>()
             .disable::<PhysicsInterpolationPlugin>(),
         LightyearAvianPlugin {
-            // Restore contact caches, broad phase, and sleeping state during replay too.
-            rollback_resources: true,
+            // Avian's persistent island and broad-phase indices are internally linked.
+            // Restoring their histories independently can leave dangling StableVec keys.
+            // Keep the live derived caches and replay corrected body state through them.
+            rollback_resources: false,
             ..default()
         },
     ));
@@ -28,7 +30,7 @@ pub(super) fn install_physics(app: &mut App) {
 
 pub(super) fn prepare_authoritative_body(
     trigger: On<Insert, CircleBody>,
-    bodies: Query<&CircleBody>,
+    bodies: Query<&CircleBody, Without<Collider>>,
     mut commands: Commands,
 ) {
     if let Ok(circle) = bodies.get(trigger.entity) {
@@ -38,7 +40,7 @@ pub(super) fn prepare_authoritative_body(
 
 pub(super) fn prepare_predicted_body(
     trigger: On<Insert, (CircleBody, Predicted)>,
-    bodies: Query<&CircleBody, With<Predicted>>,
+    bodies: Query<&CircleBody, (With<Predicted>, Without<Collider>)>,
     mut commands: Commands,
 ) {
     if let Ok(circle) = bodies.get(trigger.entity) {
