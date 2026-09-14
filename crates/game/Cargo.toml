@@ -3,6 +3,9 @@ name = "project-game"
 version.workspace = true
 edition.workspace = true
 
+[lints]
+workspace = true
+
 [features]
 default = []
 parallel = ["avian2d/parallel"]
@@ -16,9 +19,5 @@ avian2d = { workspace = true, features = [
   # keep-sorted end
 ] }
 bevy.workspace = true
-lightyear = { workspace = true, features = [
-  "input_native",
-  "prediction",
-  "std",
-] }
+lightyear = { workspace = true, features = ["input_native", "prediction", "std"] }
 project-protocol.workspace = true

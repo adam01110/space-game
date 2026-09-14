@@ -3,6 +3,9 @@ name = "project-protocol"
 version.workspace = true
 edition.workspace = true
 
+[lints]
+workspace = true
+
 [dependencies]
 bevy.workspace = true
 lightyear = { workspace = true, features = [

@@ -2,7 +2,7 @@ use std::net::{Ipv4Addr, SocketAddr};
 
 use bevy::prelude::*;
 use lightyear::{
-    netcode::{NetcodeClient, client_plugin::NetcodeConfig, generate_key},
+    netcode::{client_plugin::NetcodeConfig, generate_key, NetcodeClient},
     prelude::{client::*, *},
 };
 
@@ -11,8 +11,9 @@ use project_protocol::{PRIVATE_KEY, PROTOCOL_ID, SERVER_PORT};
 // TODO: fix this horrible shit
 pub(super) fn spawn_client(mut commands: Commands) {
     let client_id = u64::from_le_bytes(
-        generate_key()[..size_of::<u64>()]
-            .try_into()
+        generate_key()
+            .first_chunk::<{ size_of::<u64>() }>()
+            .copied()
             .expect("client ID source must contain eight bytes"),
     );
     let server_address = SocketAddr::from((Ipv4Addr::LOCALHOST, SERVER_PORT));

@@ -13,7 +13,9 @@ pub(super) fn spawn_player_for_client(
     };
 
     let peer_id = remote_id.0;
-    let spawn_x = (peer_id.to_bits() % 5) as f32 * 80.0 - 160.0;
+    let spawn_slot =
+        u8::try_from(peer_id.to_bits() % 5).expect("a value modulo five always fits in u8");
+    let spawn_x = f32::from(spawn_slot) * 80.0 - 160.0;
 
     let player = commands
         .spawn((

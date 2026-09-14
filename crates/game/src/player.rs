@@ -17,6 +17,7 @@ pub struct PlayerBundle {
 }
 
 impl PlayerBundle {
+    #[must_use]
     pub fn new(position: Vec2) -> Self {
         Self {
             blasters: PlayerBlasters::default(),

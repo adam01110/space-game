@@ -3,6 +3,9 @@ name = "project-client"
 version.workspace = true
 edition.workspace = true
 
+[lints]
+workspace = true
+
 [features]
 default = []
 dev = ["bevy/dynamic_linking"]
