@@ -6,7 +6,7 @@ use std::{
 use bevy::prelude::*;
 use crossbeam_channel::{Receiver, TryRecvError};
 use lightyear::{
-    netcode::{client_plugin::NetcodeConfig, NetcodeClient},
+    netcode::{NetcodeClient, client_plugin::NetcodeConfig},
     prelude::{client::*, *},
 };
 
@@ -34,7 +34,7 @@ impl GuestConnection {
         match guest::request() {
             Ok(receiver) => {
                 self.pending = Some(receiver);
-                self.message = "Requesting guest access...".to_owned();
+                "Requesting guest access...".clone_into(&mut self.message);
             }
             Err(message) => self.fail(&message),
         }
@@ -71,7 +71,7 @@ fn spawn_client(commands: &mut Commands, credentials: Credentials) -> Result<Ent
         Authentication::Token(credentials.token),
         NetcodeConfig::default(),
     )
-    .map_err(|_error| "Invalid connection token".to_owned())?;
+    .map_err(|error| format!("Invalid connection token: {error}"))?;
     let entity = commands
         .spawn((
             Name::new("Client"),
@@ -106,29 +106,32 @@ pub(super) fn update_connection(
         }
         connection.request(time.elapsed());
     }
-    if let Some(receiver) = &connection.pending {
-        match receiver.try_recv() {
+    match &connection.pending {
+        Some(receiver) => match receiver.try_recv() {
             Ok(Ok(credentials)) => {
                 connection.pending = None;
+
                 match spawn_client(&mut commands, credentials) {
                     Ok(entity) => {
                         connection.client = Some(entity);
                         connection.started = time.elapsed();
-                        connection.message = "Connecting securely...".to_owned();
+                        "Connecting securely...".clone_into(&mut connection.message);
                     }
                     Err(message) => connection.fail(&message),
                 }
             }
             Ok(Err(message)) => connection.fail(&message),
             Err(TryRecvError::Disconnected) => connection.fail("Guest request ended unexpectedly"),
-            Err(TryRecvError::Empty) => {
-                if time.elapsed().saturating_sub(connection.started) > Duration::from_secs(15) {
-                    connection.fail("Guest request timed out");
-                }
+            Err(TryRecvError::Empty)
+                if time.elapsed().saturating_sub(connection.started) > Duration::from_secs(15) =>
+            {
+                connection.fail("Guest request timed out");
             }
-        }
-    } else if !connection.can_retry {
-        if let Some(entity) = connection.client {
+            Err(TryRecvError::Empty) => {}
+        },
+        _ if !connection.can_retry
+            && let Some(entity) = connection.client =>
+        {
             match clients.get(entity) {
                 Ok((true, _)) => connection.message.clear(),
                 Ok((false, true)) => connection.fail("Disconnected from the server"),
@@ -140,7 +143,9 @@ pub(super) fn update_connection(
                 }
             }
         }
+        _ => (),
     }
+
     for mut text in &mut status {
         if text.0 != connection.message {
             text.0.clone_from(&connection.message);
