@@ -1,5 +1,5 @@
 use bevy::{
-    camera::{visibility::RenderLayers, RenderTarget},
+    camera::{RenderTarget, visibility::RenderLayers},
     prelude::*,
     render::render_resource::{
         Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
@@ -23,10 +23,10 @@ impl Plugin for ClientCameraPlugin {
 }
 
 /// Size of one rendered pixel in world and window units.
-pub(super) const PIXEL_SIZE: f32 = 2.0;
+pub(super) const PIXEL_SIZE: f32 = 4.0;
 
 /// How quickly the camera approaches the player position.
-const CAMERA_DECAY_RATE: f32 = 2.0;
+const CAMERA_DECAY_RATE: f32 = 6.0;
 const GAMEPLAY_LAYERS: RenderLayers = RenderLayers::layer(0);
 const CANVAS_LAYERS: RenderLayers = RenderLayers::layer(1);
 
@@ -71,7 +71,7 @@ fn setup_camera(
             ..OrthographicProjection::default_2d()
         }),
         RenderTarget::Image(canvas.clone().into()),
-        Msaa::Sample2,
+        Msaa::Off,
         GameplayCamera,
         GAMEPLAY_LAYERS,
     ));
