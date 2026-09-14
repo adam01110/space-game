@@ -19,7 +19,10 @@ use crate::{
 };
 
 fn main() {
+    let credentials =
+        network::Credentials::load().expect("secure connection configuration required");
     App::new()
+        .insert_resource(credentials)
         .add_plugins((
             DefaultPlugins,
             ClientPlugins::default(),

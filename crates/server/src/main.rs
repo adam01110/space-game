@@ -1,11 +1,12 @@
 mod network;
 mod player;
+mod security;
 
 use bevy::{prelude::*, state::app::StatesPlugin};
-use lightyear::prelude::{ReplicationMetadata, server::*};
+use lightyear::prelude::{server::*, ReplicationMetadata};
 use std::time::Duration;
 
-use project_game::{GamePlugin, SERVER_UPS, ServerSimulationPlugin};
+use project_game::{GamePlugin, ServerSimulationPlugin, SERVER_UPS};
 use project_protocol::ProtocolPlugin;
 
 use crate::{
@@ -13,8 +14,12 @@ use crate::{
     player::spawn_player_for_client,
 };
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let Some(key) = security::configure()? else {
+        return Ok(());
+    };
     App::new()
+        .insert_resource(key)
         .add_plugins((
             MinimalPlugins.set(bevy::app::ScheduleRunnerPlugin::run_loop(
                 Duration::from_secs_f64(1.0 / SERVER_UPS),
@@ -30,4 +35,5 @@ fn main() {
         .add_observer(prepare_client_link)
         .add_observer(spawn_player_for_client)
         .run();
+    Ok(())
 }

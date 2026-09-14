@@ -3,9 +3,10 @@ use std::net::SocketAddr;
 use bevy::prelude::*;
 use lightyear::{netcode::NetcodeServer, prelude::server::*, prelude::*};
 
-use project_protocol::{PRIVATE_KEY, PROTOCOL_ID, SERVER_PORT};
+use crate::security::ServerKey;
+use project_protocol::{security::encode_hex, PROTOCOL_ID, SERVER_PORT};
 
-pub(super) fn spawn_server(mut commands: Commands) {
+pub(super) fn spawn_server(mut commands: Commands, key: Res<ServerKey>) {
     let address = SocketAddr::from(([0, 0, 0, 0], SERVER_PORT));
     let certificate = Identity::self_signed(vec![
         "localhost".to_owned(),
@@ -14,12 +15,22 @@ pub(super) fn spawn_server(mut commands: Commands) {
     ])
     .expect("failed to generate a WebTransport certificate");
 
+    let leaf = certificate
+        .certificate_chain()
+        .as_slice()
+        .first()
+        .expect("generated identity must contain a certificate");
+    println!(
+        "PROJECT_SERVER_CERTIFICATE_DIGEST={}",
+        encode_hex(leaf.hash().as_ref())
+    );
+
     commands.spawn((
         Name::new("Server"),
         Server::new(None),
         NetcodeServer::new(NetcodeConfig {
             protocol_id: PROTOCOL_ID,
-            private_key: PRIVATE_KEY,
+            private_key: key.0,
             ..default()
         }),
         LocalAddr(address),

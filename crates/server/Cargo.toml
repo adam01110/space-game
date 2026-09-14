@@ -22,7 +22,7 @@ lightyear = { workspace = true, features = [
   "server",
   "std",
   "webtransport",
-  "webtransport_self_signed", # TODO
+  "webtransport_self_signed", # Clients require an operator-provided certificate pin.
   # keep-sorted end
 ] }
 log.workspace = true

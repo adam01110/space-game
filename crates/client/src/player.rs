@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use lightyear::prelude::{Controlled, Interpolated, Predicted, input::native::InputMarker};
+use lightyear::prelude::{input::native::InputMarker, Controlled, Interpolated, Predicted};
 
 use project_protocol::{Player, PlayerInput};
 

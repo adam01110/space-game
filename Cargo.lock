@@ -6498,6 +6498,7 @@ dependencies = [
  "log",
  "project-game",
  "project-protocol",
+ "web-sys",
 ]
 
 [[package]]
