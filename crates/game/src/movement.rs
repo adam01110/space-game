@@ -8,6 +8,10 @@ use project_protocol::{Player, PlayerInput};
 const MOVE_SPEED: f32 = 512.0;
 const TURN_SPEED: f32 = 8.0;
 
+/// Snap aim within roughly one degree of an axis so a mouse-controlled player can face
+/// perfectly straight instead of retaining an imperceptible input error.
+const CARDINAL_SNAP_COMPONENT: f32 = 0.02;
+
 type PlayerMovement<'a> = (
     &'a mut LinearVelocity,
     &'a mut Rotation,
@@ -48,7 +52,8 @@ fn apply_movement(
         .aim
         .is_finite()
         .then_some(input.aim)
-        .and_then(Vec2::try_normalize);
+        .and_then(Vec2::try_normalize)
+        .map(snap_cardinal_aim);
     if let Some(aim) = normalized_aim {
         let target = aim.y.atan2(aim.x) - std::f32::consts::FRAC_PI_2;
         *rotation = Rotation::radians(turn_towards(
@@ -65,6 +70,16 @@ fn apply_movement(
     } else {
         Vec2::ZERO
     };
+}
+
+fn snap_cardinal_aim(aim: Vec2) -> Vec2 {
+    if aim.x.abs() < CARDINAL_SNAP_COMPONENT {
+        Vec2::new(0.0, aim.y.signum())
+    } else if aim.y.abs() < CARDINAL_SNAP_COMPONENT {
+        Vec2::new(aim.x.signum(), 0.0)
+    } else {
+        aim
+    }
 }
 
 fn turn_towards(current: f32, target: f32, max_step: f32) -> f32 {
@@ -112,6 +127,20 @@ mod tests {
             apply_movement(&mut velocity, &mut rotation, &input, 1.0);
             assert_eq!(rotation, Rotation::radians(0.75));
         }
+    }
+
+    #[test]
+    fn near_cardinal_aim_snaps_to_a_straight_facing() {
+        let mut velocity = LinearVelocity::default();
+        let mut rotation = Rotation::radians(0.5);
+        let input = PlayerInput {
+            movement: Vec2::ZERO,
+            aim: Vec2::new(0.01, 1.0),
+        };
+
+        apply_movement(&mut velocity, &mut rotation, &input, 1.0);
+
+        assert_eq!(rotation, Rotation::default());
     }
 
     #[test]

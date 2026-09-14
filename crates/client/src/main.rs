@@ -17,7 +17,7 @@ use lightyear::prelude::client::*;
 use project_game::{ClientSimulationPlugin, GamePlugin, SERVER_UPS};
 use project_protocol::ProtocolPlugin;
 
-use crate::plugins::ClientAppPlugin;
+use crate::{camera::DEBUG_RENDER_LAYERS, plugins::ClientAppPlugin};
 
 fn main() {
     App::new()
@@ -52,6 +52,7 @@ fn main() {
                     width: 2.0,
                     ..default()
                 },
+                render_layers: DEBUG_RENDER_LAYERS,
                 ..default()
             },
         )

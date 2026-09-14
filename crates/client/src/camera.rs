@@ -36,12 +36,24 @@ pub(super) const PIXEL_SIZE: f32 = 4.0;
 const CAMERA_DECAY_RATE: f32 = 6.0;
 const GAMEPLAY_LAYERS: RenderLayers = RenderLayers::layer(0);
 const CANVAS_LAYERS: RenderLayers = RenderLayers::layer(1);
+pub(super) const DEBUG_RENDER_LAYERS: RenderLayers = RenderLayers::layer(2);
 
 #[derive(Component)]
 pub(super) struct GameplayCamera;
 
 #[derive(Component)]
 struct GameplayCanvas;
+
+#[derive(Component)]
+struct DebugCamera;
+
+type GameplayCameraFilter = (With<Camera2d>, With<GameplayCamera>, Without<DebugCamera>);
+type DebugCameraFilter = (
+    With<Camera2d>,
+    With<DebugCamera>,
+    Without<GameplayCamera>,
+    Without<InputMarker<PlayerInput>>,
+);
 
 fn setup_camera(
     mut commands: Commands,
@@ -94,6 +106,22 @@ fn setup_camera(
         Msaa::Off,
         CANVAS_LAYERS,
     ));
+
+    // Draw diagnostics directly to the window instead of baking them into the
+    // low-resolution pixel-art canvas. This preserves smooth subpixel lines.
+    commands.spawn((
+        Camera2d,
+        Camera {
+            order: 1,
+            clear_color: ClearColorConfig::None,
+            ..default()
+        },
+        // All cameras targeting the window must use the same sample count. Native
+        // resolution still avoids the 4x pixelation from the gameplay canvas.
+        Msaa::Off,
+        DebugCamera,
+        DEBUG_RENDER_LAYERS,
+    ));
 }
 
 fn resize_canvas(
@@ -132,10 +160,12 @@ fn canvas_size(window_width: f32, window_height: f32) -> Extent3d {
 fn follow_player(
     // InputMarker<PlayerInput> is attached only to the player receiving input from this client.
     players: Query<&Transform, (With<InputMarker<PlayerInput>>, Without<GameplayCamera>)>,
-    mut cameras: Query<&mut Transform, (With<Camera2d>, With<GameplayCamera>)>,
+    mut gameplay_cameras: Query<&mut Transform, GameplayCameraFilter>,
+    mut debug_cameras: Query<&mut Transform, DebugCameraFilter>,
     time: Res<Time>,
 ) {
-    let (Ok(player_transform), Ok(mut camera_transform)) = (players.single(), cameras.single_mut())
+    let (Ok(player_transform), Ok(mut camera_transform)) =
+        (players.single(), gameplay_cameras.single_mut())
     else {
         return;
     };
@@ -148,6 +178,10 @@ fn follow_player(
     camera_transform
         .translation
         .smooth_nudge(&target, CAMERA_DECAY_RATE, time.delta_secs());
+
+    if let Ok(mut debug_transform) = debug_cameras.single_mut() {
+        debug_transform.translation = camera_transform.translation;
+    }
 }
 
 #[cfg(test)]
