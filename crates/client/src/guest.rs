@@ -2,8 +2,8 @@
 use std::time::Duration;
 
 use crossbeam_channel::Receiver;
-use lightyear::netcode::{ConnectToken, CONNECT_TOKEN_BYTES};
-use project_protocol::security::{decode_hex, GuestCredentials};
+use lightyear::netcode::{CONNECT_TOKEN_BYTES, ConnectToken};
+use project_protocol::security::{GuestCredentials, decode_hex};
 use url::{Host, Url};
 
 pub(super) struct Credentials {
@@ -70,7 +70,10 @@ fn default_endpoint() -> Result<Url, String> {
         .location()
         .origin()
         .map_err(|error| format!("Cannot determine the page origin: {error:?}"))?;
-    validate_endpoint(&format!("{origin}/connect"), cfg!(feature = "dev"))
+    validate_endpoint(
+        &format!("{origin}/connect"),
+        cfg!(any(feature = "browser-dev", feature = "dev")),
+    )
 }
 
 #[cfg(all(not(target_family = "wasm"), feature = "dev"))]

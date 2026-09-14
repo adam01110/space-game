@@ -1,0 +1,10 @@
+:8000 {
+	handle /connect {
+		reverse_proxy 127.0.0.1:5001
+	}
+
+	handle {
+		root * web/dist
+		file_server
+	}
+}

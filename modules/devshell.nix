@@ -33,12 +33,28 @@
       vulkan-loader
       wayland
     ];
+
+    wasmBindgenCli = pkgs.buildWasmBindgenCli rec {
+      src = pkgs.fetchCrate {
+        pname = "wasm-bindgen-cli";
+        version = "0.2.127";
+        hash = "sha256-di+qBAdd7pENLiIB9CoZoab+W5xeDoByMREcCGTSzWo=";
+      };
+
+      cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
+        inherit src;
+        inherit (src) pname version;
+        hash = "sha256-FTv2GZIAQs0ePdIZXIXil7JbZ6kIT05VG6vqC1qNFxQ=";
+      };
+    };
   in {
     devShells.default = mkShell {
       buildInputs = runtimeLibraries;
 
       packages = with pkgs; [
         rustToolchain
+        caddy
+        wasmBindgenCli
 
         # keep-sorted start
         binaryen

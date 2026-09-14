@@ -49,8 +49,24 @@ test:
 release: wasm
     cargo build --workspace --release
 
-# Build and optimize the WebAssembly client for size.
+# Build and package the production WebAssembly client for size.
 wasm:
     cargo build -p project-client --target wasm32-unknown-unknown --profile wasm-release
-    wasm-opt -Os --output target/wasm32-unknown-unknown/wasm-release/project_client.opt.wasm target/wasm32-unknown-unknown/wasm-release/project_client.wasm
-    mv target/wasm32-unknown-unknown/wasm-release/project_client.opt.wasm target/wasm32-unknown-unknown/wasm-release/project_client.wasm
+    rm -rf web/dist
+    wasm-bindgen --out-dir web/dist --out-name project_client --target web --no-typescript target/wasm32-unknown-unknown/wasm-release/project-client.wasm
+    wasm-opt -Os --output web/dist/project_client_bg.opt.wasm web/dist/project_client_bg.wasm
+    mv web/dist/project_client_bg.opt.wasm web/dist/project_client_bg.wasm
+    cp web/index.html web/dist/index.html
+
+# Build the browser client with loopback HTTP enabled.
+web-build:
+    cargo build -p project-client --target wasm32-unknown-unknown --profile wasm-release --features browser-dev
+    rm -rf web/dist
+    wasm-bindgen --out-dir web/dist --out-name project_client --target web --no-typescript target/wasm32-unknown-unknown/wasm-release/project-client.wasm
+    wasm-opt -Os --output web/dist/project_client_bg.opt.wasm web/dist/project_client_bg.wasm
+    mv web/dist/project_client_bg.opt.wasm web/dist/project_client_bg.wasm
+    cp web/index.html web/dist/index.html
+
+# Build and serve the browser client, proxying /connect to `just server`.
+web: web-build
+    caddy run --config web/Caddyfile
