@@ -5,6 +5,28 @@ use serde::{Deserialize, Serialize};
 #[derive(Component, Serialize, Deserialize)]
 pub struct Player;
 
+// Remaining cooldown time for a player's blasters, in simulation ticks.
+#[derive(Component, Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct PlayerBlasters(pub u16);
+
+// Remaining cooldown time for a player's boost, in simulation ticks.
+#[derive(Component, Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct PlayerBoost(pub u16);
+
+// Current health of a player.
+#[derive(Component, Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct PlayerHealth(pub u16);
+
+impl Default for PlayerHealth {
+    fn default() -> Self {
+        Self(100)
+    }
+}
+
+// Remaining cooldown time for a player's phase beam, in simulation ticks.
+#[derive(Component, Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct PlayerPhaseBeam(pub u16);
+
 // Authoritative position of a player in world units.
 #[derive(Component, Clone, Debug, Default, Deref, PartialEq, Serialize, Deserialize)]
 pub struct PlayerPosition(pub Vec2);
