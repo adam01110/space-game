@@ -42,6 +42,7 @@
 
         # keep-sorted start
         binaryen
+        cargo-audit
         cargo-modules
         just
         pkg-config

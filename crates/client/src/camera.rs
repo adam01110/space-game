@@ -11,10 +11,10 @@ use lightyear::prelude::input::native::InputMarker;
 use project_protocol::{PlayerInput, PlayerPosition};
 
 /// Size of one rendered pixel in world and window units.
-pub(super) const PIXEL_SIZE: f32 = 4.0;
+pub(super) const PIXEL_SIZE: f32 = 2.0;
 
 /// How quickly the camera approaches the player position.
-const CAMERA_DECAY_RATE: f32 = 3.0;
+const CAMERA_DECAY_RATE: f32 = 2.0;
 const GAMEPLAY_LAYERS: RenderLayers = RenderLayers::layer(0);
 const CANVAS_LAYERS: RenderLayers = RenderLayers::layer(1);
 
@@ -59,7 +59,7 @@ pub(super) fn setup_camera(
             ..OrthographicProjection::default_2d()
         }),
         RenderTarget::Image(canvas.clone().into()),
-        Msaa::Off,
+        Msaa::Sample2,
         GameplayCamera,
         GAMEPLAY_LAYERS,
     ));
@@ -91,6 +91,7 @@ pub(super) fn resize_canvas(
         let RenderTarget::Image(canvas) = &*gameplay_camera else {
             return;
         };
+
         if let Some(mut image) = images.get_mut(&canvas.handle) {
             image.resize(canvas_size(resized.width, resized.height));
         }

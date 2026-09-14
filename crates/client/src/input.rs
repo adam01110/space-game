@@ -49,8 +49,10 @@ fn aim_direction(
     player_position: Vec2,
 ) -> Option<Vec2> {
     let cursor_position = window.cursor_position()?;
+
     let canvas_size = camera.logical_viewport_size()?;
     let canvas_cursor = canvas_size / 2.0 + (cursor_position - window.size() / 2.0) / PIXEL_SIZE;
+
     let cursor_world = camera
         .viewport_to_world_2d(camera_transform, canvas_cursor)
         .ok()?;
