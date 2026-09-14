@@ -12,7 +12,7 @@ use tii::{
     MimeType, RequestContext, Response, ServerBuilder, StatusCode, TiiResult,
 };
 
-use crate::security::{issue_token, ServerKey};
+use super::security::{issue_token, ServerKey};
 
 const LISTEN_ADDRESS: &str = "127.0.0.1:5001";
 const RATE_LIMIT: u32 = 20;

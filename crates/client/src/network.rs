@@ -10,10 +10,22 @@ use lightyear::{
     prelude::{client::*, *},
 };
 
-use crate::guest::{self, Credentials, GuestResult};
+use super::{
+    guest::{self, Credentials, GuestResult},
+    plugins::ClientStartup,
+};
+
+pub(super) struct ClientNetworkPlugin;
+
+impl Plugin for ClientNetworkPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Startup, setup_connection.in_set(ClientStartup::Connection))
+            .add_systems(Update, update_connection);
+    }
+}
 
 #[derive(Resource, Default)]
-pub(super) struct GuestConnection {
+struct GuestConnection {
     pending: Option<Receiver<GuestResult>>,
     client: Option<Entity>,
     started: Duration,
@@ -42,9 +54,9 @@ impl GuestConnection {
 }
 
 #[derive(Component)]
-pub(super) struct ConnectionStatus;
+struct ConnectionStatus;
 
-pub(super) fn setup_connection(mut commands: Commands, time: Res<Time<Real>>) {
+fn setup_connection(mut commands: Commands, time: Res<Time<Real>>) {
     let mut connection = GuestConnection::default();
     connection.request(time.elapsed());
     commands.spawn((
@@ -171,7 +183,7 @@ fn update_status(status: &mut Query<&mut Text, With<ConnectionStatus>>, message:
     }
 }
 
-pub(super) fn update_connection(
+fn update_connection(
     mut commands: Commands,
     time: Res<Time<Real>>,
     keys: Res<ButtonInput<KeyCode>>,

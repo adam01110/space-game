@@ -3,7 +3,15 @@ use lightyear::{connection::client::Connected, prelude::server::*, prelude::*};
 
 use project_game::PlayerBundle;
 
-pub(super) fn spawn_player_for_client(
+pub(super) struct ServerPlayerPlugin;
+
+impl Plugin for ServerPlayerPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_observer(spawn_player_for_client);
+    }
+}
+
+fn spawn_player_for_client(
     trigger: On<Add, Connected>,
     clients: Query<&RemoteId, With<ClientOf>>,
     mut commands: Commands,

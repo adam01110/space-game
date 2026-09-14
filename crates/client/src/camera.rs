@@ -1,5 +1,5 @@
 use bevy::{
-    camera::{RenderTarget, visibility::RenderLayers},
+    camera::{visibility::RenderLayers, RenderTarget},
     prelude::*,
     render::render_resource::{
         Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
@@ -9,6 +9,18 @@ use bevy::{
 use lightyear::prelude::input::native::InputMarker;
 
 use project_protocol::{PlayerInput, PlayerPosition};
+
+use super::plugins::ClientStartup;
+
+pub(super) struct ClientCameraPlugin;
+
+impl Plugin for ClientCameraPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Startup, setup_camera.in_set(ClientStartup::Camera))
+            .add_systems(PreUpdate, resize_canvas)
+            .add_systems(Update, follow_player);
+    }
+}
 
 /// Size of one rendered pixel in world and window units.
 pub(super) const PIXEL_SIZE: f32 = 2.0;
@@ -24,7 +36,7 @@ pub(super) struct GameplayCamera;
 #[derive(Component)]
 struct GameplayCanvas;
 
-pub(super) fn setup_camera(
+fn setup_camera(
     mut commands: Commands,
     mut images: ResMut<Assets<Image>>,
     window: Single<&Window, With<PrimaryWindow>>,
@@ -77,7 +89,7 @@ pub(super) fn setup_camera(
     ));
 }
 
-pub(super) fn resize_canvas(
+fn resize_canvas(
     mut resize_messages: MessageReader<WindowResized>,
     primary_window: Single<Entity, With<PrimaryWindow>>,
     gameplay_camera: Single<&RenderTarget, With<GameplayCamera>>,
@@ -110,7 +122,7 @@ fn canvas_size(window_width: f32, window_height: f32) -> Extent3d {
     }
 }
 
-pub(super) fn follow_player(
+fn follow_player(
     players: Query<&PlayerPosition, With<InputMarker<PlayerInput>>>,
     mut cameras: Query<&mut Transform, (With<Camera2d>, With<GameplayCamera>)>,
     time: Res<Time>,

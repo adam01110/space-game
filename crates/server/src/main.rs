@@ -1,6 +1,7 @@
 mod auth;
 mod network;
 mod player;
+mod plugins;
 mod security;
 
 use bevy::{prelude::*, state::app::StatesPlugin};
@@ -10,17 +11,12 @@ use std::time::Duration;
 use project_game::{GamePlugin, ServerSimulationPlugin, SERVER_UPS};
 use project_protocol::ProtocolPlugin;
 
-use crate::{
-    network::{prepare_client_link, spawn_server, start_server},
-    player::spawn_player_for_client,
-};
-
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let Some(key) = security::configure()? else {
+    let Some(server) = plugins::configure()? else {
         return Ok(());
     };
+
     App::new()
-        .insert_resource(key)
         .add_plugins((
             MinimalPlugins.set(bevy::app::ScheduleRunnerPlugin::run_loop(
                 Duration::from_secs_f64(1.0 / SERVER_UPS),
@@ -30,11 +26,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             ProtocolPlugin,
             GamePlugin,
             ServerSimulationPlugin,
+            server,
         ))
         .insert_resource(ReplicationMetadata::new(Duration::from_millis(50)))
-        .add_systems(Startup, (spawn_server, start_server).chain())
-        .add_observer(prepare_client_link)
-        .add_observer(spawn_player_for_client)
         .run();
     Ok(())
 }

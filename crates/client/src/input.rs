@@ -1,9 +1,23 @@
 use bevy::{prelude::*, window::PrimaryWindow};
-use lightyear::prelude::input::native::{ActionState, InputMarker};
+use lightyear::prelude::{
+    client::input::InputSystems,
+    input::native::{ActionState, InputMarker},
+};
 
 use project_protocol::{PlayerInput, PlayerPosition};
 
-use crate::camera::{GameplayCamera, PIXEL_SIZE};
+use super::camera::{GameplayCamera, PIXEL_SIZE};
+
+pub(super) struct ClientInputPlugin;
+
+impl Plugin for ClientInputPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            FixedPreUpdate,
+            buffer_player_input.in_set(InputSystems::WriteClientInputs),
+        );
+    }
+}
 
 type PlayerInputQuery<'w, 's> = Query<
     'w,
@@ -15,7 +29,7 @@ type PlayerInputQuery<'w, 's> = Query<
     With<InputMarker<PlayerInput>>,
 >;
 
-pub(super) fn buffer_player_input(
+fn buffer_player_input(
     keyboard: Res<ButtonInput<KeyCode>>,
     windows: Query<&Window, With<PrimaryWindow>>,
     cameras: Query<(&Camera, &GlobalTransform), With<GameplayCamera>>,

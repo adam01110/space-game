@@ -3,10 +3,19 @@ use std::net::SocketAddr;
 use bevy::prelude::*;
 use lightyear::{netcode::NetcodeServer, prelude::server::*, prelude::*};
 
-use crate::{auth::AuthService, security::ServerKey};
+use super::{auth::AuthService, security::ServerKey};
 use project_protocol::{security::encode_hex, PROTOCOL_ID, SERVER_PORT};
 
-pub(super) fn spawn_server(mut commands: Commands, key: Res<ServerKey>) {
+pub(super) struct ServerNetworkPlugin;
+
+impl Plugin for ServerNetworkPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Startup, (spawn_server, start_server).chain())
+            .add_observer(prepare_client_link);
+    }
+}
+
+fn spawn_server(mut commands: Commands, key: Res<ServerKey>) {
     let address = SocketAddr::from(([0, 0, 0, 0], SERVER_PORT));
     let certificate = Identity::self_signed(vec![
         "localhost".to_owned(),
@@ -40,13 +49,13 @@ pub(super) fn spawn_server(mut commands: Commands, key: Res<ServerKey>) {
     info!("WebTransport server listening on {address}");
 }
 
-pub(super) fn start_server(mut commands: Commands, server: Single<Entity, With<Server>>) {
+fn start_server(mut commands: Commands, server: Single<Entity, With<Server>>) {
     commands.trigger(Start {
         entity: server.into_inner(),
     });
 }
 
-pub(super) fn prepare_client_link(trigger: On<Add, LinkOf>, mut commands: Commands) {
+fn prepare_client_link(trigger: On<Add, LinkOf>, mut commands: Commands) {
     commands
         .entity(trigger.entity)
         .insert((Name::new("Client connection"), ReplicationSender));
