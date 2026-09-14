@@ -3,7 +3,7 @@ use std::net::SocketAddr;
 use bevy::prelude::*;
 use lightyear::{netcode::NetcodeServer, prelude::server::*, prelude::*};
 
-use crate::security::ServerKey;
+use crate::{auth::AuthService, security::ServerKey};
 use project_protocol::{security::encode_hex, PROTOCOL_ID, SERVER_PORT};
 
 pub(super) fn spawn_server(mut commands: Commands, key: Res<ServerKey>) {
@@ -20,10 +20,10 @@ pub(super) fn spawn_server(mut commands: Commands, key: Res<ServerKey>) {
         .as_slice()
         .first()
         .expect("generated identity must contain a certificate");
-    println!(
-        "PROJECT_SERVER_CERTIFICATE_DIGEST={}",
-        encode_hex(leaf.hash().as_ref())
-    );
+    let certificate_digest = encode_hex(leaf.hash().as_ref());
+    let auth =
+        AuthService::start(key.0, certificate_digest).expect("failed to start the guest endpoint");
+    commands.insert_resource(auth);
 
     commands.spawn((
         Name::new("Server"),

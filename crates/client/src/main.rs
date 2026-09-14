@@ -1,4 +1,5 @@
 mod camera;
+mod guest;
 mod input;
 mod network;
 mod player;
@@ -12,17 +13,14 @@ use project_protocol::ProtocolPlugin;
 use crate::{
     camera::{follow_player, setup_camera},
     input::buffer_player_input,
-    network::{connect_client, spawn_client},
+    network::{setup_connection, update_connection},
     player::{
         add_interpolated_player_visual, add_predicted_player_visual, prepare_controlled_player,
     },
 };
 
 fn main() {
-    let credentials =
-        network::Credentials::load().expect("secure connection configuration required");
     App::new()
-        .insert_resource(credentials)
         .add_plugins((
             DefaultPlugins,
             ClientPlugins::default(),
@@ -30,15 +28,12 @@ fn main() {
             GamePlugin,
             ClientSimulationPlugin,
         ))
-        .add_systems(
-            Startup,
-            (setup_camera, spawn_client, connect_client).chain(),
-        )
+        .add_systems(Startup, (setup_camera, setup_connection))
         .add_systems(
             FixedPreUpdate,
             buffer_player_input.in_set(InputSystems::WriteClientInputs),
         )
-        .add_systems(Update, follow_player)
+        .add_systems(Update, (follow_player, update_connection))
         .add_observer(prepare_controlled_player)
         .add_observer(add_predicted_player_visual)
         .add_observer(add_interpolated_player_visual)

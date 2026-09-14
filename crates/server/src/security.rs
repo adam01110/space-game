@@ -23,7 +23,7 @@ fn parse_key(bytes: &[u8]) -> Result<ServerKey, Error> {
     Ok(ServerKey(key))
 }
 
-fn issue_token(
+pub(super) fn issue_token(
     key: &ServerKey,
     address: SocketAddr,
     client_id: u64,

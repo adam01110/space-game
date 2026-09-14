@@ -1,5 +1,14 @@
-//! Encoding for out-of-band credentials. No server secrets belong in this crate.
+//! Public connection bootstrap data. No server secrets belong in this crate.
 use std::fmt::Write;
+
+/// Bearer credentials delivered by the authenticated guest endpoint.
+/// Deliberately does not implement Debug to avoid accidental token logging.
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct GuestCredentials {
+    pub connect_token: String,
+    pub certificate_digest: String,
+}
 
 #[must_use]
 pub fn encode_hex(bytes: &[u8]) -> String {

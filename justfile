@@ -5,35 +5,18 @@ default:
 # Development features shared by workspace commands.
 dev-features := "project-client/dev,project-server/dev"
 
-# Run a local native client with a fresh token (optional unique client ID).
-[positional-arguments]
-client client-id="":
+# Run a local native client against the development server.
+client:
     #!/usr/bin/env bash
     set -euo pipefail
-    umask 077
     state="${XDG_STATE_HOME:-$HOME/.local/state}/project-1/dev"
-    if [[ ! -f "$state/server.log" ]] || flock -n "$state/server.lock" true; then
+    if [[ ! -f "$state/server.lock" ]] || flock -n "$state/server.lock" true; then
         echo 'Start just server in another terminal first.' >&2
         exit 1
     fi
-    # Compile before issuing the short-lived token, using the same feature set.
-    cargo build -p project-client --features dev
-    cargo build -p project-server --features dev
-    digest=$(sed -n 's/^PROJECT_SERVER_CERTIFICATE_DIGEST=//p' "$state/server.log" | head -n 1)
-    if [[ ! "$digest" =~ ^[[:xdigit:]]{64}$ ]]; then
-        echo 'Server fingerprint is not ready; retry once just server is listening.' >&2
-        exit 1
-    fi
-    client_id="$1"
-    if [[ -z "$client_id" ]]; then
-        client_id=$(od -An -N8 -tu8 /dev/urandom | tr -d ' ')
-    fi
-    export PROJECT_SERVER_CERTIFICATE_DIGEST="$digest"
-    export PROJECT_CONNECT_TOKEN
-    PROJECT_CONNECT_TOKEN=$(cargo run --quiet -p project-server --features dev -- issue-token "$state/netcode.key" 127.0.0.1:5000 "$client_id")
     exec cargo run -p project-client --features dev
 
-# Run the local server and capture its trusted fingerprint for just client.
+# Run the local development server.
 server:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -46,14 +29,12 @@ server:
         echo 'A local development server is already running.' >&2
         exit 1
     fi
-    # Discard the previous certificate pin before generating a new identity.
-    : > "$state/server.log"
     cargo build -p project-server --features dev
     export PROJECT_NETCODE_KEY_FILE="$state/netcode.key"
     if [[ ! -e "$PROJECT_NETCODE_KEY_FILE" ]]; then
         cargo run --quiet -p project-server --features dev -- generate-key "$PROJECT_NETCODE_KEY_FILE"
     fi
-    cargo run -p project-server --features dev | tee "$state/server.log"
+    exec cargo run -p project-server --features dev
 
 # Type-check every crate and target with development features.
 check:
