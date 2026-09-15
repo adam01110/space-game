@@ -1,12 +1,12 @@
 use avian2d::prelude::{Position, Rotation};
 use bevy::prelude::*;
 use lightyear::prelude::{Predicted, SyncedLocalTimeline, input::native::ActionState};
-use project_protocol::{
-    AbilityCharge, BlasterReload, BlasterShot, BlasterTrigger, Player, PlayerBlasters, PlayerInput,
-};
 use std::time::Duration;
 
 use crate::PLAYER_RADIUS;
+use project_protocol::{
+    AbilityCharge, BlasterReload, BlasterShot, BlasterTrigger, Player, PlayerBlasters, PlayerInput,
+};
 
 const SHOT_COST: u16 = 2 * AbilityCharge::UNITS_PER_PERCENT;
 const RELOAD_DURATION: Duration = Duration::from_secs(5);
@@ -34,6 +34,23 @@ fn consume_counter(previous: &mut u32, current: u32) -> u32 {
 }
 
 // Both prediction and authority use the same reload and firing rules.
+// Consume inputs during reload without queuing shots or restarting the timer.
+fn tick_reload(charge: &mut PlayerBlasters, reload: &mut BlasterReload, delta: Duration) {
+    reload.remaining = reload.remaining.saturating_sub(delta);
+
+    if reload.remaining.is_zero() {
+        charge.0 = AbilityCharge::default();
+    }
+}
+
+// A reload starts when the blaster cannot fire but should be ready soon.
+fn wants_reload(charge: &PlayerBlasters, reload_requested: bool) -> bool {
+    let empty = charge.0.units() < SHOT_COST;
+    let manual = reload_requested && charge.0.units() < AbilityCharge::FULL;
+
+    empty || manual
+}
+
 fn update_blasters(
     charge: &mut PlayerBlasters,
     trigger: &mut BlasterTrigger,
@@ -44,17 +61,12 @@ fn update_blasters(
     let clicks = consume_counter(&mut trigger.0, input.blaster_clicks);
     let reload_requested = consume_counter(&mut reload.requests, input.blaster_reload_requests) > 0;
 
-    // Consume inputs during reload without queuing shots or restarting the timer.
     if !reload.remaining.is_zero() {
-        reload.remaining = reload.remaining.saturating_sub(delta);
-        if reload.remaining.is_zero() {
-            charge.0 = AbilityCharge::default();
-        }
+        tick_reload(charge, reload, delta);
         return 0;
     }
 
-    if charge.0.units() < SHOT_COST || (reload_requested && charge.0.units() < AbilityCharge::FULL)
-    {
+    if wants_reload(charge, reload_requested) {
         reload.remaining = RELOAD_DURATION;
         return 0;
     }
@@ -82,6 +94,18 @@ pub(super) fn shoot_predicted_players(
     }
 }
 
+fn spawn_shots(commands: &mut Commands, position: &Position, rotation: &Rotation, shots: u16) {
+    let direction = *rotation * Vec2::Y;
+
+    for _ in 0..shots {
+        commands.spawn(BlasterShot {
+            position: position.0 + direction * (PLAYER_RADIUS + 8.0),
+            direction,
+            ticks_left: SHOT_LIFETIME,
+        });
+    }
+}
+
 pub(super) fn shoot_authoritative_players(
     mut commands: Commands,
     time: Res<Time<Fixed>>,
@@ -95,15 +119,22 @@ pub(super) fn shoot_authoritative_players(
             &input.0,
             time.delta(),
         );
-        let direction = *rotation * Vec2::Y;
+        spawn_shots(&mut commands, position, rotation, shots);
+    }
+}
 
-        for _ in 0..shots {
-            commands.spawn(BlasterShot {
-                position: position.0 + direction * (PLAYER_RADIUS + 8.0),
-                direction,
-                ticks_left: SHOT_LIFETIME,
-            });
-        }
+fn advance_shot(
+    commands: &mut Commands,
+    shot_entity: Entity,
+    shot: &mut BlasterShot,
+    delta_secs: f32,
+) {
+    if shot.ticks_left <= 1 {
+        // The caller must not use the entity afterwards.
+        commands.entity(shot_entity).despawn();
+    } else {
+        shot.ticks_left -= 1;
+        shot.position += shot.direction * SHOT_SPEED * delta_secs;
     }
 }
 
@@ -112,14 +143,9 @@ pub(super) fn advance_shots(
     time: Res<Time<Fixed>>,
     mut shots: Query<(Entity, &mut BlasterShot)>,
 ) {
-    for (entity, mut shot) in &mut shots {
-        if shot.ticks_left <= 1 {
-            commands.entity(entity).despawn();
-        } else {
-            let direction = shot.direction;
+    let delta_secs = time.delta_secs();
 
-            shot.ticks_left -= 1;
-            shot.position += direction * SHOT_SPEED * time.delta_secs();
-        }
+    for (shot_entity, mut shot) in &mut shots {
+        advance_shot(&mut commands, shot_entity, &mut shot, delta_secs);
     }
 }
