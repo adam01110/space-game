@@ -1,8 +1,8 @@
 use std::{ffi::OsString, fs::OpenOptions, io::Write, net::SocketAddr, path::Path};
 
 use bevy::prelude::*;
-use lightyear::netcode::{generate_key, ConnectToken};
-use project_protocol::{security::encode_hex, PROTOCOL_ID, SERVER_PORT};
+use lightyear::netcode::{ConnectToken, generate_key};
+use project_protocol::{PROTOCOL_ID, SERVER_PORT, security::encode_hex};
 
 type Error = Box<dyn std::error::Error>;
 

@@ -2,7 +2,7 @@ use avian2d::prelude::Position;
 use bevy::prelude::*;
 use lightyear::{connection::client::Connected, prelude::server::*, prelude::*};
 
-use project_game::{PlayerBundle, PLAYER_RADIUS};
+use project_game::{PLAYER_RADIUS, PlayerBundle};
 use project_protocol::CircleBody;
 
 pub(super) struct ServerPlayerPlugin;

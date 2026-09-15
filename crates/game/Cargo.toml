@@ -16,8 +16,17 @@ avian2d = { workspace = true, features = [
   # keep-sorted end
 ] }
 bevy.workspace = true
-lightyear = { workspace = true, features = ["avian2d", "input_native", "prediction", "std"] }
+lightyear = { workspace = true, features = [
+  "avian2d",
+  "input_native",
+  "prediction",
+  "std",
+] }
 project-protocol.workspace = true
 
 [dev-dependencies]
-lightyear = { workspace = true, features = ["client", "frame_interpolation", "server"] }
+lightyear = { workspace = true, features = [
+  "client",
+  "frame_interpolation",
+  "server",
+] }

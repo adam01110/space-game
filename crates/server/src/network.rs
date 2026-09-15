@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use lightyear::{netcode::NetcodeServer, prelude::server::*, prelude::*};
 
 use super::{auth::AuthService, security::ServerKey};
-use project_protocol::{security::encode_hex, PROTOCOL_ID, SERVER_PORT};
+use project_protocol::{PROTOCOL_ID, SERVER_PORT, security::encode_hex};
 
 pub(super) struct ServerNetworkPlugin;
 

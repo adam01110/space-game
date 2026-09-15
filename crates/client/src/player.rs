@@ -1,6 +1,6 @@
 use avian2d::prelude::{Position, Rotation};
 use bevy::prelude::*;
-use lightyear::prelude::{input::native::InputMarker, Controlled, Predicted};
+use lightyear::prelude::{Controlled, Predicted, input::native::InputMarker};
 
 use project_protocol::{Player, PlayerInput};
 
@@ -57,6 +57,6 @@ fn add_player_visuals(
         };
         commands
             .entity(entity)
-            .insert(Sprite::from_color(color, Vec2::new(28.0, 44.0)));
+            .insert(Sprite::from_color(color, Vec2::new(33.6, 52.8)));
     }
 }

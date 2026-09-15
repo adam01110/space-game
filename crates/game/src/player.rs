@@ -6,7 +6,7 @@ use project_protocol::{
     PlayerPhaseBeam,
 };
 
-pub const PLAYER_RADIUS: f32 = 18.0;
+pub const PLAYER_RADIUS: f32 = 23.4;
 
 #[derive(Bundle)]
 pub struct PlayerBundle {
