@@ -1,7 +1,10 @@
 use bevy::prelude::*;
+#[cfg(feature = "dev")]
 use lightyear::frame_interpolation::FrameInterpolationSystems;
 
-use crate::{abilities, arena, camera, input, network, player};
+#[cfg(feature = "dev")]
+use crate::arena;
+use crate::{abilities, camera, input, network, player};
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub(super) enum ClientStartup {
@@ -16,12 +19,14 @@ impl Plugin for ClientAppPlugin {
         app.configure_sets(
             Startup,
             (ClientStartup::Camera, ClientStartup::Connection).chain(),
-        )
-        .add_systems(
+        );
+        // Physics gizmo rendering is a development-only diagnostic.
+        #[cfg(feature = "dev")]
+        app.add_systems(
             PostUpdate,
             arena::draw_arena.after(FrameInterpolationSystems::Interpolate),
-        )
-        .add_plugins((
+        );
+        app.add_plugins((
             abilities::ClientAbilitiesPlugin,
             camera::ClientCameraPlugin,
             input::ClientInputPlugin,

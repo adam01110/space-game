@@ -9,10 +9,10 @@ workspace = true
 [features]
 default = []
 browser-dev = []
-dev = ["bevy/dynamic_linking"]
+dev = ["bevy/dynamic_linking", "avian2d/debug-plugin"]
 
 [dependencies]
-avian2d = { workspace = true, features = ["debug-plugin"] }
+avian2d.workspace = true
 bevy = { workspace = true, features = [
   # keep-sorted start
   "2d",

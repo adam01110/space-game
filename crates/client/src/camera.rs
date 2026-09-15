@@ -1,6 +1,6 @@
 use avian2d::prelude::PhysicsSystems;
 use bevy::{
-    camera::{RenderTarget, visibility::RenderLayers},
+    camera::{visibility::RenderLayers, RenderTarget},
     prelude::*,
     render::render_resource::{
         Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
@@ -36,6 +36,7 @@ pub(super) const PIXEL_SIZE: f32 = 4.0;
 const CAMERA_DECAY_RATE: f32 = 6.0;
 const GAMEPLAY_LAYERS: RenderLayers = RenderLayers::layer(0);
 const CANVAS_LAYERS: RenderLayers = RenderLayers::layer(1);
+#[cfg(feature = "dev")]
 pub(super) const DEBUG_RENDER_LAYERS: RenderLayers = RenderLayers::layer(2);
 
 #[derive(Component)]
@@ -109,6 +110,8 @@ fn setup_camera(
 
     // Draw diagnostics directly to the window instead of baking them into the
     // low-resolution pixel-art canvas. This preserves smooth subpixel lines.
+    // Only the physics debug build renders this extra camera pass.
+    #[cfg(feature = "dev")]
     commands.spawn((
         Camera2d,
         Camera {

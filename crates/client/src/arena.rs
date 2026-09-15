@@ -1,13 +1,19 @@
+#[cfg(feature = "dev")]
 use avian2d::prelude::PhysicsGizmos;
+#[cfg(feature = "dev")]
 use bevy::prelude::*;
+#[cfg(feature = "dev")]
 use lightyear::prelude::Predicted;
 
+#[cfg(feature = "dev")]
 use project_protocol::ArenaBoundary;
 
 /*
 Presentation is deliberately separate from the gameplay constraint. Reuse the
 existing native-resolution debug layer without changing any camera/MSAA settings.
+Only compiled into the physics debug build.
 */
+#[cfg(feature = "dev")]
 pub(super) fn draw_arena(
     arenas: Query<&ArenaBoundary, With<Predicted>>,
     mut gizmos: Gizmos<PhysicsGizmos>,
