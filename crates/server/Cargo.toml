@@ -30,5 +30,6 @@ lightyear = { workspace = true, features = [
 log.workspace = true
 project-game.workspace = true
 project-protocol.workspace = true
+rand = "0.10.2"
 serde_json = "1"
 tii = { version = "0.0.8", features = ["extras"] }

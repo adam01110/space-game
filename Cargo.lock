@@ -6663,6 +6663,7 @@ dependencies = [
  "log",
  "project-game",
  "project-protocol",
+ "rand 0.10.2",
  "serde_json",
  "tii",
 ]
