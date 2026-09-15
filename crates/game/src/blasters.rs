@@ -8,6 +8,7 @@ use project_protocol::{
 use crate::PLAYER_RADIUS;
 
 const SHOT_COST: u16 = 2 * AbilityCharge::UNITS_PER_PERCENT;
+const REGEN_PER_SECOND: u16 = 2 * AbilityCharge::UNITS_PER_PERCENT;
 const SHOT_SPEED: f32 = 1200.0;
 const SHOT_LIFETIME: u16 = 60;
 
@@ -32,18 +33,22 @@ fn consume_clicks(charge: &mut PlayerBlasters, trigger: &mut BlasterTrigger, cli
 
 pub(super) fn shoot_predicted_players(
     _timeline: SyncedLocalTimeline,
+    time: Res<Time<Fixed>>,
     mut players: Query<BlasterState, (With<Player>, With<Predicted>)>,
 ) {
     for (mut charge, mut trigger, input) in &mut players {
+        charge.0.regenerate(REGEN_PER_SECOND, time.delta());
         consume_clicks(&mut charge, &mut trigger, input.0.blaster_clicks);
     }
 }
 
 pub(super) fn shoot_authoritative_players(
     mut commands: Commands,
+    time: Res<Time<Fixed>>,
     mut players: Query<(BlasterState, &Position, &Rotation), With<Player>>,
 ) {
     for ((mut charge, mut trigger, input), position, rotation) in &mut players {
+        charge.0.regenerate(REGEN_PER_SECOND, time.delta());
         let shots = consume_clicks(&mut charge, &mut trigger, input.0.blaster_clicks);
         let direction = *rotation * Vec2::Y;
 
