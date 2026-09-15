@@ -1,12 +1,14 @@
+use std::time::Duration;
+
 use avian2d::prelude::{Position, Rotation};
 use bevy::prelude::*;
 use lightyear::prelude::{Predicted, SyncedLocalTimeline, input::native::ActionState};
-use std::time::Duration;
 
-use crate::PLAYER_RADIUS;
 use project_protocol::{
     AbilityCharge, BlasterReload, BlasterShot, BlasterTrigger, Player, PlayerBlasters, PlayerInput,
 };
+
+use crate::PLAYER_RADIUS;
 
 const SHOT_COST: u16 = 2 * AbilityCharge::UNITS_PER_PERCENT;
 const RELOAD_DURATION: Duration = Duration::from_secs(5);

@@ -1,10 +1,10 @@
-//! Fetch short-lived credentials without blocking the game loop.
 use std::time::Duration;
 
 use crossbeam_channel::Receiver;
 use lightyear::netcode::{CONNECT_TOKEN_BYTES, ConnectToken};
-use project_protocol::security::{GuestCredentials, decode_hex};
 use url::{Host, Url};
+
+use project_protocol::security::{GuestCredentials, decode_hex};
 
 pub(super) struct Credentials {
     pub token: ConnectToken,

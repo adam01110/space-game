@@ -31,6 +31,7 @@ lightyear = { workspace = true, features = [
   # keep-sorted start
   "avian2d",
   "client",
+  "frame_interpolation",
   "input_native",
   "interpolation",
   "metrics",

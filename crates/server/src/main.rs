@@ -5,9 +5,10 @@ mod player;
 mod plugins;
 mod security;
 
+use std::time::Duration;
+
 use bevy::{prelude::*, state::app::StatesPlugin};
 use lightyear::prelude::{ReplicationMetadata, server::*};
-use std::time::Duration;
 
 use project_game::{GamePlugin, SERVER_UPS, ServerSimulationPlugin};
 use project_protocol::ProtocolPlugin;
@@ -22,6 +23,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             MinimalPlugins.set(bevy::app::ScheduleRunnerPlugin::run_loop(
                 Duration::from_secs_f64(1.0 / SERVER_UPS),
             )),
+            bevy::log::LogPlugin {
+                // RUST_LOG can override the default level/filter.
+                filter: "info,wgpu=error,naga=warn".into(),
+                ..default()
+            },
             StatesPlugin,
             bevy::transform::TransformPlugin,
             ServerPlugins {

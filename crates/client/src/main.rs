@@ -1,4 +1,5 @@
 mod abilities;
+mod arena;
 mod blasters;
 mod camera;
 mod guest;

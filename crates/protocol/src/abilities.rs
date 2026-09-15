@@ -1,6 +1,7 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
 
 // Fixed-point ability charge: 100 internal units equal one UI percentage point.
 // Simulation retains this precision; presentation can scale to 0–100 separately.

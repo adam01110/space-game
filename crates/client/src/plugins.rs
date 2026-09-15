@@ -1,6 +1,7 @@
 use bevy::prelude::*;
+use lightyear::frame_interpolation::FrameInterpolationSystems;
 
-use crate::{abilities, camera, input, network, player};
+use crate::{abilities, arena, camera, input, network, player};
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub(super) enum ClientStartup {
@@ -15,6 +16,10 @@ impl Plugin for ClientAppPlugin {
         app.configure_sets(
             Startup,
             (ClientStartup::Camera, ClientStartup::Connection).chain(),
+        )
+        .add_systems(
+            PostUpdate,
+            arena::draw_arena.after(FrameInterpolationSystems::Interpolate),
         )
         .add_plugins((
             abilities::ClientAbilitiesPlugin,

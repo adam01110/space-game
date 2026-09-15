@@ -7,7 +7,8 @@ pub mod security;
 
 pub use abilities::{AbilityCharge, PlayerBlasters, PlayerBoost, PlayerPhaseBeam};
 pub use components::{
-    BlasterReload, BlasterShot, BlasterTrigger, BodyMotion, CircleBody, Player, PlayerHealth,
+    ArenaBoundary, BlasterReload, BlasterShot, BlasterTrigger, BodyMotion, CircleBody, Player,
+    PlayerHealth,
 };
 pub use config::{PROTOCOL_ID, SERVER_PORT};
 pub use input::PlayerInput;

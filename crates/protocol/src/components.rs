@@ -1,6 +1,25 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
+
+// Server-owned circular play area centered at the world origin. Predicted with rollback
+// so population changes use the authoritative radius, never a client's visible player count.
+#[derive(Component, Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ArenaBoundary {
+    pub radius: f32,
+    pub target_radius: f32,
+}
+
+impl ArenaBoundary {
+    #[must_use]
+    pub const fn new(radius: f32) -> Self {
+        Self {
+            radius,
+            target_radius: radius,
+        }
+    }
+}
 
 // Marks an entity as a player-controlled ship.
 #[derive(Component, Serialize, Deserialize)]

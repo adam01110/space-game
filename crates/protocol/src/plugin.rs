@@ -2,8 +2,8 @@ use bevy::prelude::*;
 use lightyear::prelude::*;
 
 use crate::{
-    BlasterReload, BlasterShot, BlasterTrigger, CircleBody, Player, PlayerBlasters, PlayerBoost,
-    PlayerHealth, PlayerInput, PlayerPhaseBeam,
+    ArenaBoundary, BlasterReload, BlasterShot, BlasterTrigger, CircleBody, Player, PlayerBlasters,
+    PlayerBoost, PlayerHealth, PlayerInput, PlayerPhaseBeam,
 };
 
 // Registers replicated components and the shared player input type.
@@ -19,6 +19,7 @@ impl Plugin for ProtocolPlugin {
             },
         });
 
+        app.component::<ArenaBoundary>().replicate().predict();
         app.component::<Player>().replicate();
         app.component::<PlayerBlasters>().replicate().predict();
         app.component::<BlasterTrigger>().replicate().predict();
