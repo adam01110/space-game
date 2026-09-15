@@ -1,6 +1,6 @@
 use avian2d::prelude::{Position, Rotation};
 use bevy::prelude::*;
-use lightyear::prelude::{Controlled, Predicted, input::native::InputMarker};
+use lightyear::prelude::{input::native::InputMarker, Controlled, Predicted};
 
 use project_protocol::{Player, PlayerInput};
 

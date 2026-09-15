@@ -1,3 +1,5 @@
+mod abilities;
+mod blasters;
 mod camera;
 mod guest;
 mod input;

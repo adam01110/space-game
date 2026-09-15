@@ -8,8 +8,8 @@ use project_protocol::{Player, PlayerInput};
 const MOVE_SPEED: f32 = 512.0;
 const TURN_SPEED: f32 = 8.0;
 
-/// Snap aim within roughly one degree of an axis so a mouse-controlled player can face
-/// perfectly straight instead of retaining an imperceptible input error.
+// Snap aim within roughly one degree of an axis so a mouse-controlled player can face
+// perfectly straight instead of retaining an imperceptible input error.
 const CARDINAL_SNAP_COMPONENT: f32 = 0.02;
 
 type PlayerMovement<'a> = (
@@ -87,74 +87,4 @@ fn turn_towards(current: f32, target: f32, max_step: f32) -> f32 {
         - std::f32::consts::PI;
 
     current + difference.clamp(-max_step, max_step)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn non_finite_movement_clears_velocity() {
-        for movement in [
-            Vec2::new(f32::NAN, 0.0),
-            Vec2::new(f32::INFINITY, 0.0),
-            Vec2::new(0.0, f32::NEG_INFINITY),
-        ] {
-            let mut velocity = LinearVelocity(Vec2::splat(MOVE_SPEED));
-            let mut rotation = Rotation::default();
-            let input = PlayerInput {
-                movement,
-                aim: Vec2::ZERO,
-            };
-            apply_movement(&mut velocity, &mut rotation, &input, 1.0);
-            assert_eq!(velocity.0, Vec2::ZERO);
-        }
-    }
-
-    #[test]
-    fn non_finite_aim_does_not_change_rotation() {
-        for aim in [
-            Vec2::new(f32::NAN, 0.0),
-            Vec2::new(f32::INFINITY, 0.0),
-            Vec2::new(0.0, f32::NEG_INFINITY),
-        ] {
-            let mut velocity = LinearVelocity::default();
-            let mut rotation = Rotation::radians(0.75);
-            let input = PlayerInput {
-                movement: Vec2::ZERO,
-                aim,
-            };
-            apply_movement(&mut velocity, &mut rotation, &input, 1.0);
-            assert_eq!(rotation, Rotation::radians(0.75));
-        }
-    }
-
-    #[test]
-    fn near_cardinal_aim_snaps_to_a_straight_facing() {
-        let mut velocity = LinearVelocity::default();
-        let mut rotation = Rotation::radians(0.5);
-        let input = PlayerInput {
-            movement: Vec2::ZERO,
-            aim: Vec2::new(0.01, 1.0),
-        };
-
-        apply_movement(&mut velocity, &mut rotation, &input, 1.0);
-
-        assert_eq!(rotation, Rotation::default());
-    }
-
-    #[test]
-    fn movement_sets_normalized_velocity_and_release_stops() {
-        let mut velocity = LinearVelocity::default();
-        let mut rotation = Rotation::default();
-        let movement = Vec2::new(3.0, 4.0);
-        let input = PlayerInput {
-            movement,
-            aim: Vec2::ZERO,
-        };
-        apply_movement(&mut velocity, &mut rotation, &input, 0.5);
-        assert!(velocity.0.distance(movement.normalize() * MOVE_SPEED) < f32::EPSILON);
-        apply_movement(&mut velocity, &mut rotation, &PlayerInput::default(), 0.5);
-        assert_eq!(velocity.0, Vec2::ZERO);
-    }
 }

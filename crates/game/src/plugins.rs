@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
+    abilities::{ClientAbilitiesPlugin, ServerAbilitiesPlugin},
     movement::{move_authoritative_players, move_predicted_players},
     physics::{install_physics, prepare_authoritative_body, prepare_predicted_body},
 };
@@ -23,7 +24,8 @@ impl Plugin for ClientSimulationPlugin {
         app.add_observer(prepare_predicted_body);
         // Input is buffered in FixedPreUpdate. Apply desired velocity here, then Avian
         // resolves contacts in FixedPostUpdate before Lightyear records prediction history.
-        app.add_systems(FixedUpdate, move_predicted_players);
+        app.add_systems(FixedUpdate, move_predicted_players)
+            .add_plugins(ClientAbilitiesPlugin);
     }
 }
 
@@ -32,6 +34,7 @@ pub struct ServerSimulationPlugin;
 impl Plugin for ServerSimulationPlugin {
     fn build(&self, app: &mut App) {
         app.add_observer(prepare_authoritative_body);
-        app.add_systems(FixedUpdate, move_authoritative_players);
+        app.add_systems(FixedUpdate, move_authoritative_players)
+            .add_plugins(ServerAbilitiesPlugin);
     }
 }

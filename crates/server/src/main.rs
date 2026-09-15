@@ -1,3 +1,4 @@
+mod abilities;
 mod auth;
 mod network;
 mod player;

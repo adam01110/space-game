@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{camera, input, network, player};
+use crate::{abilities, camera, input, network, player};
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub(super) enum ClientStartup {
@@ -17,6 +17,7 @@ impl Plugin for ClientAppPlugin {
             (ClientStartup::Camera, ClientStartup::Connection).chain(),
         )
         .add_plugins((
+            abilities::ClientAbilitiesPlugin,
             camera::ClientCameraPlugin,
             input::ClientInputPlugin,
             network::ClientNetworkPlugin,

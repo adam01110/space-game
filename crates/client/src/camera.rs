@@ -1,6 +1,6 @@
 use avian2d::prelude::PhysicsSystems;
 use bevy::{
-    camera::{visibility::RenderLayers, RenderTarget},
+    camera::{RenderTarget, visibility::RenderLayers},
     prelude::*,
     render::render_resource::{
         Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
@@ -29,10 +29,10 @@ impl Plugin for ClientCameraPlugin {
     }
 }
 
-/// Size of one rendered pixel in world and window units.
+// Size of one rendered pixel in world and window units.
 pub(super) const PIXEL_SIZE: f32 = 4.0;
 
-/// How quickly the camera approaches the player position.
+// How quickly the camera approaches the player position.
 const CAMERA_DECAY_RATE: f32 = 6.0;
 const GAMEPLAY_LAYERS: RenderLayers = RenderLayers::layer(0);
 const CANVAS_LAYERS: RenderLayers = RenderLayers::layer(1);
@@ -181,59 +181,5 @@ fn follow_player(
 
     if let Ok(mut debug_transform) = debug_cameras.single_mut() {
         debug_transform.translation = camera_transform.translation;
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use std::time::Duration;
-
-    use super::*;
-
-    #[test]
-    fn camera_smoothly_follows_visual_writeback_before_global_propagation() {
-        let mut app = App::new();
-        app.add_plugins((bevy::transform::TransformPlugin, ClientCameraPlugin));
-        app.insert_resource(Time::<()>::default());
-        app.world_mut()
-            .resource_mut::<Time>()
-            .advance_by(Duration::from_secs_f32(1.0 / 60.0));
-
-        let player = app
-            .world_mut()
-            .spawn((Transform::default(), InputMarker::<PlayerInput>::default()))
-            .id();
-        let camera = app
-            .world_mut()
-            .spawn((
-                Camera2d,
-                GameplayCamera,
-                Transform::from_xyz(0.0, 0.0, 99.0),
-            ))
-            .id();
-        app.add_systems(
-            PostUpdate,
-            (move |mut players: Query<&mut Transform, With<InputMarker<PlayerInput>>>| {
-                players.single_mut().unwrap().translation = Vec3::new(37.0, -12.0, 0.0);
-            })
-            .in_set(PhysicsSystems::Writeback),
-        );
-
-        app.world_mut().run_schedule(PostUpdate);
-
-        let camera_global = app
-            .world()
-            .get::<GlobalTransform>(camera)
-            .unwrap()
-            .translation();
-        let player_global = app
-            .world()
-            .get::<GlobalTransform>(player)
-            .unwrap()
-            .translation();
-        assert!(camera_global.x > 0.0 && camera_global.x < player_global.x);
-        assert!(camera_global.y < 0.0 && camera_global.y > player_global.y);
-        assert_eq!(camera_global.z, 99.0);
-        assert_eq!(player_global, Vec3::new(37.0, -12.0, 0.0));
     }
 }

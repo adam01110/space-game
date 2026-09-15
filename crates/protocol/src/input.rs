@@ -8,6 +8,8 @@ pub struct PlayerInput {
     pub movement: Vec2,
     // World-space direction the ship should face.
     pub aim: Vec2,
+    // Cumulative clicks survive repeated/missing simulation ticks without automatic fire.
+    pub blaster_clicks: u32,
 }
 
 impl Default for PlayerInput {
@@ -15,6 +17,7 @@ impl Default for PlayerInput {
         Self {
             movement: Vec2::ZERO,
             aim: Vec2::Y,
+            blaster_clicks: 0,
         }
     }
 }

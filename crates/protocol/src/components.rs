@@ -5,13 +5,17 @@ use serde::{Deserialize, Serialize};
 #[derive(Component, Serialize, Deserialize)]
 pub struct Player;
 
-// Remaining cooldown time for a player's blasters, in simulation ticks.
+// Last processed click counter, replicated for deterministic prediction and rollback.
 #[derive(Component, Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
-pub struct PlayerBlasters(pub u16);
+pub struct BlasterTrigger(pub u32);
 
-// Remaining cooldown time for a player's boost, in simulation ticks.
-#[derive(Component, Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
-pub struct PlayerBoost(pub u16);
+// Non-solid, server-authoritative projectile. Lifetime is measured in simulation ticks.
+#[derive(Component, Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct BlasterShot {
+    pub position: Vec2,
+    pub direction: Vec2,
+    pub ticks_left: u16,
+}
 
 // Current health of a player.
 #[derive(Component, Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -23,14 +27,9 @@ impl Default for PlayerHealth {
     }
 }
 
-// Remaining cooldown time for a player's phase beam, in simulation ticks.
-#[derive(Component, Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
-pub struct PlayerPhaseBeam(pub u16);
-
-/// Shape and motion configuration shared by all solid world objects, not just players.
-///
-/// Radii are gameplay approximations in world units, independent of sprite geometry.
-/// Networked dynamic objects must be predicted by every client that simulates them.
+// Shape and motion configuration shared by all solid world objects, not just players.
+// Radii are gameplay approximations in world units, independent of sprite geometry.
+// Networked dynamic objects must be predicted by every client that simulates them.
 #[derive(Component, Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct CircleBody {
     pub radius: f32,

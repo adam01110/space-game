@@ -4,7 +4,7 @@ use lightyear::{avian2d::prelude::LightyearAvianPlugin, prelude::*};
 
 use project_protocol::{BodyMotion, CircleBody};
 
-/// Install after ProtocolPlugin. Avian owns simulation poses; Transform is render-only.
+// Install after ProtocolPlugin. Avian owns simulation poses; Transform is render-only.
 pub(super) fn install_physics(app: &mut App) {
     app.insert_resource(Gravity::ZERO).add_plugins((
         PhysicsPlugins::default()

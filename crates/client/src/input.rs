@@ -16,6 +16,11 @@ pub(super) struct ClientInputPlugin;
 
 impl Plugin for ClientInputPlugin {
     fn build(&self, app: &mut App) {
+        app.init_resource::<BlasterClicks>();
+        app.add_systems(
+            PreUpdate,
+            capture_blaster_clicks.after(bevy::input::InputSystems),
+        );
         app.add_systems(
             PreUpdate,
             discard_remote_inputs_before_sync
@@ -57,8 +62,25 @@ type PlayerInputQuery<'w, 's> = Query<
     With<InputMarker<PlayerInput>>,
 >;
 
+#[derive(Resource, Default)]
+struct BlasterClicks(u32);
+
+// Capture once per render frame, even when there are zero or multiple fixed ticks.
+fn capture_blaster_clicks(
+    mouse: Res<ButtonInput<MouseButton>>,
+    players: Query<(), With<InputMarker<PlayerInput>>>,
+    mut clicks: ResMut<BlasterClicks>,
+) {
+    if players.is_empty() {
+        clicks.0 = 0;
+    } else if mouse.just_pressed(MouseButton::Left) {
+        clicks.0 = clicks.0.wrapping_add(1);
+    }
+}
+
 fn buffer_player_input(
     keyboard: Res<ButtonInput<KeyCode>>,
+    clicks: Res<BlasterClicks>,
     windows: Query<&Window, With<PrimaryWindow>>,
     cameras: Query<(&Camera, &GlobalTransform), With<GameplayCamera>>,
     mut players: PlayerInputQuery,
@@ -84,6 +106,7 @@ fn buffer_player_input(
     action_state.0 = PlayerInput {
         movement: Vec2::new(horizontal, vertical),
         aim,
+        blaster_clicks: clicks.0,
     };
 }
 

@@ -2,8 +2,8 @@
 use std::time::Duration;
 
 use crossbeam_channel::Receiver;
-use lightyear::netcode::{CONNECT_TOKEN_BYTES, ConnectToken};
-use project_protocol::security::{GuestCredentials, decode_hex};
+use lightyear::netcode::{ConnectToken, CONNECT_TOKEN_BYTES};
+use project_protocol::security::{decode_hex, GuestCredentials};
 use url::{Host, Url};
 
 pub(super) struct Credentials {

@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{network, player, security};
+use crate::{abilities, network, player, security};
 
 pub(super) struct ServerAppPlugin {
     key: security::ServerKey,
@@ -9,7 +9,11 @@ pub(super) struct ServerAppPlugin {
 impl Plugin for ServerAppPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(security::ServerKey(self.key.0))
-            .add_plugins((network::ServerNetworkPlugin, player::ServerPlayerPlugin));
+            .add_plugins((
+                abilities::ServerAbilitiesPlugin,
+                network::ServerNetworkPlugin,
+                player::ServerPlayerPlugin,
+            ));
     }
 }
 
