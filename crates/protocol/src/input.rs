@@ -10,6 +10,8 @@ pub struct PlayerInput {
     pub aim: Vec2,
     // Cumulative clicks survive repeated/missing simulation ticks without automatic fire.
     pub blaster_clicks: u32,
+    // Cumulative R presses, consumed once even across repeated simulation ticks.
+    pub blaster_reload_requests: u32,
 }
 
 impl Default for PlayerInput {
@@ -18,6 +20,7 @@ impl Default for PlayerInput {
             movement: Vec2::ZERO,
             aim: Vec2::Y,
             blaster_clicks: 0,
+            blaster_reload_requests: 0,
         }
     }
 }

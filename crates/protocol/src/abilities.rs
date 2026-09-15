@@ -28,15 +28,15 @@ impl AbilityCharge {
             .regen_remainder
             .saturating_add(delta.saturating_mul(u32::from(units_per_second)));
 
-        let recovered = accrued.as_secs();
+        let recovered = u16::try_from(accrued.as_secs()).unwrap_or(u16::MAX);
         let missing = Self::FULL - self.units;
 
-        if recovered >= u64::from(missing) {
+        if recovered >= missing {
             self.units = Self::FULL;
             self.regen_remainder = Duration::ZERO;
         } else {
-            self.units += recovered as u16;
-            self.regen_remainder = accrued - Duration::from_secs(recovered);
+            self.units += recovered;
+            self.regen_remainder = Duration::new(0, accrued.subsec_nanos());
         }
     }
 

@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::time::Duration;
 
 // Marks an entity as a player-controlled ship.
 #[derive(Component, Serialize, Deserialize)]
@@ -8,6 +9,13 @@ pub struct Player;
 // Last processed click counter, replicated for deterministic prediction and rollback.
 #[derive(Component, Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 pub struct BlasterTrigger(pub u32);
+
+// Reload progress and its consumed input counter must roll back together.
+#[derive(Component, Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+pub struct BlasterReload {
+    pub remaining: Duration,
+    pub requests: u32,
+}
 
 // Non-solid, server-authoritative projectile. Lifetime is measured in simulation ticks.
 #[derive(Component, Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]

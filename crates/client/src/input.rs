@@ -2,9 +2,9 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use lightyear::{
     input::{input_message::InputMessage, native::prelude::NativeStateSequence},
     prelude::{
+        LocalTimelineSync, MessageReceiver, MessageSystems,
         client::input::InputSystems,
         input::native::{ActionState, InputMarker},
-        LocalTimelineSync, MessageReceiver, MessageSystems,
     },
 };
 
@@ -16,10 +16,10 @@ pub(super) struct ClientInputPlugin;
 
 impl Plugin for ClientInputPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<BlasterClicks>();
+        app.init_resource::<BlasterInputs>();
         app.add_systems(
             PreUpdate,
-            capture_blaster_clicks.after(bevy::input::InputSystems),
+            capture_blaster_inputs.after(bevy::input::InputSystems),
         );
         app.add_systems(
             PreUpdate,
@@ -63,24 +63,34 @@ type PlayerInputQuery<'w, 's> = Query<
 >;
 
 #[derive(Resource, Default)]
-struct BlasterClicks(u32);
+struct BlasterInputs {
+    clicks: u32,
+    reload_requests: u32,
+}
 
 // Capture once per render frame, even when there are zero or multiple fixed ticks.
-fn capture_blaster_clicks(
+fn capture_blaster_inputs(
     mouse: Res<ButtonInput<MouseButton>>,
+    keyboard: Res<ButtonInput<KeyCode>>,
     players: Query<(), With<InputMarker<PlayerInput>>>,
-    mut clicks: ResMut<BlasterClicks>,
+    mut inputs: ResMut<BlasterInputs>,
 ) {
-    if players.is_empty() {
-        clicks.0 = 0;
-    } else if mouse.just_pressed(MouseButton::Left) {
-        clicks.0 = clicks.0.wrapping_add(1);
+    match (
+        players.is_empty(),
+        mouse.just_pressed(MouseButton::Left),
+        keyboard.just_pressed(KeyCode::KeyR),
+    ) {
+        (true, _, _) => *inputs = BlasterInputs::default(),
+        (false, fire, reload) => {
+            inputs.clicks = inputs.clicks.wrapping_add(u32::from(fire));
+            inputs.reload_requests = inputs.reload_requests.wrapping_add(u32::from(reload));
+        }
     }
 }
 
 fn buffer_player_input(
     keyboard: Res<ButtonInput<KeyCode>>,
-    clicks: Res<BlasterClicks>,
+    blasters: Res<BlasterInputs>,
     windows: Query<&Window, With<PrimaryWindow>>,
     cameras: Query<(&Camera, &GlobalTransform), With<GameplayCamera>>,
     mut players: PlayerInputQuery,
@@ -106,7 +116,8 @@ fn buffer_player_input(
     action_state.0 = PlayerInput {
         movement: Vec2::new(horizontal, vertical),
         aim,
-        blaster_clicks: clicks.0,
+        blaster_clicks: blasters.clicks,
+        blaster_reload_requests: blasters.reload_requests,
     };
 }
 
