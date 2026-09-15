@@ -12,6 +12,8 @@ pub struct PlayerInput {
     pub blaster_clicks: u32,
     // Cumulative R presses, consumed once even across repeated simulation ticks.
     pub blaster_reload_requests: u32,
+    // Held state; the visual beam disappears when Space is released.
+    pub phase_beam: bool,
 }
 
 impl Default for PlayerInput {
@@ -21,6 +23,7 @@ impl Default for PlayerInput {
             aim: Vec2::Y,
             blaster_clicks: 0,
             blaster_reload_requests: 0,
+            phase_beam: false,
         }
     }
 }

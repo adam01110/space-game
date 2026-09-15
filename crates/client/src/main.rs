@@ -4,6 +4,7 @@ mod camera;
 mod guest;
 mod input;
 mod network;
+mod phase_beam;
 mod player;
 mod plugins;
 

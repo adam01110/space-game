@@ -118,6 +118,7 @@ fn buffer_player_input(
         aim,
         blaster_clicks: blasters.clicks,
         blaster_reload_requests: blasters.reload_requests,
+        phase_beam: keyboard.pressed(KeyCode::Space),
     };
 }
 
