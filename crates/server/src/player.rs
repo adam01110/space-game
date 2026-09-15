@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use lightyear::{connection::client::Connected, prelude::server::*, prelude::*};
 use rand::{Rng, RngExt};
 
-use project_game::{arena_radius, PlayerBundle, PLAYER_RADIUS};
+use project_game::{PLAYER_RADIUS, PlayerBundle, arena_radius};
 use project_protocol::{ArenaBoundary, CircleBody};
 
 const SPAWN_CLEARANCE: f32 = 2.0;
@@ -81,31 +81,41 @@ fn spawn_player_for_client(
     });
 }
 
+// Use the current physical boundary, not its eventual expansion target.
+fn spawnable_radius(arena: ArenaBoundary) -> Option<f32> {
+    let limit = arena.radius - PLAYER_RADIUS - SPAWN_CLEARANCE;
+    (limit.is_finite() && limit >= 0.0).then_some(limit)
+}
+
+fn is_clear_of_occupied(candidate: Vec2, occupied: &[(Vec2, f32)]) -> bool {
+    for (position, radius) in occupied {
+        if position.distance(candidate) <= PLAYER_RADIUS + radius + SPAWN_CLEARANCE {
+            return false;
+        }
+    }
+
+    true
+}
+
 fn find_spawn_position(
     arena: ArenaBoundary,
     occupied: &[(Vec2, f32)],
     rng: &mut impl Rng,
 ) -> Option<Vec2> {
-    // Use the current physical boundary, not its eventual expansion target.
-    let limit = arena.radius - PLAYER_RADIUS - SPAWN_CLEARANCE;
-    if !limit.is_finite() || limit < 0.0 {
-        return None;
-    }
+    let limit = spawnable_radius(arena)?;
 
     // sqrt(U) samples uniformly by disk area instead of clustering near the center.
     // Randomness is server-only; clients receive the resulting authoritative position.
     for _ in 0..SPAWN_ATTEMPTS {
         let angle = rng.random::<f32>() * std::f32::consts::TAU;
         let radius = rng.random::<f32>().sqrt() * limit;
+
         let candidate = Vec2::from_angle(angle) * radius;
-        if candidate.length() <= limit
-            && occupied.iter().all(|(position, radius)| {
-                position.distance(candidate) > PLAYER_RADIUS + radius + SPAWN_CLEARANCE
-            })
-        {
+        if candidate.length() <= limit && is_clear_of_occupied(candidate, occupied) {
             return Some(candidate);
         }
     }
+
     // Never fall back to a biased grid, an overlapping spawn, or an unbounded search.
     None
 }
@@ -113,7 +123,7 @@ fn find_spawn_position(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rand::{rngs::StdRng, SeedableRng};
+    use rand::{SeedableRng, rngs::StdRng};
 
     #[test]
     fn random_spawns_cover_the_disk_uniformly_by_area() {
@@ -148,10 +158,12 @@ mod tests {
         for _ in 0..64 {
             let position = find_spawn_position(arena, &occupied, &mut rng)
                 .expect("base arena has room for simultaneous connections");
-            assert!(occupied
-                .iter()
-                .all(|(other, radius)| other.distance(position)
-                    > PLAYER_RADIUS + radius + SPAWN_CLEARANCE));
+            assert!(
+                occupied
+                    .iter()
+                    .all(|(other, radius)| other.distance(position)
+                        > PLAYER_RADIUS + radius + SPAWN_CLEARANCE)
+            );
             occupied.push((position, PLAYER_RADIUS));
         }
 
@@ -179,9 +191,11 @@ mod tests {
             .map(|position| position.0)
             .collect();
         assert_eq!(positions.len(), 8);
-        assert!(positions
-            .iter()
-            .all(|position| position.length() + PLAYER_RADIUS + SPAWN_CLEARANCE <= 1200.0));
+        assert!(
+            positions
+                .iter()
+                .all(|position| position.length() + PLAYER_RADIUS + SPAWN_CLEARANCE <= 1200.0)
+        );
         for (index, position) in positions.iter().enumerate() {
             for other in positions.iter().skip(index + 1) {
                 assert!(position.distance(*other) > 2.0 * PLAYER_RADIUS + SPAWN_CLEARANCE);

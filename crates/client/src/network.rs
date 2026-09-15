@@ -46,6 +46,7 @@ impl GuestConnection {
     fn request(&mut self, now: Duration) {
         self.started = now;
         self.can_retry = false;
+
         match guest::request() {
             Ok(receiver) => {
                 self.pending = Some(receiver);
@@ -62,6 +63,7 @@ struct ConnectionStatus;
 fn setup_connection(mut commands: Commands, time: Res<Time<Real>>) {
     let mut connection = GuestConnection::default();
     connection.request(time.elapsed());
+
     commands.spawn((
         ConnectionStatus,
         Text::new(connection.message.clone()),
@@ -77,6 +79,7 @@ fn setup_connection(mut commands: Commands, time: Res<Time<Real>>) {
             ..default()
         },
     ));
+
     commands.insert_resource(connection);
     commands.insert_resource(PredictionManager::default());
 }
@@ -155,6 +158,7 @@ fn poll_guest(commands: &mut Commands, connection: &mut GuestConnection, now: Du
     let Some(receiver) = &connection.pending else {
         return;
     };
+
     handle_guest_result(commands, connection, receiver.try_recv(), now);
 }
 
@@ -167,6 +171,7 @@ fn monitor_client(
     let Some(entity) = connection.client else {
         return;
     };
+
     match clients.get(entity) {
         Ok((true, _)) => connection.message.clear(),
         Ok((false, true)) => connection.fail("Disconnected from the server", now),
@@ -195,16 +200,19 @@ fn update_connection(
     mut status: Query<&mut Text, With<ConnectionStatus>>,
 ) {
     let now = time.elapsed();
+
     if connection.can_retry
         && (keys.just_pressed(KeyCode::KeyR)
             || now.saturating_sub(connection.started) >= RETRY_INTERVAL)
     {
         retry_connection(&mut commands, &mut connection, now);
     }
+
     if connection.pending.is_some() {
         poll_guest(&mut commands, &mut connection, now);
     } else if !connection.can_retry {
         monitor_client(&mut commands, &mut connection, &clients, now);
     }
+
     update_status(&mut status, &connection.message);
 }
