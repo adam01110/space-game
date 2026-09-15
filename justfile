@@ -46,8 +46,11 @@ test:
     cargo test --workspace --features "{{dev-features}}"
 
 # Build the native binaries and optimized WebAssembly client for release.
-release: wasm
-    cargo build --workspace --release
+release: wasm native-release
+
+# Build the native client and server binaries for release.
+native-release:
+    cargo build --release -p project-client -p project-server
 
 # Build and package the production WebAssembly client for size.
 wasm:
