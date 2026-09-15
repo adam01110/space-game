@@ -7,8 +7,9 @@ use std::time::Duration;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct AbilityCharge {
     units: u16,
-    // Fractional units travel with charge so prediction rollback restores both.
-    regen_remainder: u32,
+    // Scaled time: one second represents one charge unit. Fractional progress
+    // travels with charge so prediction rollback restores both.
+    regen_remainder: Duration,
 }
 
 impl AbilityCharge {
@@ -23,18 +24,19 @@ impl AbilityCharge {
     // Rates are internal units per second. Keep sub-unit progress across fixed ticks
     // without floating-point rounding, and discard overflow at full charge.
     pub fn regenerate(&mut self, units_per_second: u16, delta: Duration) {
-        const NANOS_PER_SECOND: u128 = 1_000_000_000;
-        let accrued =
-            u128::from(self.regen_remainder) + delta.as_nanos() * u128::from(units_per_second);
-        let recovered = accrued / NANOS_PER_SECOND;
+        let accrued = self
+            .regen_remainder
+            .saturating_add(delta.saturating_mul(u32::from(units_per_second)));
+
+        let recovered = accrued.as_secs();
         let missing = Self::FULL - self.units;
 
-        if recovered >= u128::from(missing) {
+        if recovered >= u64::from(missing) {
             self.units = Self::FULL;
-            self.regen_remainder = 0;
+            self.regen_remainder = Duration::ZERO;
         } else {
             self.units += recovered as u16;
-            self.regen_remainder = (accrued % NANOS_PER_SECOND) as u32;
+            self.regen_remainder = accrued - Duration::from_secs(recovered);
         }
     }
 
@@ -55,7 +57,7 @@ impl Default for AbilityCharge {
     fn default() -> Self {
         Self {
             units: Self::FULL,
-            regen_remainder: 0,
+            regen_remainder: Duration::ZERO,
         }
     }
 }
