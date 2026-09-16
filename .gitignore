@@ -1,5 +1,6 @@
 # keep-sorted start
 **/.direnv/
 /target
-# keep-sorted end
+/mutants.out/
 /web/dist
+# keep-sorted end
