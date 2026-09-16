@@ -1,10 +1,3 @@
-mod abilities;
-mod auth;
-mod network;
-mod player;
-mod plugins;
-mod security;
-
 use std::time::Duration;
 
 use bevy::{
@@ -12,10 +5,11 @@ use bevy::{
     prelude::*,
     state::app::StatesPlugin,
 };
-use lightyear::prelude::{server::*, ReplicationMetadata};
+use lightyear::prelude::{ReplicationMetadata, server::*};
 
-use project_game::{GamePlugin, ServerSimulationPlugin, SERVER_UPS};
+use project_game::{GamePlugin, SERVER_UPS, ServerSimulationPlugin};
 use project_protocol::ProtocolPlugin;
+use project_server::plugins;
 
 /*
 A headless simulation produces little parallel work; small fixed pools avoid a

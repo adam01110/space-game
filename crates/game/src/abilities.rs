@@ -5,8 +5,10 @@ use crate::{
     movement::{move_authoritative_players, move_predicted_players},
 };
 
-// Shared ability entry points. Future phase-beam and boost systems belong here;
-// weapon-specific projectile behavior stays in its own module.
+/*
+Shared ability entry points. Future phase-beam and boost systems belong here;
+weapon-specific projectile behavior stays in its own module.
+*/
 pub(super) struct ClientAbilitiesPlugin;
 pub(super) struct ServerAbilitiesPlugin;
 

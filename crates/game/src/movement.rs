@@ -8,8 +8,7 @@ use project_protocol::{Player, PlayerInput};
 const MOVE_SPEED: f32 = 512.0;
 const TURN_SPEED: f32 = 8.0;
 
-// Snap aim within roughly one degree of an axis so a mouse-controlled player can face
-// perfectly straight instead of retaining an imperceptible input error.
+// Snap aim within roughly one degree of an axis
 const CARDINAL_SNAP_COMPONENT: f32 = 0.02;
 
 type PlayerMovement<'a> = (
@@ -54,8 +53,10 @@ fn apply_movement(
         .then_some(input.aim)
         .and_then(Vec2::try_normalize)
         .map(snap_cardinal_aim);
+
     if let Some(aim) = normalized_aim {
         let target = aim.y.atan2(aim.x) - std::f32::consts::FRAC_PI_2;
+
         *rotation = Rotation::radians(turn_towards(
             rotation.as_radians(),
             target,
