@@ -2,10 +2,11 @@ use std::time::Duration;
 
 use avian2d::prelude::{Position, Rotation};
 use bevy::prelude::*;
-use lightyear::prelude::{Predicted, SyncedLocalTimeline, input::native::ActionState};
+use lightyear::prelude::{PreSpawned, Predicted, SyncedLocalTimeline, input::native::ActionState};
 
 use project_protocol::{
-    AbilityCharge, BlasterReload, BlasterShot, BlasterTrigger, Player, PlayerBlasters, PlayerInput,
+    AbilityCharge, BlasterReload, BlasterShot, BlasterTrigger, Player, PlayerBlasters,
+    PlayerIdentity, PlayerInput,
 };
 
 use crate::PLAYER_RADIUS;
@@ -20,6 +21,13 @@ type BlasterState<'a> = (
     &'a mut BlasterTrigger,
     &'a mut BlasterReload,
     &'a ActionState<PlayerInput>,
+);
+
+type FiringPlayer<'a> = (
+    BlasterState<'a>,
+    &'a Position,
+    &'a Rotation,
+    &'a PlayerIdentity,
 );
 
 // Counters make repeated input idempotent, including during rollback.
@@ -82,38 +90,12 @@ fn update_blasters(
 
 pub(super) fn shoot_predicted_players(
     _timeline: SyncedLocalTimeline,
-    time: Res<Time<Fixed>>,
-    mut players: Query<BlasterState, (With<Player>, With<Predicted>)>,
-) {
-    for (mut charge, mut trigger, mut reload, input) in &mut players {
-        update_blasters(
-            &mut charge,
-            &mut trigger,
-            &mut reload,
-            &input.0,
-            time.delta(),
-        );
-    }
-}
-
-fn spawn_shots(commands: &mut Commands, position: &Position, rotation: &Rotation, shots: u8) {
-    let direction = *rotation * Vec2::Y;
-
-    for _ in 0..shots {
-        commands.spawn(BlasterShot {
-            position: position.0 + direction * (PLAYER_RADIUS + 8.0),
-            direction,
-            ticks_left: SHOT_LIFETIME,
-        });
-    }
-}
-
-pub(super) fn shoot_authoritative_players(
     mut commands: Commands,
     time: Res<Time<Fixed>>,
-    mut players: Query<(BlasterState, &Position, &Rotation), With<Player>>,
+    mut players: Query<FiringPlayer, (With<Player>, With<Predicted>)>,
 ) {
-    for ((mut charge, mut trigger, mut reload, input), position, rotation) in &mut players {
+    for ((mut charge, mut trigger, mut reload, input), position, rotation, identity) in &mut players
+    {
         let shots = update_blasters(
             &mut charge,
             &mut trigger,
@@ -121,7 +103,51 @@ pub(super) fn shoot_authoritative_players(
             &input.0,
             time.delta(),
         );
-        spawn_shots(&mut commands, position, rotation, shots);
+
+        spawn_shots(&mut commands, position, rotation, *identity, shots);
+    }
+}
+
+fn spawn_shots(
+    commands: &mut Commands,
+    position: &Position,
+    rotation: &Rotation,
+    identity: PlayerIdentity,
+    shots: u8,
+) {
+    let direction = *rotation * Vec2::Y;
+
+    for shot_index in 0..shots {
+        commands.spawn((
+            BlasterShot {
+                position: position.0 + direction * (PLAYER_RADIUS + 8.0),
+                direction,
+                ticks_left: SHOT_LIFETIME,
+            },
+            /*
+            The spawn tick plus this salt lets Lightyear match the immediate client shot to
+            the server copy instead of showing a second projectile one round trip later.
+            */
+            PreSpawned::default_with_salt(identity.0 ^ u64::from(shot_index)),
+        ));
+    }
+}
+
+pub(super) fn shoot_authoritative_players(
+    mut commands: Commands,
+    time: Res<Time<Fixed>>,
+    mut players: Query<FiringPlayer, With<Player>>,
+) {
+    for ((mut charge, mut trigger, mut reload, input), position, rotation, identity) in &mut players
+    {
+        let shots = update_blasters(
+            &mut charge,
+            &mut trigger,
+            &mut reload,
+            &input.0,
+            time.delta(),
+        );
+        spawn_shots(&mut commands, position, rotation, *identity, shots);
     }
 }
 

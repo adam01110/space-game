@@ -4,7 +4,7 @@ use lightyear::{connection::client::Connected, prelude::server::*, prelude::*};
 use rand::{Rng, RngExt};
 
 use project_game::{PLAYER_RADIUS, PlayerBundle, arena_radius};
-use project_protocol::{ArenaBoundary, CircleBody};
+use project_protocol::{ArenaBoundary, CircleBody, PlayerIdentity};
 
 pub const SPAWN_CLEARANCE: f32 = 2.0;
 const SPAWN_ATTEMPTS: usize = 256;
@@ -66,6 +66,7 @@ pub fn spawn_player_for_client(
             .spawn((
                 Name::new(format!("Player {peer_id:?}")),
                 PlayerBundle::new(spawn_position),
+                PlayerIdentity(rand::rng().random()),
                 Replicate::to_clients(NetworkTarget::All),
                 // Contacts must use the same simulation tick on both sides. Delayed remote
                 // interpolation would put the other collider in the past.

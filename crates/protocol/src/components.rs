@@ -25,6 +25,10 @@ impl ArenaBoundary {
 #[derive(Component, Serialize, Deserialize)]
 pub struct Player;
 
+// Server-assigned identity used to distinguish deterministic spawns from different players.
+#[derive(Component, Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct PlayerIdentity(pub u64);
+
 // Last processed click counter, replicated for deterministic prediction and rollback.
 #[derive(Component, Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 pub struct BlasterTrigger(pub u8);

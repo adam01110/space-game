@@ -14,7 +14,11 @@ impl Plugin for ClientAbilitiesPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             FixedUpdate,
-            (shoot_predicted_players, beam_predicted_players).after(move_predicted_players),
+            (
+                (advance_shots, shoot_predicted_players).chain(),
+                beam_predicted_players,
+            )
+                .after(move_predicted_players),
         );
     }
 }
