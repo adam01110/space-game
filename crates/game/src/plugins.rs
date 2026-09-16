@@ -24,16 +24,24 @@ impl Plugin for GamePlugin {
     }
 }
 
+// Client gameplay simulation, excluding input transport and clock synchronization.
+#[derive(SystemSet, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct ClientSimulationSystems;
+
 pub struct ClientSimulationPlugin;
 
 impl Plugin for ClientSimulationPlugin {
     fn build(&self, app: &mut App) {
         app.add_observer(prepare_predicted_arena)
-            .add_systems(FixedUpdate, advance_predicted_arena)
+            .add_systems(
+                FixedUpdate,
+                advance_predicted_arena.in_set(ClientSimulationSystems),
+            )
             .add_observer(prepare_predicted_body)
             .add_systems(
                 FixedPostUpdate,
                 contain_predicted_bodies
+                    .in_set(ClientSimulationSystems)
                     .after(PhysicsSystems::StepSimulation)
                     .before(PhysicsSystems::Writeback)
                     .before(PredictionSystems::UpdateHistory),
@@ -42,8 +50,11 @@ impl Plugin for ClientSimulationPlugin {
         Input is buffered in FixedPreUpdate. Apply desired velocity here, then Avian
         resolves contacts in FixedPostUpdate before Lightyear records prediction history.
         */
-        app.add_systems(FixedUpdate, move_predicted_players)
-            .add_plugins(ClientAbilitiesPlugin);
+        app.add_systems(
+            FixedUpdate,
+            move_predicted_players.in_set(ClientSimulationSystems),
+        )
+        .add_plugins(ClientAbilitiesPlugin);
     }
 }
 

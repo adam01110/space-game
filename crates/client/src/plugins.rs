@@ -4,7 +4,7 @@ use lightyear::frame_interpolation::FrameInterpolationSystems;
 
 #[cfg(feature = "dev")]
 use crate::arena;
-use crate::{abilities, camera, input, network, player};
+use crate::{abilities, camera, focus, input, network, player};
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub(super) enum ClientStartup {
@@ -29,6 +29,7 @@ impl Plugin for ClientAppPlugin {
         app.add_plugins((
             abilities::ClientAbilitiesPlugin,
             camera::ClientCameraPlugin,
+            focus::ClientFocusPlugin,
             input::ClientInputPlugin,
             network::ClientNetworkPlugin,
             player::ClientPlayerPlugin,

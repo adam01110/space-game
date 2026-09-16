@@ -2,6 +2,8 @@ mod abilities;
 mod arena;
 mod blasters;
 mod camera;
+mod confirmed;
+mod focus;
 mod guest;
 mod input;
 mod network;
@@ -75,7 +77,8 @@ fn main() {
                 }),
         )
         .insert_resource(WinitSettings {
-            // Reduced update cadence while unfocused; simulation catches up on focus.
+            // Reduced update cadence while unfocused; the focus plugin resumes simulation
+            // from authoritative state when focus returns.
             unfocused_mode: bevy::winit::UpdateMode::reactive_low_power(Duration::from_secs_f64(
                 1.0 / 30.0,
             )),

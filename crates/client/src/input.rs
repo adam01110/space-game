@@ -10,7 +10,10 @@ use lightyear::{
 
 use project_protocol::PlayerInput;
 
-use super::camera::{GameplayCamera, PIXEL_SIZE};
+use super::{
+    camera::{GameplayCamera, PIXEL_SIZE},
+    focus::FocusPrediction,
+};
 
 pub(super) struct ClientInputPlugin;
 
@@ -67,7 +70,7 @@ type PlayerInputQuery<'w, 's> = Query<
 >;
 
 #[derive(Resource, Default)]
-struct AbilityInputs {
+pub(super) struct AbilityInputs {
     blaster_clicks: u8,
     blaster_reload_requests: u8,
     phase_beam: bool,
@@ -75,14 +78,21 @@ struct AbilityInputs {
 
 // Capture ability controls once per render frame. Counters preserve discrete presses across
 // zero or multiple fixed ticks, while the beam retains its current held state.
-fn capture_ability_inputs(
+pub(super) fn capture_ability_inputs(
     mouse: Res<ButtonInput<MouseButton>>,
     keyboard: Res<ButtonInput<KeyCode>>,
+    focus: Res<FocusPrediction>,
     players: Query<(), With<InputMarker<PlayerInput>>>,
     mut inputs: ResMut<AbilityInputs>,
 ) {
     if players.is_empty() {
         *inputs = AbilityInputs::default();
+        return;
+    }
+
+    if !focus.accepts_input() {
+        // Preserve counters: resetting them would look like new wrapped presses to the server.
+        inputs.phase_beam = false;
         return;
     }
 
@@ -100,6 +110,7 @@ fn capture_ability_inputs(
 fn buffer_player_input(
     keyboard: Res<ButtonInput<KeyCode>>,
     abilities: Res<AbilityInputs>,
+    focus: Res<FocusPrediction>,
     windows: Query<&Window, With<PrimaryWindow>>,
     cameras: Query<(&Camera, &GlobalTransform), With<GameplayCamera>>,
     mut players: PlayerInputQuery,
@@ -107,6 +118,15 @@ fn buffer_player_input(
     let Ok((player_transform, mut action_state)) = players.single_mut() else {
         return;
     };
+
+    if !focus.accepts_input() {
+        // Still send neutral input. Skipping the writer would repeat the last held controls.
+        action_state.0.movement = Vec2::ZERO;
+        action_state.0.phase_beam = false;
+        action_state.0.blaster_clicks = abilities.blaster_clicks;
+        action_state.0.blaster_reload_requests = abilities.blaster_reload_requests;
+        return;
+    }
 
     let horizontal = axis(&keyboard, KeyCode::KeyA, KeyCode::KeyD);
     let vertical = axis(&keyboard, KeyCode::KeyS, KeyCode::KeyW);
@@ -155,3 +175,7 @@ fn axis(keyboard: &ButtonInput<KeyCode>, negative: KeyCode, positive: KeyCode) -
 
     positive - negative
 }
+
+#[cfg(test)]
+#[path = "../tests/input.rs"]
+mod tests;

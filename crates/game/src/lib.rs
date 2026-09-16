@@ -12,4 +12,6 @@ pub use arena::{
     contain_circle, contain_predicted_bodies, install_arena_interpolation,
 };
 pub use player::{PLAYER_RADIUS, PlayerBundle};
-pub use plugins::{ClientSimulationPlugin, GamePlugin, SERVER_UPS, ServerSimulationPlugin};
+pub use plugins::{
+    ClientSimulationPlugin, ClientSimulationSystems, GamePlugin, SERVER_UPS, ServerSimulationPlugin,
+};

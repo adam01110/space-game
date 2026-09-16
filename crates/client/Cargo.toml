@@ -2,6 +2,10 @@
 name = "project-client"
 version.workspace = true
 edition.workspace = true
+# Tests live in tests/ but are included as private modules of the binary, which needs access
+# to crate-internal systems. Keeping autotests off stops cargo from also building them as
+# separate integration test targets.
+autotests = false
 
 [lints]
 workspace = true
