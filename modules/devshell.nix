@@ -34,6 +34,21 @@
       wayland
     ];
 
+    cargoCrap = pkgs.rustPlatform.buildRustPackage rec {
+      pname = "cargo-crap";
+      version = "0.5.0";
+
+      src = pkgs.fetchCrate {
+        inherit pname version;
+        hash = "sha256-5RhRFUh1w5/yItkmc3Vk1B6oyrmzKKl6EEZ3v0aBLwk=";
+      };
+
+      cargoHash = "sha256-vPdzZIeXsjICz5icPrr2LQ4GrcMSZe2nRa65iyzLH7Q=";
+
+      # The published crate omits workspace fixtures required by its tests.
+      doCheck = false;
+    };
+
     wasmBindgenCli = pkgs.buildWasmBindgenCli rec {
       src = pkgs.fetchCrate {
         pname = "wasm-bindgen-cli";
@@ -60,6 +75,8 @@
         binaryen
         cargo-audit
         cargo-modules
+        cargo-mutants
+        cargoCrap
         just
         pkg-config
         # keep-sorted end
