@@ -10,25 +10,25 @@ type Error = Box<dyn std::error::Error>;
 pub(super) struct ServerKey(pub [u8; 32]);
 
 pub(super) fn load_key(path: &Path) -> Result<ServerKey, Error> {
-    parse_key(&std::fs::read(path)?)
+    Ok(parse_key(&std::fs::read(path)?)?)
 }
 
-fn parse_key(bytes: &[u8]) -> Result<ServerKey, Error> {
+fn parse_key(bytes: &[u8]) -> Result<ServerKey, &'static str> {
     let Ok(key) = bytes.try_into() else {
-        return Err("Netcode key file must contain exactly 32 bytes".into());
+        return Err("Netcode key file must contain exactly 32 bytes");
     };
 
     if key == [0; 32] {
-        return Err("refusing an all-zero Netcode key".into());
+        return Err("refusing an all-zero Netcode key");
     }
 
     Ok(ServerKey(key))
 }
 
-fn validate_server_address(address: SocketAddr) -> Result<(), Error> {
+const fn validate_server_address(address: SocketAddr) -> Result<(), &'static str> {
     match address.is_ipv4() && !address.ip().is_unspecified() && address.port() == SERVER_PORT {
         true => Ok(()),
-        false => Err("use a reachable server IPv4 address and the configured server port".into()),
+        false => Err("use a reachable server IPv4 address and the configured server port"),
     }
 }
 
@@ -48,10 +48,12 @@ pub(super) fn issue_token(
 const USAGE: &str =
     "usage: project-server [generate-key KEY_FILE | issue-token KEY_FILE SERVER_IP:5000 CLIENT_ID]";
 
+fn command_args<const N: usize>(args: &[String]) -> Result<&[String; N], &'static str> {
+    args.try_into().map_err(|_error| USAGE)
+}
+
 fn generate_key_file(args: &[String]) -> Result<Option<ServerKey>, Error> {
-    let [path] = args else {
-        return Err(USAGE.into());
-    };
+    let [path] = command_args(args)?;
     let mut options = OpenOptions::new();
     options.write(true).create_new(true);
 
@@ -66,9 +68,7 @@ fn generate_key_file(args: &[String]) -> Result<Option<ServerKey>, Error> {
 }
 
 fn print_token(args: &[String]) -> Result<Option<ServerKey>, Error> {
-    let [path, address, client_id] = args else {
-        return Err(USAGE.into());
-    };
+    let [path, address, client_id] = command_args(args)?;
     let key = load_key(Path::new(path))?;
     let address: SocketAddr = address.parse()?;
     let token = issue_token(&key, address, client_id.parse()?)?;
