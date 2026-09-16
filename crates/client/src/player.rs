@@ -50,10 +50,9 @@ fn add_player_visuals(
     mut commands: Commands,
 ) {
     for (entity, controlled) in &players {
-        let color = if controlled {
-            Color::srgb(0.35, 0.75, 1.0)
-        } else {
-            Color::srgb(1.0, 0.4, 0.35)
+        let color = match controlled {
+            true => Color::srgb(0.35, 0.75, 1.0),
+            false => Color::srgb(1.0, 0.4, 0.35),
         };
 
         commands

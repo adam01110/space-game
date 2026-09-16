@@ -46,10 +46,9 @@ pub(super) fn update_phase_beam_visuals(
     active_beams: Query<(), With<PhaseBeamSegment>>,
 ) {
     for (parent, mut visibility) in beams {
-        *visibility = if active_beams.contains(parent.0) {
-            Visibility::Inherited
-        } else {
-            Visibility::Hidden
+        *visibility = match active_beams.contains(parent.0) {
+            true => Visibility::Inherited,
+            false => Visibility::Hidden,
         };
     }
 }

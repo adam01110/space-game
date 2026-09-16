@@ -66,20 +66,19 @@ fn apply_movement(
 
     // Never translate the body directly: the solver integrates velocity and blocks/slides
     // it at contacts. Invalid or released input must clear the previous desired velocity.
-    velocity.0 = if input.movement.is_finite() {
-        input.movement.clamp_length_max(1.0) * MOVE_SPEED
-    } else {
-        Vec2::ZERO
+    velocity.0 = match input.movement.is_finite() {
+        true => input.movement.clamp_length_max(1.0) * MOVE_SPEED,
+        false => Vec2::ZERO,
     };
 }
 
 fn snap_cardinal_aim(aim: Vec2) -> Vec2 {
-    if aim.x.abs() < CARDINAL_SNAP_COMPONENT {
-        Vec2::new(0.0, aim.y.signum())
-    } else if aim.y.abs() < CARDINAL_SNAP_COMPONENT {
-        Vec2::new(aim.x.signum(), 0.0)
-    } else {
-        aim
+    match aim.x.abs() < CARDINAL_SNAP_COMPONENT {
+        true => Vec2::new(0.0, aim.y.signum()),
+        false => match aim.y.abs() < CARDINAL_SNAP_COMPONENT {
+            true => Vec2::new(aim.x.signum(), 0.0),
+            false => aim,
+        },
     }
 }
 

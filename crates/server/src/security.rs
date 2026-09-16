@@ -26,10 +26,9 @@ fn parse_key(bytes: &[u8]) -> Result<ServerKey, Error> {
 }
 
 fn validate_server_address(address: SocketAddr) -> Result<(), Error> {
-    if address.is_ipv4() && !address.ip().is_unspecified() && address.port() == SERVER_PORT {
-        Ok(())
-    } else {
-        Err("use a reachable server IPv4 address and the configured server port".into())
+    match address.is_ipv4() && !address.ip().is_unspecified() && address.port() == SERVER_PORT {
+        true => Ok(()),
+        false => Err("use a reachable server IPv4 address and the configured server port".into()),
     }
 }
 

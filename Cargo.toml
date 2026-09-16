@@ -21,6 +21,10 @@ unsafe_code = "forbid"
 pedantic = { level = "warn", priority = -1 }
 nursery = { level = "warn", priority = -1 }
 
+# Boolean matches are preferred over if/else expressions for visual consistency.
+match_bool = "allow"
+single_match_else = "allow"
+
 # Bevy system parameters must generally be passed by value.
 needless_pass_by_value = "allow"
 

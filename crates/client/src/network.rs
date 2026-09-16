@@ -208,10 +208,12 @@ fn update_connection(
         retry_connection(&mut commands, &mut connection, now);
     }
 
-    if connection.pending.is_some() {
-        poll_guest(&mut commands, &mut connection, now);
-    } else if !connection.can_retry {
-        monitor_client(&mut commands, &mut connection, &clients, now);
+    match connection.pending.is_some() {
+        true => poll_guest(&mut commands, &mut connection, now),
+        false => match connection.can_retry {
+            true => {}
+            false => monitor_client(&mut commands, &mut connection, &clients, now),
+        },
     }
 
     update_status(&mut status, &connection.message);

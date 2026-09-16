@@ -131,12 +131,15 @@ fn advance_shot(
     shot: &mut BlasterShot,
     delta_secs: f32,
 ) {
-    if shot.ticks_left <= 1 {
-        // The caller must not use the entity afterwards.
-        commands.entity(shot_entity).despawn();
-    } else {
-        shot.ticks_left -= 1;
-        shot.position += shot.direction * SHOT_SPEED * delta_secs;
+    match shot.ticks_left <= 1 {
+        true => {
+            // The caller must not use the entity afterwards.
+            commands.entity(shot_entity).despawn();
+        }
+        false => {
+            shot.ticks_left -= 1;
+            shot.position += shot.direction * SHOT_SPEED * delta_secs;
+        }
     }
 }
 

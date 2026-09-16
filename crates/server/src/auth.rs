@@ -103,15 +103,15 @@ fn public_address() -> Result<SocketAddr, StartError> {
 }
 
 fn request_error(request: &RequestContext) -> Option<(StatusCode, &'static [u8])> {
-    if !request.get_query().is_empty() {
-        Some((StatusCode::NotFound, b"{\"error\":\"not found\"}"))
-    } else if request_has_body(request) {
-        Some((
-            StatusCode::ContentTooLarge,
-            b"{\"error\":\"request body not allowed\"}",
-        ))
-    } else {
-        None
+    match !request.get_query().is_empty() {
+        true => Some((StatusCode::NotFound, b"{\"error\":\"not found\"}")),
+        false => match request_has_body(request) {
+            true => Some((
+                StatusCode::ContentTooLarge,
+                b"{\"error\":\"request body not allowed\"}",
+            )),
+            false => None,
+        },
     }
 }
 
@@ -140,13 +140,12 @@ fn connect(state: &AuthState, request: &RequestContext) -> TiiResult<Response> {
 }
 
 fn not_found(request: &mut RequestContext) -> TiiResult<Response> {
-    if request.get_path() == "/connect" {
-        response(
+    match request.get_path() == "/connect" {
+        true => response(
             StatusCode::MethodNotAllowed,
             b"{\"error\":\"method not allowed\"}",
-        )
-    } else {
-        response(StatusCode::NotFound, b"{\"error\":\"not found\"}")
+        ),
+        false => response(StatusCode::NotFound, b"{\"error\":\"not found\"}"),
     }
 }
 

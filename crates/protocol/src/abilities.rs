@@ -36,12 +36,15 @@ impl AbilityCharge {
         let recovered = u8::try_from(accrued.as_secs()).unwrap_or(u8::MAX);
         let missing = Self::FULL - self.units;
 
-        if recovered >= missing {
-            self.units = Self::FULL;
-            self.regen_remainder = Duration::ZERO;
-        } else {
-            self.units += recovered;
-            self.regen_remainder = Duration::new(0, accrued.subsec_nanos());
+        match recovered >= missing {
+            true => {
+                self.units = Self::FULL;
+                self.regen_remainder = Duration::ZERO;
+            }
+            false => {
+                self.units += recovered;
+                self.regen_remainder = Duration::new(0, accrued.subsec_nanos());
+            }
         }
     }
 
@@ -60,12 +63,15 @@ impl AbilityCharge {
             .saturating_add(delta.saturating_mul(u32::from(units_per_second)));
         let consumed = u8::try_from(accrued.as_secs()).unwrap_or(u8::MAX);
 
-        if consumed >= self.units {
-            self.units = 0;
-            self.drain_remainder = Duration::ZERO;
-        } else {
-            self.units -= consumed;
-            self.drain_remainder = Duration::new(0, accrued.subsec_nanos());
+        match consumed >= self.units {
+            true => {
+                self.units = 0;
+                self.drain_remainder = Duration::ZERO;
+            }
+            false => {
+                self.units -= consumed;
+                self.drain_remainder = Duration::new(0, accrued.subsec_nanos());
+            }
         }
 
         true
