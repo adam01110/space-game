@@ -41,9 +41,9 @@ fmt:
 lint:
     cargo clippy --workspace --all-targets --features "{{dev-features}}" -- -D warnings
 
-# Run the workspace test suite with development features.
+# Run the workspace test suite with Nextest and development features.
 test:
-    cargo test --workspace --features "{{dev-features}}"
+    cargo nextest run --workspace --features "{{dev-features}}"
 
 # Build the native binaries and optimized WebAssembly client for release.
 release: wasm native-release

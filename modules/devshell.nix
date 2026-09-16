@@ -76,6 +76,7 @@
         cargo-audit
         cargo-modules
         cargo-mutants
+        cargo-nextest
         cargoCrap
         just
         pkg-config
