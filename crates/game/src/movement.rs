@@ -3,10 +3,12 @@ use bevy::{ecs::query::QueryFilter, prelude::*};
 use lightyear::prelude::input::native::ActionState;
 use lightyear::prelude::{Predicted, SyncedLocalTimeline};
 
-use project_protocol::{Player, PlayerInput};
+use project_protocol::{Player, PlayerInput, PlayerPhaseBeam};
 
 const MOVE_SPEED: f32 = 512.0;
+const PHASE_BEAM_MOVE_SPEED: f32 = MOVE_SPEED * 0.75;
 const TURN_SPEED: f32 = 8.0;
+const PHASE_BEAM_TURN_SPEED: f32 = 2.0;
 
 // Snap aim within roughly one degree of an axis
 const CARDINAL_SNAP_COMPONENT: f32 = 0.02;
@@ -15,6 +17,7 @@ type PlayerMovement<'a> = (
     &'a mut LinearVelocity,
     &'a mut Rotation,
     &'a ActionState<PlayerInput>,
+    &'a PlayerPhaseBeam,
 );
 
 type PredictedPlayer = (With<Player>, With<Predicted>);
@@ -36,8 +39,16 @@ pub(super) fn move_authoritative_players(
 }
 
 fn move_players<F: QueryFilter>(players: &mut Query<PlayerMovement, F>, delta_seconds: f32) {
-    for (mut velocity, mut rotation, input) in players {
-        apply_movement(&mut velocity, &mut rotation, &input.0, delta_seconds);
+    for (mut velocity, mut rotation, input, phase_beam) in players {
+        let phase_beam_active = input.0.phase_beam && phase_beam.0.units() > 0;
+
+        apply_movement(
+            &mut velocity,
+            &mut rotation,
+            &input.0,
+            phase_beam_active,
+            delta_seconds,
+        );
     }
 }
 
@@ -45,6 +56,7 @@ fn apply_movement(
     velocity: &mut LinearVelocity,
     rotation: &mut Rotation,
     input: &PlayerInput,
+    phase_beam_active: bool,
     delta_seconds: f32,
 ) {
     let normalized_aim = input
@@ -57,17 +69,27 @@ fn apply_movement(
     if let Some(aim) = normalized_aim {
         let target = aim.y.atan2(aim.x) - std::f32::consts::FRAC_PI_2;
 
+        let turn_speed = match phase_beam_active {
+            true => PHASE_BEAM_TURN_SPEED,
+            false => TURN_SPEED,
+        };
+
         *rotation = Rotation::radians(turn_towards(
             rotation.as_radians(),
             target,
-            TURN_SPEED * delta_seconds,
+            turn_speed * delta_seconds,
         ));
     }
 
     // Never translate the body directly: the solver integrates velocity and blocks/slides
     // it at contacts. Invalid or released input must clear the previous desired velocity.
+    let move_speed = match phase_beam_active {
+        true => PHASE_BEAM_MOVE_SPEED,
+        false => MOVE_SPEED,
+    };
+
     velocity.0 = match input.movement.is_finite() {
-        true => input.movement.clamp_length_max(1.0) * MOVE_SPEED,
+        true => input.movement.clamp_length_max(1.0) * move_speed,
         false => Vec2::ZERO,
     };
 }
