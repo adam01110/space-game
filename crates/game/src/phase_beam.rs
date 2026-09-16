@@ -10,6 +10,7 @@ pub const BEAM_WIDTH: f32 = 8.0;
 pub const NOSE_OFFSET: f32 = PLAYER_RADIUS + 4.0;
 
 const CHARGE_DRAIN_PER_SECOND: u8 = 25;
+const CHARGE_REGEN_PER_SECOND: u8 = 25;
 
 /*
 Beam segment in world space, published each tick for hit detection and rendering.
@@ -81,7 +82,13 @@ fn update_beams(
     delta: std::time::Duration,
 ) {
     for (entity, position, rotation, input, mut charge, segment) in players {
-        let active = input.0.phase_beam && charge.0.drain(CHARGE_DRAIN_PER_SECOND, delta);
+        let active = match input.0.phase_beam {
+            true => charge.0.drain(CHARGE_DRAIN_PER_SECOND, delta),
+            false => {
+                charge.0.regenerate(CHARGE_REGEN_PER_SECOND, delta);
+                false
+            }
+        };
         sync_beam(commands, entity, position, rotation, active, segment);
     }
 }
