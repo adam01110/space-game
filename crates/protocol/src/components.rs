@@ -27,13 +27,13 @@ pub struct Player;
 
 // Last processed click counter, replicated for deterministic prediction and rollback.
 #[derive(Component, Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
-pub struct BlasterTrigger(pub u32);
+pub struct BlasterTrigger(pub u8);
 
 // Reload progress and its consumed input counter must roll back together.
 #[derive(Component, Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 pub struct BlasterReload {
     pub remaining: Duration,
-    pub requests: u32,
+    pub requests: u8,
 }
 
 // Non-solid, server-authoritative projectile. Lifetime is measured in simulation ticks.
@@ -41,12 +41,12 @@ pub struct BlasterReload {
 pub struct BlasterShot {
     pub position: Vec2,
     pub direction: Vec2,
-    pub ticks_left: u16,
+    pub ticks_left: u8,
 }
 
 // Current health of a player.
 #[derive(Component, Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct PlayerHealth(pub u16);
+pub struct PlayerHealth(pub u8);
 
 impl Default for PlayerHealth {
     fn default() -> Self {

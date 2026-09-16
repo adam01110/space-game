@@ -9,7 +9,6 @@ use crate::{
         install_arena_interpolation, prepare_predicted_arena, resize_arena,
     },
     movement::{move_authoritative_players, move_predicted_players},
-    phase_beam::{beam_authoritative_players, beam_predicted_players},
     physics::{install_physics, prepare_authoritative_body, prepare_predicted_body},
 };
 
@@ -44,10 +43,6 @@ impl Plugin for ClientSimulationPlugin {
         resolves contacts in FixedPostUpdate before Lightyear records prediction history.
         */
         app.add_systems(FixedUpdate, move_predicted_players)
-            .add_systems(
-                FixedUpdate,
-                beam_predicted_players.after(move_predicted_players),
-            )
             .add_plugins(ClientAbilitiesPlugin);
     }
 }
@@ -66,10 +61,6 @@ impl Plugin for ServerSimulationPlugin {
                     .before(PredictionSystems::UpdateHistory),
             );
         app.add_systems(FixedUpdate, move_authoritative_players)
-            .add_systems(
-                FixedUpdate,
-                beam_authoritative_players.after(move_authoritative_players),
-            )
             .add_plugins(ServerAbilitiesPlugin);
     }
 }

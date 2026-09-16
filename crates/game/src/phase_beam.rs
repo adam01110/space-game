@@ -1,13 +1,15 @@
 use avian2d::prelude::{Position, Rotation};
-use bevy::prelude::*;
+use bevy::{ecs::query::QueryFilter, prelude::*};
 use lightyear::prelude::{Predicted, SyncedLocalTimeline, input::native::ActionState};
 
 use crate::PLAYER_RADIUS;
-use project_protocol::{Player, PlayerInput};
+use project_protocol::{Player, PlayerInput, PlayerPhaseBeam};
 
 pub const BEAM_LENGTH: f32 = 800.0;
 pub const BEAM_WIDTH: f32 = 8.0;
 pub const NOSE_OFFSET: f32 = PLAYER_RADIUS + 4.0;
+
+const CHARGE_DRAIN_PER_SECOND: u8 = 25;
 
 /*
 Beam segment in world space, published each tick for hit detection and rendering.
@@ -39,6 +41,7 @@ type BeamState<'a> = (
     &'a Position,
     &'a Rotation,
     &'a ActionState<PlayerInput>,
+    &'a mut PlayerPhaseBeam,
     Option<&'a mut PhaseBeamSegment>,
 );
 
@@ -72,35 +75,30 @@ fn sync_beam(
     }
 }
 
-pub(super) fn beam_predicted_players(
-    _timeline: SyncedLocalTimeline,
-    mut commands: Commands,
-    mut players: Query<BeamState, With<Predicted>>,
+fn update_beams(
+    commands: &mut Commands,
+    players: &mut Query<BeamState, impl QueryFilter>,
+    delta: std::time::Duration,
 ) {
-    for (entity, position, rotation, input, segment) in &mut players {
-        sync_beam(
-            &mut commands,
-            entity,
-            position,
-            rotation,
-            input.0.phase_beam,
-            segment,
-        );
+    for (entity, position, rotation, input, mut charge, segment) in players {
+        let active = input.0.phase_beam && charge.0.drain(CHARGE_DRAIN_PER_SECOND, delta);
+        sync_beam(commands, entity, position, rotation, active, segment);
     }
 }
 
+pub(super) fn beam_predicted_players(
+    _timeline: SyncedLocalTimeline,
+    time: Res<Time<Fixed>>,
+    mut commands: Commands,
+    mut players: Query<BeamState, With<Predicted>>,
+) {
+    update_beams(&mut commands, &mut players, time.delta());
+}
+
 pub(super) fn beam_authoritative_players(
+    time: Res<Time<Fixed>>,
     mut commands: Commands,
     mut players: Query<BeamState, With<Player>>,
 ) {
-    for (entity, position, rotation, input, segment) in &mut players {
-        sync_beam(
-            &mut commands,
-            entity,
-            position,
-            rotation,
-            input.0.phase_beam,
-            segment,
-        );
-    }
+    update_beams(&mut commands, &mut players, time.delta());
 }

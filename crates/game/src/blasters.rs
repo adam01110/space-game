@@ -10,10 +10,10 @@ use project_protocol::{
 
 use crate::PLAYER_RADIUS;
 
-const SHOT_COST: u16 = 2 * AbilityCharge::UNITS_PER_PERCENT;
+const SHOT_COST: u8 = 2;
 const RELOAD_DURATION: Duration = Duration::from_secs(5);
 const SHOT_SPEED: f32 = 1200.0;
-const SHOT_LIFETIME: u16 = 60;
+const SHOT_LIFETIME: u8 = 60;
 
 type BlasterState<'a> = (
     &'a mut PlayerBlasters,
@@ -23,11 +23,11 @@ type BlasterState<'a> = (
 );
 
 // Counters make repeated input idempotent, including during rollback.
-fn consume_counter(previous: &mut u32, current: u32) -> u32 {
+fn consume_counter(previous: &mut u8, current: u8) -> u8 {
     let pending = current.wrapping_sub(*previous);
 
-    // An older packet must not look like billions of new presses.
-    if pending > u32::MAX / 2 {
+    // An older packet must not look like a burst of new presses.
+    if pending > u8::MAX / 2 {
         return 0;
     }
 
@@ -59,7 +59,7 @@ fn update_blasters(
     reload: &mut BlasterReload,
     input: &PlayerInput,
     delta: Duration,
-) -> u16 {
+) -> u8 {
     let clicks = consume_counter(&mut trigger.0, input.blaster_clicks);
     let reload_requested = consume_counter(&mut reload.requests, input.blaster_reload_requests) > 0;
 
@@ -96,7 +96,7 @@ pub(super) fn shoot_predicted_players(
     }
 }
 
-fn spawn_shots(commands: &mut Commands, position: &Position, rotation: &Rotation, shots: u16) {
+fn spawn_shots(commands: &mut Commands, position: &Position, rotation: &Rotation, shots: u8) {
     let direction = *rotation * Vec2::Y;
 
     for _ in 0..shots {

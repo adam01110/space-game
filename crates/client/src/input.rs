@@ -16,10 +16,10 @@ pub(super) struct ClientInputPlugin;
 
 impl Plugin for ClientInputPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<BlasterInputs>();
+        app.init_resource::<AbilityInputs>();
         app.add_systems(
             PreUpdate,
-            capture_blaster_inputs.after(bevy::input::InputSystems),
+            capture_ability_inputs.after(bevy::input::InputSystems),
         );
         app.add_systems(
             PreUpdate,
@@ -67,34 +67,39 @@ type PlayerInputQuery<'w, 's> = Query<
 >;
 
 #[derive(Resource, Default)]
-struct BlasterInputs {
-    clicks: u32,
-    reload_requests: u32,
+struct AbilityInputs {
+    blaster_clicks: u8,
+    blaster_reload_requests: u8,
+    phase_beam: bool,
 }
 
-// Capture once per render frame, even when there are zero or multiple fixed ticks.
-fn capture_blaster_inputs(
+// Capture ability controls once per render frame. Counters preserve discrete presses across
+// zero or multiple fixed ticks, while the beam retains its current held state.
+fn capture_ability_inputs(
     mouse: Res<ButtonInput<MouseButton>>,
     keyboard: Res<ButtonInput<KeyCode>>,
     players: Query<(), With<InputMarker<PlayerInput>>>,
-    mut inputs: ResMut<BlasterInputs>,
+    mut inputs: ResMut<AbilityInputs>,
 ) {
-    match (
-        players.is_empty(),
-        mouse.just_pressed(MouseButton::Left),
-        keyboard.just_pressed(KeyCode::KeyR),
-    ) {
-        (true, _, _) => *inputs = BlasterInputs::default(),
-        (false, fire, reload) => {
-            inputs.clicks = inputs.clicks.wrapping_add(u32::from(fire));
-            inputs.reload_requests = inputs.reload_requests.wrapping_add(u32::from(reload));
-        }
+    if players.is_empty() {
+        *inputs = AbilityInputs::default();
+        return;
     }
+
+    inputs.blaster_clicks = inputs
+        .blaster_clicks
+        .wrapping_add(u8::from(mouse.just_pressed(MouseButton::Left)));
+
+    inputs.blaster_reload_requests = inputs
+        .blaster_reload_requests
+        .wrapping_add(u8::from(keyboard.just_pressed(KeyCode::KeyR)));
+
+    inputs.phase_beam = keyboard.pressed(KeyCode::Space);
 }
 
 fn buffer_player_input(
     keyboard: Res<ButtonInput<KeyCode>>,
-    blasters: Res<BlasterInputs>,
+    abilities: Res<AbilityInputs>,
     windows: Query<&Window, With<PrimaryWindow>>,
     cameras: Query<(&Camera, &GlobalTransform), With<GameplayCamera>>,
     mut players: PlayerInputQuery,
@@ -120,9 +125,9 @@ fn buffer_player_input(
     action_state.0 = PlayerInput {
         movement: Vec2::new(horizontal, vertical),
         aim,
-        blaster_clicks: blasters.clicks,
-        blaster_reload_requests: blasters.reload_requests,
-        phase_beam: keyboard.pressed(KeyCode::Space),
+        blaster_clicks: abilities.blaster_clicks,
+        blaster_reload_requests: abilities.blaster_reload_requests,
+        phase_beam: abilities.phase_beam,
     };
 }
 

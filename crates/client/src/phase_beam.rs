@@ -1,8 +1,8 @@
 use bevy::prelude::*;
-use lightyear::prelude::{Predicted, input::native::ActionState};
+use lightyear::prelude::Predicted;
 
-use project_game::phase_beam::{BEAM_LENGTH, BEAM_WIDTH, NOSE_OFFSET};
-use project_protocol::{Player, PlayerInput};
+use project_game::phase_beam::{BEAM_LENGTH, BEAM_WIDTH, NOSE_OFFSET, PhaseBeamSegment};
+use project_protocol::Player;
 
 #[derive(Component)]
 pub(super) struct BeamVisual;
@@ -34,20 +34,19 @@ pub(super) fn add_phase_beam_visuals(
     }
 }
 
-// Rebroadcast inputs cover remote predicted ships too, so the beam appears for
-// every ship whose pilot holds the key. The child sprite owns its Visibility;
-// toggling the parent would hide the ship subtree instead.
+/*
+The predicted segment reflects both held input and available charge. The child sprite owns
+its Visibility; toggling the parent would hide the ship subtree instead.
+*/
 type BeamVisualQuery<'w, 's> =
     Query<'w, 's, (&'static ChildOf, &'static mut Visibility), With<BeamVisual>>;
 
 pub(super) fn update_phase_beam_visuals(
     beams: BeamVisualQuery,
-    inputs: Query<&ActionState<PlayerInput>, With<Player>>,
+    active_beams: Query<(), With<PhaseBeamSegment>>,
 ) {
     for (parent, mut visibility) in beams {
-        let active = inputs.get(parent.0).is_ok_and(|input| input.0.phase_beam);
-
-        *visibility = if active {
+        *visibility = if active_beams.contains(parent.0) {
             Visibility::Inherited
         } else {
             Visibility::Hidden
