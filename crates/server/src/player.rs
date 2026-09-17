@@ -41,45 +41,53 @@ pub fn spawn_player_for_client(
     let owner = trigger.entity;
     // Each closure mutates the world immediately, so later joins in the same command batch
     // observe earlier spawns and cannot select the same position.
-    commands.queue(move |world: &mut World| {
-        let arena = {
-            let mut arenas = world.query::<&ArenaBoundary>();
-            arenas.single(world).copied()
-        };
-        let Ok(arena) = arena else {
-            warn!("cannot spawn {peer_id:?}: expected exactly one arena boundary");
-            return;
-        };
-        let occupied: Vec<_> = {
-            let mut bodies = world.query::<(&Position, &CircleBody)>();
-            bodies
-                .iter(world)
-                .map(|(position, circle)| (position.0, circle.radius))
-                .collect()
-        };
-        let Some(spawn_position) = find_spawn_position(arena, &occupied, &mut rand::rng()) else {
-            warn!("cannot spawn {peer_id:?}: no safe position found inside the arena");
-            return;
-        };
+    commands.queue(
+        move |world: &mut World| match spawn_player(world, peer_id, owner) {
+            Ok(player) => info!("spawned {player:?} for {peer_id:?}"),
+            Err(error) => warn!("cannot spawn {peer_id:?}: {error}"),
+        },
+    );
+}
 
-        let player = world
-            .spawn((
-                Name::new(format!("Player {peer_id:?}")),
-                PlayerBundle::new(spawn_position),
-                PlayerIdentity(rand::rng().random()),
-                Replicate::to_clients(NetworkTarget::All),
-                // Contacts must use the same simulation tick on both sides. Delayed remote
-                // interpolation would put the other collider in the past.
-                PredictionTarget::to_clients(NetworkTarget::All),
-                ControlledBy {
-                    owner,
-                    lifetime: default(),
-                },
-            ))
-            .id();
+// Spawn one player for a newly connected client, reporting why a join was rejected instead of
+// leaving a partially spawned connection.
+fn spawn_player(world: &mut World, peer_id: PeerId, owner: Entity) -> Result<Entity, String> {
+    let arena = {
+        let mut arenas = world.query::<&ArenaBoundary>();
+        arenas.single(world).copied()
+    };
 
-        info!("spawned {player:?} for {peer_id:?}");
-    });
+    let Ok(arena) = arena else {
+        return Err("expected exactly one arena boundary".to_owned());
+    };
+
+    let occupied: Vec<_> = {
+        let mut bodies = world.query::<(&Position, &CircleBody)>();
+        bodies
+            .iter(world)
+            .map(|(position, circle)| (position.0, circle.radius))
+            .collect()
+    };
+
+    let Some(position) = find_spawn_position(arena, &occupied, &mut rand::rng()) else {
+        return Err("no safe position found inside the arena".to_owned());
+    };
+
+    Ok(world
+        .spawn((
+            Name::new(format!("Player {peer_id:?}")),
+            PlayerBundle::new(position),
+            PlayerIdentity(rand::rng().random()),
+            Replicate::to_clients(NetworkTarget::All),
+            // Contacts must use the same simulation tick on both sides. Delayed remote
+            // interpolation would put the other collider in the past.
+            PredictionTarget::to_clients(NetworkTarget::All),
+            ControlledBy {
+                owner,
+                lifetime: default(),
+            },
+        ))
+        .id())
 }
 
 // Use the current physical boundary, not its eventual expansion target.

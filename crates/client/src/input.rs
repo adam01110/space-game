@@ -1,3 +1,5 @@
+mod controls;
+
 use bevy::{prelude::*, window::PrimaryWindow};
 use lightyear::{
     input::{input_message::InputMessage, native::prelude::NativeStateSequence},
@@ -10,10 +12,9 @@ use lightyear::{
 
 use project_protocol::PlayerInput;
 
-use super::{
-    camera::{GameplayCamera, PIXEL_SIZE},
-    focus::FocusPrediction,
-};
+use super::{camera::GameplayCamera, focus::FocusPrediction};
+
+use controls::{aim_direction, axis};
 
 pub(super) struct ClientInputPlugin;
 
@@ -84,9 +85,7 @@ pub(super) fn capture_ability_inputs(
     if players.is_empty() {
         *inputs = AbilityInputs::default();
         return;
-    }
-
-    if !focus.accepts_input() {
+    } else if !focus.accepts_input() {
         // Preserve counters: resetting them would look like new wrapped presses to the server.
         inputs.phase_beam = false;
         return;
@@ -103,7 +102,7 @@ pub(super) fn capture_ability_inputs(
     inputs.phase_beam = keyboard.pressed(KeyCode::Space);
 }
 
-pub(super) fn buffer_player_input(
+pub(crate) fn buffer_player_input(
     keyboard: Res<ButtonInput<KeyCode>>,
     abilities: Res<AbilityInputs>,
     focus: Res<FocusPrediction>,
@@ -145,29 +144,4 @@ pub(super) fn buffer_player_input(
         blaster_reload_requests: abilities.blaster_reload_requests,
         phase_beam: abilities.phase_beam,
     };
-}
-
-fn aim_direction(
-    window: &Window,
-    camera: &Camera,
-    camera_transform: &GlobalTransform,
-    player_position: Vec2,
-) -> Option<Vec2> {
-    let cursor_position = window.cursor_position()?;
-
-    let canvas_size = camera.logical_viewport_size()?;
-    let canvas_cursor = canvas_size / 2.0 + (cursor_position - window.size() / 2.0) / PIXEL_SIZE;
-
-    let cursor_world = camera
-        .viewport_to_world_2d(camera_transform, canvas_cursor)
-        .ok()?;
-
-    (cursor_world - player_position).try_normalize()
-}
-
-fn axis(keyboard: &ButtonInput<KeyCode>, negative: KeyCode, positive: KeyCode) -> f32 {
-    let positive = if keyboard.pressed(positive) { 1.0 } else { 0.0 };
-    let negative = if keyboard.pressed(negative) { 1.0 } else { 0.0 };
-
-    positive - negative
 }

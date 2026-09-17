@@ -1,18 +1,19 @@
+mod canvas;
+
 use avian2d::prelude::PhysicsSystems;
 use bevy::{
     camera::{RenderTarget, visibility::RenderLayers},
     prelude::*,
-    render::render_resource::{
-        Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
-    },
     transform::TransformSystems,
-    window::{PrimaryWindow, WindowResized},
+    window::PrimaryWindow,
 };
 use lightyear::prelude::input::native::InputMarker;
 
 use project_protocol::PlayerInput;
 
 use super::plugins::ClientStartup;
+
+use canvas::{canvas_size, create_canvas, resize_canvas};
 
 pub(super) struct ClientCameraPlugin;
 
@@ -61,24 +62,8 @@ fn setup_camera(
     mut images: ResMut<Assets<Image>>,
     window: Single<&Window, With<PrimaryWindow>>,
 ) {
-    let canvas_size = canvas_size(window.width(), window.height());
-    let mut canvas = Image {
-        texture_descriptor: TextureDescriptor {
-            label: Some("gameplay_canvas"),
-            size: canvas_size,
-            dimension: TextureDimension::D2,
-            format: TextureFormat::Bgra8UnormSrgb,
-            mip_level_count: 1,
-            sample_count: 1,
-            usage: TextureUsages::TEXTURE_BINDING
-                | TextureUsages::COPY_DST
-                | TextureUsages::RENDER_ATTACHMENT,
-            view_formats: &[],
-        },
-        ..default()
-    };
-    canvas.resize(canvas_size);
-    let canvas = images.add(canvas);
+    let size = canvas_size(window.width(), window.height());
+    let canvas = create_canvas(&mut images, size);
 
     commands.spawn((
         Camera2d,
@@ -125,39 +110,6 @@ fn setup_camera(
         DebugCamera,
         DEBUG_RENDER_LAYERS,
     ));
-}
-
-fn resize_canvas(
-    mut resize_messages: MessageReader<WindowResized>,
-    primary_window: Single<Entity, With<PrimaryWindow>>,
-    gameplay_camera: Single<&RenderTarget, With<GameplayCamera>>,
-    mut images: ResMut<Assets<Image>>,
-) {
-    for resized in resize_messages.read() {
-        if resized.window != *primary_window {
-            continue;
-        }
-
-        let RenderTarget::Image(canvas) = &*gameplay_camera else {
-            return;
-        };
-
-        if let Some(mut image) = images.get_mut(&canvas.handle) {
-            image.resize(canvas_size(resized.width, resized.height));
-        }
-    }
-}
-
-fn canvas_size(window_width: f32, window_height: f32) -> Extent3d {
-    let size = (Vec2::new(window_width, window_height) / PIXEL_SIZE)
-        .ceil()
-        .as_uvec2()
-        .max(UVec2::ONE);
-    Extent3d {
-        width: size.x,
-        height: size.y,
-        ..default()
-    }
 }
 
 fn follow_player(

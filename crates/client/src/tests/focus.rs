@@ -1,3 +1,6 @@
+mod restoration;
+mod suspension;
+
 use std::time::Duration;
 
 use bevy::{
@@ -12,9 +15,6 @@ use project_game::{ClientSimulationPlugin, GamePlugin, SERVER_UPS};
 use project_protocol::ProtocolPlugin;
 
 use crate::focus::{ClientFocusPlugin, observe_focus};
-
-mod restoration;
-mod suspension;
 
 // A headless client with prediction, protocol, game and focus plugins installed.
 fn client() -> App {

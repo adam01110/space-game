@@ -1,20 +1,28 @@
+mod shots;
+
 use std::time::Duration;
 
 use avian2d::prelude::{Position, Rotation};
 use bevy::prelude::*;
-use lightyear::prelude::{PreSpawned, Predicted, SyncedLocalTimeline, input::native::ActionState};
+use lightyear::prelude::{Predicted, SyncedLocalTimeline, input::native::ActionState};
 
 use project_protocol::{
-    AbilityCharge, BlasterReload, BlasterShot, BlasterTrigger, Player, PlayerBlasters,
-    PlayerIdentity, PlayerInput,
+    AbilityCharge, BlasterReload, BlasterTrigger, Player, PlayerBlasters, PlayerIdentity,
+    PlayerInput,
 };
 
-use crate::PLAYER_RADIUS;
+pub(crate) use shots::advance_shots;
+use shots::spawn_shots;
 
 const SHOT_COST: u8 = 2;
 const RELOAD_DURATION: Duration = Duration::from_secs(5);
-const SHOT_SPEED: f32 = 1200.0;
-const SHOT_LIFETIME: u8 = 60;
+
+// Only one of these applies per tick, in this order: a running reload, a wanted reload, firing.
+enum BlasterAction {
+    TickReload,
+    StartReload,
+    Fire,
+}
 
 type BlasterState<'a> = (
     &'a mut PlayerBlasters,
@@ -61,6 +69,20 @@ fn wants_reload(charge: &PlayerBlasters, reload_requested: bool) -> bool {
     empty || manual
 }
 
+fn pending_action(
+    charge: &PlayerBlasters,
+    reload: &BlasterReload,
+    reload_requested: bool,
+) -> BlasterAction {
+    if !reload.remaining.is_zero() {
+        BlasterAction::TickReload
+    } else if wants_reload(charge, reload_requested) {
+        BlasterAction::StartReload
+    } else {
+        BlasterAction::Fire
+    }
+}
+
 fn update_blasters(
     charge: &mut PlayerBlasters,
     trigger: &mut BlasterTrigger,
@@ -71,21 +93,24 @@ fn update_blasters(
     let clicks = consume_counter(&mut trigger.0, input.blaster_clicks);
     let reload_requested = consume_counter(&mut reload.requests, input.blaster_reload_requests) > 0;
 
-    if !reload.remaining.is_zero() {
-        tick_reload(charge, reload, delta);
-        return 0;
+    match pending_action(charge, reload, reload_requested) {
+        BlasterAction::TickReload => {
+            tick_reload(charge, reload, delta);
+            0
+        }
+        BlasterAction::StartReload => {
+            reload.remaining = RELOAD_DURATION;
+            0
+        }
+        BlasterAction::Fire => {
+            let shots = charge.0.spend(SHOT_COST, clicks);
+            // An emptied blaster reloads instead of firing again.
+            if charge.0.units() < SHOT_COST {
+                reload.remaining = RELOAD_DURATION;
+            }
+            shots
+        }
     }
-
-    if wants_reload(charge, reload_requested) {
-        reload.remaining = RELOAD_DURATION;
-        return 0;
-    }
-
-    let shots = charge.0.spend(SHOT_COST, clicks);
-    if charge.0.units() < SHOT_COST {
-        reload.remaining = RELOAD_DURATION;
-    }
-    shots
 }
 
 pub(super) fn shoot_predicted_players(
@@ -108,29 +133,6 @@ pub(super) fn shoot_predicted_players(
     }
 }
 
-fn spawn_shots(
-    commands: &mut Commands,
-    position: &Position,
-    rotation: &Rotation,
-    identity: PlayerIdentity,
-    shots: u8,
-) {
-    let direction = *rotation * Vec2::Y;
-
-    for shot_index in 0..shots {
-        commands.spawn((
-            BlasterShot {
-                position: position.0 + direction * (PLAYER_RADIUS + 8.0),
-                direction,
-                ticks_left: SHOT_LIFETIME,
-            },
-            // The spawn tick plus this salt lets Lightyear match the immediate client shot to
-            // the server copy instead of showing a second projectile one round trip later.
-            PreSpawned::default_with_salt(identity.0 ^ u64::from(shot_index)),
-        ));
-    }
-}
-
 pub(super) fn shoot_authoritative_players(
     mut commands: Commands,
     time: Res<Time<Fixed>>,
@@ -146,35 +148,5 @@ pub(super) fn shoot_authoritative_players(
             time.delta(),
         );
         spawn_shots(&mut commands, position, rotation, *identity, shots);
-    }
-}
-
-fn advance_shot(
-    commands: &mut Commands,
-    shot_entity: Entity,
-    shot: &mut BlasterShot,
-    delta_secs: f32,
-) {
-    match shot.ticks_left <= 1 {
-        true => {
-            // The caller must not use the entity afterwards.
-            commands.entity(shot_entity).despawn();
-        }
-        false => {
-            shot.ticks_left -= 1;
-            shot.position += shot.direction * SHOT_SPEED * delta_secs;
-        }
-    }
-}
-
-pub(super) fn advance_shots(
-    mut commands: Commands,
-    time: Res<Time<Fixed>>,
-    mut shots: Query<(Entity, &mut BlasterShot)>,
-) {
-    let delta_secs = time.delta_secs();
-
-    for (shot_entity, mut shot) in &mut shots {
-        advance_shot(&mut commands, shot_entity, &mut shot, delta_secs);
     }
 }
