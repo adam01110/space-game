@@ -3,8 +3,8 @@ use bevy::{ecs::component::Mutable, prelude::*};
 use lightyear::prelude::{ConfirmedHistory, Predicted, Tick};
 
 use project_protocol::{
-    ArenaBoundary, BlasterReload, BlasterShot, BlasterTrigger, PlayerBlasters, PlayerBoost,
-    PlayerHealth, PlayerPhaseBeam,
+    ArenaBoundary, BlasterReload, BlasterShot, BlasterTrigger, PhaseBeamSegment, PlayerBlasters,
+    PlayerBoost, PlayerHealth, PlayerPhaseBeam,
 };
 
 use crate::confirmed::{apply_confirmed_world_state, has_confirmed_world_state};
@@ -58,4 +58,8 @@ fn every_predicted_component_requires_usable_authoritative_history() {
     assert_history_required(PlayerBoost::default());
     assert_history_required(PlayerHealth::default());
     assert_history_required(PlayerPhaseBeam::default());
+    assert_history_required(PhaseBeamSegment {
+        origin: Vec2::new(10.0, 20.0),
+        direction: Vec2::Y,
+    });
 }

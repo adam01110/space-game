@@ -3,7 +3,7 @@ use bevy::{ecs::query::QueryFilter, prelude::*};
 use lightyear::prelude::{Predicted, SyncedLocalTimeline, input::native::ActionState};
 
 use crate::PLAYER_RADIUS;
-use project_protocol::{Player, PlayerInput, PlayerPhaseBeam};
+use project_protocol::{PhaseBeamSegment, Player, PlayerInput, PlayerPhaseBeam};
 
 pub const BEAM_LENGTH: f32 = 800.0;
 pub const BEAM_WIDTH: f32 = 8.0;
@@ -11,21 +11,6 @@ pub const NOSE_OFFSET: f32 = PLAYER_RADIUS + 4.0;
 
 const CHARGE_DRAIN_PER_SECOND: u8 = 25;
 const CHARGE_REGEN_PER_SECOND: u8 = 25;
-
-// Beam segment in world space, published each tick for hit detection and rendering.
-// Present only while the beam is held; removal marks the beam inactive.
-#[derive(Component, Clone, Copy, Debug, PartialEq)]
-pub struct PhaseBeamSegment {
-    pub origin: Vec2,
-    pub direction: Vec2,
-}
-
-impl PhaseBeamSegment {
-    #[must_use]
-    pub fn end(self) -> Vec2 {
-        self.origin + self.direction * BEAM_LENGTH
-    }
-}
 
 fn segment_origin(position: &Position, rotation: &Rotation) -> Vec2 {
     position.0 + *rotation * (Vec2::Y * NOSE_OFFSET)

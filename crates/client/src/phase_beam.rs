@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 use lightyear::prelude::Predicted;
 
-use project_game::phase_beam::{BEAM_LENGTH, BEAM_WIDTH, NOSE_OFFSET, PhaseBeamSegment};
-use project_protocol::Player;
+use project_game::phase_beam::{BEAM_LENGTH, BEAM_WIDTH, NOSE_OFFSET};
+use project_protocol::{PhaseBeamSegment, Player};
 
 #[derive(Component)]
 pub(super) struct BeamVisual;

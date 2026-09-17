@@ -10,8 +10,8 @@ mod tests;
 
 pub use abilities::{AbilityCharge, PlayerBlasters, PlayerBoost, PlayerPhaseBeam};
 pub use components::{
-    ArenaBoundary, BlasterReload, BlasterShot, BlasterTrigger, BodyMotion, CircleBody, Player,
-    PlayerHealth, PlayerIdentity,
+    ArenaBoundary, BlasterReload, BlasterShot, BlasterTrigger, BodyMotion, CircleBody,
+    PhaseBeamSegment, Player, PlayerHealth, PlayerIdentity,
 };
 pub use config::{PROTOCOL_ID, SERVER_PORT};
 pub use input::PlayerInput;

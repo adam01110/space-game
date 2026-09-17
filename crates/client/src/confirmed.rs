@@ -3,8 +3,8 @@ use bevy::{ecs::component::Mutable, prelude::*};
 use lightyear::prelude::*;
 
 use project_protocol::{
-    ArenaBoundary, BlasterReload, BlasterShot, BlasterTrigger, PlayerBlasters, PlayerBoost,
-    PlayerHealth, PlayerPhaseBeam,
+    ArenaBoundary, BlasterReload, BlasterShot, BlasterTrigger, PhaseBeamSegment, PlayerBlasters,
+    PlayerBoost, PlayerHealth, PlayerPhaseBeam,
 };
 
 struct ConfirmedComponent {
@@ -36,6 +36,7 @@ const PREDICTED_COMPONENTS: &[ConfirmedComponent] = &[
     ConfirmedComponent::new::<PlayerBoost>(),
     ConfirmedComponent::new::<PlayerHealth>(),
     ConfirmedComponent::new::<PlayerPhaseBeam>(),
+    ConfirmedComponent::new::<PhaseBeamSegment>(),
 ];
 
 // Whether every predicted component can be restored from history at `tick`.

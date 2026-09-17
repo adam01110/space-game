@@ -48,6 +48,14 @@ pub struct BlasterShot {
     pub ticks_left: u8,
 }
 
+// World-space phase beam state produced by the authoritative and predicted simulations.
+// Component presence means the beam is active.
+#[derive(Component, Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct PhaseBeamSegment {
+    pub origin: Vec2,
+    pub direction: Vec2,
+}
+
 // Current health of a player.
 #[derive(Component, Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct PlayerHealth(pub u8);
