@@ -1,4 +1,4 @@
-use project_protocol::ArenaBoundary;
+use space_game_protocol::ArenaBoundary;
 
 use crate::{
     ARENA_GROWTH_MULTIPLIER, ARENA_RESIZE_SPEED, BASE_ARENA_RADIUS, advance_arena, arena_radius,

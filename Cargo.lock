@@ -6615,60 +6615,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3d595e54a326bc53c1c197b32d295e14b169e3cfeaa8dc82b529f947fba6bcf5"
 
 [[package]]
-name = "project-client"
-version = "0.1.0"
-dependencies = [
- "avian2d",
- "bevy",
- "bevy_resvg",
- "crossbeam-channel",
- "ehttp",
- "lightyear",
- "log",
- "project-game",
- "project-protocol",
- "serde_json",
- "url",
- "web-sys",
-]
-
-[[package]]
-name = "project-game"
-version = "0.1.0"
-dependencies = [
- "avian2d",
- "bevy",
- "lightyear",
- "project-protocol",
-]
-
-[[package]]
-name = "project-protocol"
-version = "0.1.0"
-dependencies = [
- "base16ct",
- "bevy",
- "lightyear",
- "serde",
-]
-
-[[package]]
-name = "project-server"
-version = "0.1.0"
-dependencies = [
- "avian2d",
- "bevy",
- "governor",
- "lightyear",
- "log",
- "project-game",
- "project-protocol",
- "rand 0.10.2",
- "serde_json",
- "tii",
-]
-
-[[package]]
 name = "pxfm"
 version = "0.1.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7680,6 +7626,60 @@ checksum = "c3d1e2c7f27f8d4cb10542a02c49005dbd6e93095799d6f3be745fae9f8fedd4"
 dependencies = [
  "libc",
  "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "space-game-client"
+version = "0.1.0"
+dependencies = [
+ "avian2d",
+ "bevy",
+ "bevy_resvg",
+ "crossbeam-channel",
+ "ehttp",
+ "lightyear",
+ "log",
+ "serde_json",
+ "space-game-game",
+ "space-game-protocol",
+ "url",
+ "web-sys",
+]
+
+[[package]]
+name = "space-game-game"
+version = "0.1.0"
+dependencies = [
+ "avian2d",
+ "bevy",
+ "lightyear",
+ "space-game-protocol",
+]
+
+[[package]]
+name = "space-game-protocol"
+version = "0.1.0"
+dependencies = [
+ "base16ct",
+ "bevy",
+ "lightyear",
+ "serde",
+]
+
+[[package]]
+name = "space-game-server"
+version = "0.1.0"
+dependencies = [
+ "avian2d",
+ "bevy",
+ "governor",
+ "lightyear",
+ "log",
+ "rand 0.10.2",
+ "serde_json",
+ "space-game-game",
+ "space-game-protocol",
+ "tii",
 ]
 
 [[package]]

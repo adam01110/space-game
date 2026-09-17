@@ -1,5 +1,5 @@
 {
-  description = "project-1";
+  description = "space-game";
 
   inputs = {
     # keep-sorted start block=yes newline_separated=yes

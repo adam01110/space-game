@@ -2,7 +2,7 @@ use avian2d::prelude::{Position, Rotation};
 use bevy::prelude::*;
 use lightyear::prelude::{Controlled, Predicted, input::native::InputMarker};
 
-use project_protocol::{Player, PlayerInput};
+use space_game_protocol::{Player, PlayerInput};
 
 pub(super) struct ClientPlayerPlugin;
 

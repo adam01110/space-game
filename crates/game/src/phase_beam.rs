@@ -3,7 +3,7 @@ use bevy::{ecs::query::QueryFilter, prelude::*};
 use lightyear::prelude::{Predicted, SyncedLocalTimeline, input::native::ActionState};
 
 use crate::PLAYER_RADIUS;
-use project_protocol::{PhaseBeamSegment, Player, PlayerInput, PlayerPhaseBeam};
+use space_game_protocol::{PhaseBeamSegment, Player, PlayerInput, PlayerPhaseBeam};
 
 pub const BEAM_LENGTH: f32 = 800.0;
 pub const BEAM_WIDTH: f32 = 8.0;

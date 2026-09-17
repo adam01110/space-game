@@ -3,8 +3,8 @@ use bevy::prelude::*;
 use lightyear::{connection::client::Connected, prelude::server::*, prelude::*};
 use rand::{Rng, RngExt};
 
-use project_game::{PLAYER_RADIUS, PlayerBundle, arena_radius};
-use project_protocol::{ArenaBoundary, CircleBody, PlayerIdentity};
+use space_game_game::{PLAYER_RADIUS, PlayerBundle, arena_radius};
+use space_game_protocol::{ArenaBoundary, CircleBody, PlayerIdentity};
 
 pub const SPAWN_CLEARANCE: f32 = 2.0;
 const SPAWN_ATTEMPTS: usize = 256;

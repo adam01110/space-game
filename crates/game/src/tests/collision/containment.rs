@@ -2,7 +2,7 @@ use avian2d::prelude::{LinearVelocity, Position};
 use bevy::prelude::*;
 use lightyear::prelude::input::native::ActionState;
 
-use project_protocol::{ArenaBoundary, Player, PlayerInput};
+use space_game_protocol::{ArenaBoundary, Player, PlayerInput};
 
 use crate::{ARENA_RESIZE_SPEED, PLAYER_RADIUS, PlayerBundle, SERVER_UPS, arena_radius};
 

@@ -32,13 +32,13 @@ fn validate_endpoint(value: &str, allow_loopback_http: bool) -> Result<Url, Stri
 
 #[cfg(not(target_family = "wasm"))]
 fn runtime_endpoint() -> Result<Option<Url>, String> {
-    let Some(value) = std::env::var_os("PROJECT_AUTH_URL") else {
+    let Some(value) = std::env::var_os("SPACE_GAME_AUTH_URL") else {
         return Ok(None);
     };
 
     let value = value
         .into_string()
-        .map_err(|_value| "PROJECT_AUTH_URL must be Unicode".to_owned())?;
+        .map_err(|_value| "SPACE_GAME_AUTH_URL must be Unicode".to_owned())?;
 
     validate_endpoint(&value, cfg!(feature = "dev")).map(Some)
 }
@@ -49,7 +49,7 @@ fn runtime_endpoint() -> Result<Option<Url>, String> {
 }
 
 fn embedded_endpoint() -> Result<Option<Url>, String> {
-    option_env!("PROJECT_AUTH_URL")
+    option_env!("SPACE_GAME_AUTH_URL")
         .map(|value| validate_endpoint(value, cfg!(feature = "dev")))
         .transpose()
 }

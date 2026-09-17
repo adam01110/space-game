@@ -11,8 +11,8 @@ use lightyear::prelude::{
     ConfirmedHistory, PredictionManager, ReplicationCheckpointMap, Tick, client::ClientPlugins,
 };
 
-use project_game::{ClientSimulationPlugin, GamePlugin, SERVER_UPS};
-use project_protocol::ProtocolPlugin;
+use space_game_game::{ClientSimulationPlugin, GamePlugin, SERVER_UPS};
+use space_game_protocol::ProtocolPlugin;
 
 use crate::focus::{ClientFocusPlugin, observe_focus};
 

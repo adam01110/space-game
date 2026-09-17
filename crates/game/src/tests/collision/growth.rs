@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use project_protocol::ArenaBoundary;
+use space_game_protocol::ArenaBoundary;
 
 use crate::{ARENA_RESIZE_SPEED, PlayerBundle, SERVER_UPS, arena_radius};
 

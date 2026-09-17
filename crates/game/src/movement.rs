@@ -3,7 +3,7 @@ use bevy::{ecs::query::QueryFilter, prelude::*};
 use lightyear::prelude::input::native::ActionState;
 use lightyear::prelude::{Predicted, SyncedLocalTimeline};
 
-use project_protocol::{Player, PlayerInput, PlayerPhaseBeam};
+use space_game_protocol::{Player, PlayerInput, PlayerPhaseBeam};
 
 const MOVE_SPEED: f32 = 512.0;
 const PHASE_BEAM_MOVE_SPEED: f32 = MOVE_SPEED * 0.75;

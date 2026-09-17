@@ -1,5 +1,5 @@
 [package]
-name = "project-protocol"
+name = "space-game-protocol"
 version.workspace = true
 edition.workspace = true
 

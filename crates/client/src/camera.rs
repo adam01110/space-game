@@ -9,7 +9,7 @@ use bevy::{
 };
 use lightyear::prelude::input::native::InputMarker;
 
-use project_protocol::PlayerInput;
+use space_game_protocol::PlayerInput;
 
 use super::plugins::ClientStartup;
 

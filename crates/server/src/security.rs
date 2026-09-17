@@ -2,7 +2,7 @@ use std::{ffi::OsString, fs::OpenOptions, io::Write, net::SocketAddr, path::Path
 
 use bevy::prelude::*;
 use lightyear::netcode::{ConnectToken, generate_key};
-use project_protocol::{PROTOCOL_ID, SERVER_PORT, security::encode_hex};
+use space_game_protocol::{PROTOCOL_ID, SERVER_PORT, security::encode_hex};
 
 type Error = Box<dyn std::error::Error>;
 
@@ -45,8 +45,7 @@ pub(super) fn issue_token(
         .generate()?)
 }
 
-const USAGE: &str =
-    "usage: project-server [generate-key KEY_FILE | issue-token KEY_FILE SERVER_IP:5000 CLIENT_ID]";
+const USAGE: &str = "usage: space-game-server [generate-key KEY_FILE | issue-token KEY_FILE SERVER_IP:5000 CLIENT_ID]";
 
 fn command_args<const N: usize>(args: &[String]) -> Result<&[String; N], &'static str> {
     args.try_into().map_err(|_error| USAGE)
@@ -89,7 +88,7 @@ fn configure_args(
     configured_key: Option<OsString>,
 ) -> Result<Option<ServerKey>, Error> {
     let Some((command, args)) = args.split_first() else {
-        let path = configured_key.ok_or("PROJECT_NETCODE_KEY_FILE is required")?;
+        let path = configured_key.ok_or("SPACE_GAME_NETCODE_KEY_FILE is required")?;
         return Ok(Some(load_key(Path::new(&path))?));
     };
     configure_command(command, args)
@@ -98,5 +97,5 @@ fn configure_args(
 // Returns None after an operator command, or the key needed to run the server.
 pub(super) fn configure() -> Result<Option<ServerKey>, Error> {
     let args: Vec<_> = std::env::args().skip(1).collect();
-    configure_args(&args, std::env::var_os("PROJECT_NETCODE_KEY_FILE"))
+    configure_args(&args, std::env::var_os("SPACE_GAME_NETCODE_KEY_FILE"))
 }

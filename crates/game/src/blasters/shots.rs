@@ -2,7 +2,7 @@ use avian2d::prelude::{Position, Rotation};
 use bevy::prelude::*;
 use lightyear::prelude::PreSpawned;
 
-use project_protocol::{BlasterShot, PlayerIdentity};
+use space_game_protocol::{BlasterShot, PlayerIdentity};
 
 use crate::PLAYER_RADIUS;
 

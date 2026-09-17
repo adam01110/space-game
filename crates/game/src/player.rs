@@ -1,7 +1,7 @@
 use avian2d::prelude::*;
 use bevy::prelude::*;
 
-use project_protocol::{
+use space_game_protocol::{
     BlasterReload, BlasterTrigger, CircleBody, Player, PlayerBlasters, PlayerBoost, PlayerHealth,
     PlayerPhaseBeam,
 };

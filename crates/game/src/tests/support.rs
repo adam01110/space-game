@@ -3,7 +3,7 @@ use std::time::Duration;
 use bevy::{prelude::*, state::app::StatesPlugin, time::TimeUpdateStrategy};
 use lightyear::prelude::{ReplicationMetadata, server::ServerPlugins};
 
-use project_protocol::{ArenaBoundary, ProtocolPlugin};
+use space_game_protocol::{ArenaBoundary, ProtocolPlugin};
 
 use crate::{GamePlugin, SERVER_UPS, ServerSimulationPlugin, arena_radius};
 

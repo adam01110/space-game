@@ -1,5 +1,5 @@
 [package]
-name = "project-game"
+name = "space-game-game"
 version.workspace = true
 edition.workspace = true
 
@@ -22,7 +22,7 @@ lightyear = { workspace = true, features = [
   "prediction",
   "std",
 ] }
-project-protocol.workspace = true
+space-game-protocol.workspace = true
 
 [dev-dependencies]
 lightyear = { workspace = true, features = [

@@ -6,7 +6,7 @@ use bevy::prelude::*;
 use lightyear::prelude::Predicted;
 
 #[cfg(feature = "dev")]
-use project_protocol::ArenaBoundary;
+use space_game_protocol::ArenaBoundary;
 
 // Presentation is deliberately separate from the gameplay constraint. Reuse the
 // existing native-resolution debug layer without changing any camera/MSAA settings.

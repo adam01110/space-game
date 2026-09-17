@@ -2,7 +2,7 @@ use avian2d::prelude::{LinearVelocity, Rotation};
 use bevy::prelude::*;
 use lightyear::prelude::input::native::ActionState;
 
-use project_protocol::PlayerInput;
+use space_game_protocol::PlayerInput;
 
 use crate::PlayerBundle;
 

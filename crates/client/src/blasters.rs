@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use project_protocol::BlasterShot;
+use space_game_protocol::BlasterShot;
 
 fn shot_transform(shot: &BlasterShot) -> Transform {
     Transform::from_translation(shot.position.extend(1.0)).with_rotation(Quat::from_rotation_z(

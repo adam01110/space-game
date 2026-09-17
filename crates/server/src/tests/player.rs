@@ -6,8 +6,8 @@ use lightyear::{
 };
 use rand::{SeedableRng, rngs::StdRng};
 
-use project_game::PLAYER_RADIUS;
-use project_protocol::ArenaBoundary;
+use space_game_game::PLAYER_RADIUS;
+use space_game_protocol::ArenaBoundary;
 
 use crate::{SPAWN_CLEARANCE, find_spawn_position, spawn_player_for_client};
 
@@ -59,7 +59,7 @@ fn simultaneous_connection_spawns_are_reserved() {
 
 #[test]
 fn batched_connection_observers_spawn_distinct_players() {
-    use project_protocol::Player;
+    use space_game_protocol::Player;
     let mut app = App::new();
     app.add_observer(spawn_player_for_client);
     app.world_mut().spawn(ArenaBoundary::new(1200.0));

@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use lightyear::prelude::{NetworkTarget, Replicate};
-use project_protocol::BlasterShot;
+use space_game_protocol::BlasterShot;
 
 pub(super) struct ServerAbilitiesPlugin;
 

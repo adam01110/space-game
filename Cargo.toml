@@ -100,8 +100,8 @@ log = { version = "0.4.34", features = [
   "release_max_level_warn",
   # keep-sorted end
 ] }
-project-game = { path = "crates/game" }
-project-protocol = { path = "crates/protocol" }
+space-game-game = { path = "crates/game" }
+space-game-protocol = { path = "crates/protocol" }
 serde = { version = "1.0.229", features = ["derive"] }
 
 # Enable a small amount of optimization in the dev profile.

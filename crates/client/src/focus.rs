@@ -5,7 +5,7 @@ use avian2d::prelude::PhysicsSystems;
 use bevy::{prelude::*, window::PrimaryWindow};
 use lightyear::{frame_interpolation::FrameInterpolationSystems, prelude::*};
 
-use project_game::ClientSimulationSystems;
+use space_game_game::ClientSimulationSystems;
 
 use restoration::observe_restoration;
 pub(crate) use restoration::{finish_restoration, request_restoration};

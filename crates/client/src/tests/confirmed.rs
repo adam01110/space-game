@@ -2,7 +2,7 @@ use avian2d::prelude::{AngularVelocity, LinearVelocity, Position, Rotation};
 use bevy::{ecs::component::Mutable, prelude::*};
 use lightyear::prelude::{ConfirmedHistory, Predicted, Tick};
 
-use project_protocol::{
+use space_game_protocol::{
     ArenaBoundary, BlasterReload, BlasterShot, BlasterTrigger, PhaseBeamSegment, PlayerBlasters,
     PlayerBoost, PlayerHealth, PlayerPhaseBeam,
 };

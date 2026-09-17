@@ -4,7 +4,7 @@ use lightyear::prelude::{
     input::native::{ActionState, InputMarker},
 };
 
-use project_protocol::PlayerInput;
+use space_game_protocol::PlayerInput;
 
 use crate::{
     focus::{ClientFocusPlugin, FocusPrediction},

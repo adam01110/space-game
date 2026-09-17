@@ -5,8 +5,8 @@ use lightyear::prelude::{
     Predicted, PredictionMetrics, StateRollbackMetadata, Tick, input::native::ActionState,
 };
 
-use project_game::PlayerBundle;
-use project_protocol::{
+use space_game_game::PlayerBundle;
+use space_game_protocol::{
     ArenaBoundary, BlasterReload, BlasterTrigger, PlayerBlasters, PlayerBoost, PlayerHealth,
     PlayerInput, PlayerPhaseBeam,
 };

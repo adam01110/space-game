@@ -6,7 +6,7 @@ use avian2d::prelude::{Position, Rotation};
 use bevy::prelude::*;
 use lightyear::prelude::{Predicted, SyncedLocalTimeline, input::native::ActionState};
 
-use project_protocol::{
+use space_game_protocol::{
     AbilityCharge, BlasterReload, BlasterTrigger, Player, PlayerBlasters, PlayerIdentity,
     PlayerInput,
 };

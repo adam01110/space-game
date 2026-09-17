@@ -2,7 +2,7 @@ use avian2d::prelude::*;
 use bevy::{ecs::system::EntityCommands, prelude::*};
 use lightyear::{avian2d::prelude::LightyearAvianPlugin, prelude::*};
 
-use project_protocol::{BodyMotion, CircleBody};
+use space_game_protocol::{BodyMotion, CircleBody};
 
 // Install after ProtocolPlugin. Avian owns simulation poses.
 pub(super) fn install_physics(app: &mut App) {

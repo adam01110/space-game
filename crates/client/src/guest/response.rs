@@ -1,5 +1,5 @@
 use lightyear::netcode::{CONNECT_TOKEN_BYTES, ConnectToken};
-use project_protocol::security::{GuestCredentials, decode_hex};
+use space_game_protocol::security::{GuestCredentials, decode_hex};
 use url::Url;
 
 use super::{Credentials, GuestResult};

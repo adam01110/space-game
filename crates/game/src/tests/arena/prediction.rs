@@ -2,7 +2,7 @@ use avian2d::prelude::{LinearVelocity, Position};
 use bevy::prelude::*;
 use lightyear::prelude::{FrameInterpolate, Predicted};
 
-use project_protocol::{ArenaBoundary, CircleBody};
+use space_game_protocol::{ArenaBoundary, CircleBody};
 
 use crate::{contain_predicted_bodies, install_arena_interpolation};
 

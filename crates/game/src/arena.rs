@@ -2,7 +2,7 @@ use avian2d::prelude::*;
 use bevy::{ecs::query::QueryFilter, prelude::*};
 use lightyear::prelude::{AppInterpolationExt, FrameInterpolate, InterpolationFns, Predicted};
 
-use project_protocol::{ArenaBoundary, BodyMotion, CircleBody, Player};
+use space_game_protocol::{ArenaBoundary, BodyMotion, CircleBody, Player};
 
 // Radius for an empty or solo arena, in world units.
 pub const BASE_ARENA_RADIUS: f32 = 1200.0;

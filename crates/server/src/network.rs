@@ -3,7 +3,7 @@ use std::net::SocketAddr;
 use bevy::prelude::*;
 use lightyear::{netcode::NetcodeServer, prelude::server::*, prelude::*};
 
-use project_protocol::{PROTOCOL_ID, SERVER_PORT, security::encode_hex};
+use space_game_protocol::{PROTOCOL_ID, SERVER_PORT, security::encode_hex};
 
 use super::{auth::AuthService, security::ServerKey};
 

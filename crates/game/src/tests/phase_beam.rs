@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use lightyear::prelude::input::native::ActionState;
 
-use project_protocol::{AbilityCharge, PlayerInput, PlayerPhaseBeam};
+use space_game_protocol::{AbilityCharge, PlayerInput, PlayerPhaseBeam};
 
 use crate::PlayerBundle;
 

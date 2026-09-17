@@ -26,8 +26,8 @@ use bevy::{
 };
 use lightyear::prelude::client::*;
 
-use project_game::{ClientSimulationPlugin, GamePlugin, SERVER_UPS};
-use project_protocol::ProtocolPlugin;
+use space_game_game::{ClientSimulationPlugin, GamePlugin, SERVER_UPS};
+use space_game_protocol::ProtocolPlugin;
 
 #[cfg(feature = "dev")]
 use crate::camera::DEBUG_RENDER_LAYERS;

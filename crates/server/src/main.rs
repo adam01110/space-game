@@ -7,9 +7,9 @@ use bevy::{
 };
 use lightyear::prelude::{ReplicationMetadata, server::*};
 
-use project_game::{GamePlugin, SERVER_UPS, ServerSimulationPlugin};
-use project_protocol::ProtocolPlugin;
-use project_server::plugins;
+use space_game_game::{GamePlugin, SERVER_UPS, ServerSimulationPlugin};
+use space_game_protocol::ProtocolPlugin;
+use space_game_server::plugins;
 
 // A headless simulation produces little parallel work; small fixed pools avoid a
 // dozen idle threads and their allocator arenas.

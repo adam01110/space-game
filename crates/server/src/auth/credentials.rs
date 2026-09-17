@@ -2,7 +2,7 @@ use std::net::SocketAddr;
 
 use lightyear::netcode::generate_key;
 
-use project_protocol::security::{GuestCredentials, encode_hex};
+use space_game_protocol::security::{GuestCredentials, encode_hex};
 
 use crate::security::{ServerKey, issue_token};
 

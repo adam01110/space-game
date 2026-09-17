@@ -6,8 +6,8 @@ use lightyear::prelude::{
     ConfirmedHistory, FrameInterpolationHistory, Predicted, Tick, input::native::ActionState,
 };
 
-use project_game::{PlayerBundle, SERVER_UPS};
-use project_protocol::{ArenaBoundary, BlasterShot, PlayerInput};
+use space_game_game::{PlayerBundle, SERVER_UPS};
+use space_game_protocol::{ArenaBoundary, BlasterShot, PlayerInput};
 
 use crate::focus::{FocusPrediction, recent_checkpoint};
 
