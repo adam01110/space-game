@@ -48,10 +48,8 @@ impl AbilityCharge {
         }
     }
 
-    /*
-    Drain a per-second rate while charge remains. The return value reports whether
-    the ability can be active for this tick, including the tick that exhausts it.
-    */
+    // Drain a per-second rate while charge remains. The return value reports whether
+    // the ability can be active for this tick, including the tick that exhausts it.
     pub fn drain(&mut self, units_per_second: u8, delta: Duration) -> bool {
         if self.units == 0 {
             self.drain_remainder = Duration::ZERO;

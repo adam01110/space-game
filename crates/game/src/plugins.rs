@@ -46,10 +46,8 @@ impl Plugin for ClientSimulationPlugin {
                     .before(PhysicsSystems::Writeback)
                     .before(PredictionSystems::UpdateHistory),
             );
-        /*
-        Input is buffered in FixedPreUpdate. Apply desired velocity here, then Avian
-        resolves contacts in FixedPostUpdate before Lightyear records prediction history.
-        */
+        // Input is buffered in FixedPreUpdate. Apply desired velocity here, then Avian
+        // resolves contacts in FixedPostUpdate before Lightyear records prediction history.
         app.add_systems(
             FixedUpdate,
             move_predicted_players.in_set(ClientSimulationSystems),

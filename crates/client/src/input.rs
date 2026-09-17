@@ -37,11 +37,9 @@ impl Plugin for ClientInputPlugin {
     }
 }
 
-/*
-Lightyear cannot process rebroadcast inputs until the local timeline is synchronized, but its
-end-of-frame cleanup warns about every unread message. These packets cannot be retained across
-frames and later packets contain redundant state, so explicitly discard them during startup.
-*/
+// Lightyear cannot process rebroadcast inputs until the local timeline is synchronized, but its
+// end-of-frame cleanup warns about every unread message. These packets cannot be retained across
+// frames and later packets contain redundant state, so explicitly discard them during startup.
 fn discard_remote_inputs_before_sync(
     timeline_sync: Res<LocalTimelineSync>,
     mut receivers: Query<&mut MessageReceiver<InputMessage<NativeStateSequence<PlayerInput>>>>,
@@ -55,10 +53,8 @@ fn discard_remote_inputs_before_sync(
     }
 }
 
-/*
-Use the last rendered player and camera poses together. Physics Position has already
-been restored to the current tick here and would mix timelines during catch-up ticks.
-*/
+// Use the last rendered player and camera poses together. Physics Position has already
+// been restored to the current tick here and would mix timelines during catch-up ticks.
 type PlayerInputQuery<'w, 's> = Query<
     'w,
     's,

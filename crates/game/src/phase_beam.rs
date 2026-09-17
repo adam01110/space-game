@@ -12,10 +12,8 @@ pub const NOSE_OFFSET: f32 = PLAYER_RADIUS + 4.0;
 const CHARGE_DRAIN_PER_SECOND: u8 = 25;
 const CHARGE_REGEN_PER_SECOND: u8 = 25;
 
-/*
-Beam segment in world space, published each tick for hit detection and rendering.
-Present only while the beam is held; removal marks the beam inactive.
-*/
+// Beam segment in world space, published each tick for hit detection and rendering.
+// Present only while the beam is held; removal marks the beam inactive.
 #[derive(Component, Clone, Copy, Debug, PartialEq)]
 pub struct PhaseBeamSegment {
     pub origin: Vec2,

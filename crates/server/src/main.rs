@@ -11,10 +11,8 @@ use project_game::{GamePlugin, SERVER_UPS, ServerSimulationPlugin};
 use project_protocol::ProtocolPlugin;
 use project_server::plugins;
 
-/*
-A headless simulation produces little parallel work; small fixed pools avoid a
-dozen idle threads and their allocator arenas.
-*/
+// A headless simulation produces little parallel work; small fixed pools avoid a
+// dozen idle threads and their allocator arenas.
 fn task_pool_options() -> TaskPoolOptions {
     const POLICY: fn(usize) -> TaskPoolThreadAssignmentPolicy =
         |max_threads| TaskPoolThreadAssignmentPolicy {

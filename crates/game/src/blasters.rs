@@ -124,10 +124,8 @@ fn spawn_shots(
                 direction,
                 ticks_left: SHOT_LIFETIME,
             },
-            /*
-            The spawn tick plus this salt lets Lightyear match the immediate client shot to
-            the server copy instead of showing a second projectile one round trip later.
-            */
+            // The spawn tick plus this salt lets Lightyear match the immediate client shot to
+            // the server copy instead of showing a second projectile one round trip later.
             PreSpawned::default_with_salt(identity.0 ^ u64::from(shot_index)),
         ));
     }

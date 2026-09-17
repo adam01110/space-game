@@ -34,10 +34,8 @@ pub(super) fn add_phase_beam_visuals(
     }
 }
 
-/*
-The predicted segment reflects both held input and available charge. The child sprite owns
-its Visibility; toggling the parent would hide the ship subtree instead.
-*/
+// The predicted segment reflects both held input and available charge. The child sprite owns
+// its Visibility; toggling the parent would hide the ship subtree instead.
 type BeamVisualQuery<'w, 's> =
     Query<'w, 's, (&'static ChildOf, &'static mut Visibility), With<BeamVisual>>;
 
