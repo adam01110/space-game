@@ -7,6 +7,9 @@ mod physics;
 mod player;
 mod plugins;
 
+#[cfg(test)]
+mod tests;
+
 pub use arena::{
     ARENA_GROWTH_MULTIPLIER, ARENA_RESIZE_SPEED, BASE_ARENA_RADIUS, advance_arena, arena_radius,
     contain_circle, contain_predicted_bodies, install_arena_interpolation,

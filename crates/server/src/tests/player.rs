@@ -8,7 +8,8 @@ use rand::{SeedableRng, rngs::StdRng};
 
 use project_game::PLAYER_RADIUS;
 use project_protocol::ArenaBoundary;
-use project_server::{SPAWN_CLEARANCE, find_spawn_position, spawn_player_for_client};
+
+use crate::{SPAWN_CLEARANCE, find_spawn_position, spawn_player_for_client};
 
 #[test]
 fn random_spawns_cover_the_disk_uniformly_by_area() {

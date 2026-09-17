@@ -1,36 +1,11 @@
-use std::time::Duration;
+use bevy::prelude::*;
+use lightyear::prelude::input::native::ActionState;
 
-use bevy::{prelude::*, state::app::StatesPlugin, time::TimeUpdateStrategy};
-use lightyear::prelude::{ReplicationMetadata, input::native::ActionState, server::ServerPlugins};
+use project_protocol::{AbilityCharge, PlayerInput, PlayerPhaseBeam};
 
-use project_game::{GamePlugin, PlayerBundle, SERVER_UPS, ServerSimulationPlugin};
-use project_protocol::{AbilityCharge, PlayerInput, PlayerPhaseBeam, ProtocolPlugin};
+use crate::PlayerBundle;
 
-fn simulation() -> App {
-    let mut app = App::new();
-    app.add_plugins((
-        MinimalPlugins,
-        StatesPlugin,
-        TransformPlugin,
-        ServerPlugins {
-            tick_duration: Duration::from_secs_f64(1.0 / SERVER_UPS),
-        },
-        ProtocolPlugin,
-        GamePlugin,
-        ServerSimulationPlugin,
-    ));
-    app.insert_resource(ReplicationMetadata::new(Duration::from_secs_f64(
-        1.0 / SERVER_UPS,
-    )));
-    app.insert_resource(TimeUpdateStrategy::ManualDuration(Duration::from_secs_f64(
-        1.0 / SERVER_UPS,
-    )));
-    app.init_resource::<lightyear::connection::client::PeerMetadata>();
-    app.finish();
-    app.cleanup();
-    app.update();
-    app
-}
+use super::support::simulation;
 
 #[test]
 fn phase_beam_recharges_after_release() {

@@ -1,0 +1,6 @@
+// Client tests drive crate-internal systems and need access to module-private state, so every
+// area lives under this test module instead of a separate integration test target.
+
+mod confirmed;
+mod focus;
+mod input;

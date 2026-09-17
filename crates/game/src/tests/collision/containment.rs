@@ -1,73 +1,16 @@
-use std::time::Duration;
-
 use avian2d::prelude::{LinearVelocity, Position};
-use bevy::{prelude::*, state::app::StatesPlugin, time::TimeUpdateStrategy};
-use lightyear::prelude::{ReplicationMetadata, input::native::ActionState, server::ServerPlugins};
+use bevy::prelude::*;
+use lightyear::prelude::input::native::ActionState;
 
-use project_game::{
-    ARENA_RESIZE_SPEED, GamePlugin, PLAYER_RADIUS, PlayerBundle, SERVER_UPS,
-    ServerSimulationPlugin, arena_radius,
-};
-use project_protocol::{ArenaBoundary, Player, PlayerInput, ProtocolPlugin};
+use project_protocol::{ArenaBoundary, Player, PlayerInput};
 
-fn simulation() -> App {
-    let mut app = App::new();
-    app.add_plugins((
-        MinimalPlugins,
-        StatesPlugin,
-        TransformPlugin,
-        ServerPlugins {
-            tick_duration: Duration::from_secs_f64(1.0 / SERVER_UPS),
-        },
-        ProtocolPlugin,
-        GamePlugin,
-        ServerSimulationPlugin,
-    ));
-    app.insert_resource(ReplicationMetadata::new(Duration::from_secs_f64(
-        1.0 / SERVER_UPS,
-    )));
-    app.insert_resource(TimeUpdateStrategy::ManualDuration(Duration::from_secs_f64(
-        1.0 / SERVER_UPS,
-    )));
-    app.world_mut().spawn(ArenaBoundary::new(arena_radius(0)));
-    app.init_resource::<lightyear::connection::client::PeerMetadata>();
-    app.finish();
-    app.cleanup();
-    app.update();
-    app
-}
+use crate::{ARENA_RESIZE_SPEED, PLAYER_RADIUS, PlayerBundle, SERVER_UPS, arena_radius};
 
-#[test]
-fn joins_grow_the_physical_radius_gradually() {
-    let mut app = simulation();
-    for index in 0..4_u16 {
-        app.world_mut()
-            .spawn(PlayerBundle::new(Vec2::new(f32::from(index) * 80.0, 0.0)));
-    }
-    let mut previous = arena_radius(0);
-    for tick in 0..600 {
-        app.update();
-        let arena = *app
-            .world_mut()
-            .query::<&ArenaBoundary>()
-            .single(app.world())
-            .expect("arena");
-        assert_eq!(arena.target_radius, arena_radius(4));
-        assert!(arena.radius >= previous);
-        assert!(arena.radius - previous <= ARENA_RESIZE_SPEED / SERVER_UPS as f32 + 0.001);
-        assert!(arena.radius <= arena.target_radius);
-        if tick == 0 {
-            assert!(arena.radius > previous);
-            assert!(arena.radius < arena.target_radius);
-        }
-        previous = arena.radius;
-    }
-    assert_eq!(previous, arena_radius(4));
-}
+use crate::tests::support::arena_simulation;
 
 #[test]
 fn players_cannot_walk_through_any_part_of_the_circle() {
-    let mut app = simulation();
+    let mut app = arena_simulation();
     *app.world_mut()
         .query::<&mut ArenaBoundary>()
         .single_mut(app.world_mut())
@@ -105,7 +48,7 @@ fn players_cannot_walk_through_any_part_of_the_circle() {
 
 #[test]
 fn population_changes_resize_and_contain_existing_players() {
-    let mut app = simulation();
+    let mut app = arena_simulation();
     *app.world_mut()
         .query::<&mut ArenaBoundary>()
         .single_mut(app.world_mut())

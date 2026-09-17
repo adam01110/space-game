@@ -11,11 +11,11 @@ pub(super) struct ClientFocusPlugin;
 // Prediction availability, driven by window focus.
 #[derive(Resource, Default, Debug)]
 pub(super) struct FocusPrediction {
-    phase: PredictionPhase,
+    pub(super) phase: PredictionPhase,
 }
 
 #[derive(Default, Debug)]
-enum PredictionPhase {
+pub(super) enum PredictionPhase {
     // Focused: simulation, prediction and input all run normally.
     #[default]
     Active,
@@ -143,7 +143,7 @@ fn gate_simulation_sets(app: &mut App) {
 }
 
 // Suspend prediction on focus loss and start recovery on focus regain.
-fn observe_focus(
+pub(super) fn observe_focus(
     windows: Query<&Window, With<PrimaryWindow>>,
     checkpoints: Res<ReplicationCheckpointMap>,
     mut state: ResMut<FocusPrediction>,
@@ -201,7 +201,7 @@ fn restoration_tick(world: &World) -> Option<Tick> {
 // within the configured rollback budget.
 // `Tick` subtraction clamps, so a checkpoint ahead of the local timeline yields a negative depth
 // and is rejected by the budget check as well.
-fn recent_checkpoint(
+pub(super) fn recent_checkpoint(
     previous: Option<Tick>,
     checkpoint: Option<Tick>,
     local: Tick,
@@ -220,7 +220,7 @@ fn recent_checkpoint(
 }
 
 // Ask Lightyear for a forced rollback to the newest usable checkpoint.
-fn request_restoration(world: &mut World) {
+pub(super) fn request_restoration(world: &mut World) {
     let Some(tick) = restoration_tick(world) else {
         return;
     };
@@ -282,7 +282,7 @@ fn clear_visual_corrections(
 
 // Resume prediction once the rollback has completed, or wait for another checkpoint if it did
 // not.
-fn finish_restoration(
+pub(super) fn finish_restoration(
     rollback: Option<Res<Rollback>>,
     checkpoints: Res<ReplicationCheckpointMap>,
     mut state: ResMut<FocusPrediction>,
@@ -303,7 +303,3 @@ fn finish_restoration(
     debug!(?tick, "Resumed client prediction from authoritative state");
     state.phase = PredictionPhase::Active;
 }
-
-#[cfg(test)]
-#[path = "../tests/focus.rs"]
-mod tests;

@@ -1,37 +1,12 @@
-use std::time::Duration;
-
 use avian2d::prelude::{LinearVelocity, Rotation};
-use bevy::{prelude::*, state::app::StatesPlugin, time::TimeUpdateStrategy};
-use lightyear::prelude::{ReplicationMetadata, input::native::ActionState, server::ServerPlugins};
+use bevy::prelude::*;
+use lightyear::prelude::input::native::ActionState;
 
-use project_game::{GamePlugin, PlayerBundle, SERVER_UPS, ServerSimulationPlugin};
-use project_protocol::{PlayerInput, ProtocolPlugin};
+use project_protocol::PlayerInput;
 
-fn simulation() -> App {
-    let mut app = App::new();
-    app.add_plugins((
-        MinimalPlugins,
-        StatesPlugin,
-        TransformPlugin,
-        ServerPlugins {
-            tick_duration: Duration::from_secs_f64(1.0 / SERVER_UPS),
-        },
-        ProtocolPlugin,
-        GamePlugin,
-        ServerSimulationPlugin,
-    ));
-    app.insert_resource(ReplicationMetadata::new(Duration::from_secs_f64(
-        1.0 / SERVER_UPS,
-    )));
-    app.insert_resource(TimeUpdateStrategy::ManualDuration(Duration::from_secs_f64(
-        1.0 / SERVER_UPS,
-    )));
-    app.init_resource::<lightyear::connection::client::PeerMetadata>();
-    app.finish();
-    app.cleanup();
-    app.update();
-    app
-}
+use crate::PlayerBundle;
+
+use super::support::simulation;
 
 fn spawn_turning_player(app: &mut App, phase_beam: bool) -> Entity {
     let mut input = ActionState::<PlayerInput>::default();

@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use project_protocol::AbilityCharge;
+use crate::AbilityCharge;
 
 #[test]
 fn drain_consumes_the_configured_rate() {

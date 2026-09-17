@@ -11,6 +11,9 @@ mod phase_beam;
 mod player;
 mod plugins;
 
+#[cfg(test)]
+mod tests;
+
 use std::time::Duration;
 
 #[cfg(feature = "dev")]

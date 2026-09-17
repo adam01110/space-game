@@ -105,7 +105,3 @@ fn set_confirmed_state<C: Component<Mutability = Mutable> + Clone + PartialEq>(
         }
     }
 }
-
-#[cfg(test)]
-#[path = "../tests/confirmed.rs"]
-mod tests;

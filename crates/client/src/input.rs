@@ -103,7 +103,7 @@ pub(super) fn capture_ability_inputs(
     inputs.phase_beam = keyboard.pressed(KeyCode::Space);
 }
 
-fn buffer_player_input(
+pub(super) fn buffer_player_input(
     keyboard: Res<ButtonInput<KeyCode>>,
     abilities: Res<AbilityInputs>,
     focus: Res<FocusPrediction>,
@@ -171,7 +171,3 @@ fn axis(keyboard: &ButtonInput<KeyCode>, negative: KeyCode, positive: KeyCode) -
 
     positive - negative
 }
-
-#[cfg(test)]
-#[path = "../tests/input.rs"]
-mod tests;
