@@ -1,0 +1,42 @@
+<!-- Nearer starfield tile. 256x256 pixels over 1024 world
+     units, so one texel is one gameplay canvas pixel. Sparser and brighter than the distant
+     layer, with stars that show a body instead of a point. Mirroring and quarter turns at chunk
+     level keep the one tile from reading as a repeat. -->
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="256"
+  height="256"
+  viewBox="0 0 256 256"
+>
+  <!-- Stars far enough to stay points. -->
+  <path
+    shape-rendering="crispEdges"
+    fill="#4d5a7a"
+    d="M35 176h2v2h-2z M89 80h2v2h-2z M228 51h2v2h-2z M126 228h2v2h-2z M121 101h2v2h-2z
+    M165 63h2v2h-2z M80 76h2v2h-2z M111 213h2v2h-2z M46 164h2v2h-2z M80 164h2v2h-2z M212
+    212h2v2h-2z M194 83h2v2h-2z M160 12h2v2h-2z M84 227h2v2h-2z M68 102h2v2h-2z M97
+    100h2v2h-2z M157 168h2v2h-2z M39 85h2v2h-2z M235 121h2v2h-2z M69 67h2v2h-2z M222
+    26h2v2h-2z M216 155h2v2h-2z M205 133h2v2h-2z M112 127h2v2h-2z M225 9h2v2h-2z M164
+    134h2v2h-2z M164 186h2v2h-2z M220 212h2v2h-2z M32 185h2v2h-2z M18 97h2v2h-2z M62
+    88h2v2h-2z M60 188h2v2h-2z M74 161h2v2h-2z M9 70h2v2h-2z M19 20h2v2h-2z M162
+    108h2v2h-2z M234 9h2v2h-2z M192 178h2v2h-2z M236 39h2v2h-2z M73 185h2v2h-2z M227
+    146h2v2h-2z M247 32h2v2h-2z M171 136h2v2h-2z M0 118h2v2h-2z M136 196h2v2h-2z"
+  />
+
+  <!-- Mid stars. -->
+  <path
+    shape-rendering="crispEdges"
+    fill="#8fa3c6"
+    d="M42 9h2v2h-2z M138 40h2v2h-2z M237 204h2v2h-2z M174 178h2v2h-2z M12 105h2v2h-2z M104
+    233h2v2h-2z M51 124h2v2h-2z M172 112h2v2h-2z M95 234h2v2h-2z M105 47h2v2h-2z M59
+    254h2v2h-2z M94 190h2v2h-2z M108 146h2v2h-2z M52 144h2v2h-2z M203 123h2v2h-2z M228
+    73h2v2h-2z M209 42h2v2h-2z M32 75h2v2h-2z M71 26h2v2h-2z M221 119h2v2h-2z"
+  />
+
+  <!-- Close, bright stars. -->
+  <path
+    shape-rendering="crispEdges"
+    fill="#d5dfef"
+    d="M170 216h3v3h-3z M25 253h3v3h-3z M167 79h3v3h-3z M220 227h3v3h-3z M0 251h3v3h-3z"
+  />
+</svg>

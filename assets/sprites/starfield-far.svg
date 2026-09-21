@@ -1,0 +1,50 @@
+<!-- Distant starfield tile. 128x128 pixels over 512 world
+     units, so one texel is one gameplay canvas pixel. Single-texel stars only: anything larger
+     would read as closer than this layer. Mirroring and quarter turns at chunk level keep the
+     one tile from reading as a repeat. -->
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="128"
+  height="128"
+  viewBox="0 0 128 128"
+>
+  <!-- Faint background stars. -->
+  <path
+    shape-rendering="crispEdges"
+    fill="#333c55"
+    d="M84 49h1v1h-1z M124 0h1v1h-1z M79 51h1v1h-1z M88 11h1v1h-1z M62 121h1v1h-1z M53
+    31h1v1h-1z M4 117h1v1h-1z M6 65h1v1h-1z M108 98h1v1h-1z M35 43h1v1h-1z M22
+    56h1v1h-1z M108 88h1v1h-1z M98 17h1v1h-1z M122 120h1v1h-1z M56 17h1v1h-1z M123
+    86h1v1h-1z M112 118h1v1h-1z M14 15h1v1h-1z M116 22h1v1h-1z M31 104h1v1h-1z M26
+    102h1v1h-1z M67 11h1v1h-1z M5 33h1v1h-1z M87 113h1v1h-1z M62 24h1v1h-1z M46
+    58h1v1h-1z M103 31h1v1h-1z M75 35h1v1h-1z M4 75h1v1h-1z M34 117h1v1h-1z M43
+    1h1v1h-1z M79 57h1v1h-1z M76 107h1v1h-1z M114 39h1v1h-1z M87 95h1v1h-1z M6
+    86h1v1h-1z M37 102h1v1h-1z M114 35h1v1h-1z M25 88h1v1h-1z M55 112h1v1h-1z M31
+    15h1v1h-1z M56 116h1v1h-1z M112 81h1v1h-1z M76 88h1v1h-1z M33 78h1v1h-1z M3
+    38h1v1h-1z M13 96h1v1h-1z M42 75h1v1h-1z M115 58h1v1h-1z M110 122h1v1h-1z M7
+    81h1v1h-1z M9 112h1v1h-1z M95 124h1v1h-1z M16 75h1v1h-1z M15 55h1v1h-1z M89
+    99h1v1h-1z M66 77h1v1h-1z M79 75h1v1h-1z M26 64h1v1h-1z M115 27h1v1h-1z M22
+    34h1v1h-1z M9 106h1v1h-1z M69 23h1v1h-1z M92 3h1v1h-1z M2 87h1v1h-1z M117 92h1v1h-1z
+    M75 127h1v1h-1z M127 37h1v1h-1z M29 21h1v1h-1z M111 58h1v1h-1z"
+  />
+
+  <!-- Mid stars. -->
+  <path
+    shape-rendering="crispEdges"
+    fill="#5a6785"
+    d="M53 6h1v1h-1z M110 6h1v1h-1z M66 60h1v1h-1z M0 52h1v1h-1z M45 44h1v1h-1z M106
+    111h1v1h-1z M113 84h1v1h-1z M72 124h1v1h-1z M60 106h1v1h-1z M88 97h1v1h-1z M119
+    109h1v1h-1z M119 2h1v1h-1z M17 39h1v1h-1z M36 109h1v1h-1z M41 120h1v1h-1z M101
+    84h1v1h-1z M9 6h1v1h-1z M65 77h1v1h-1z M38 124h1v1h-1z M80 76h1v1h-1z M97
+    126h1v1h-1z M20 30h1v1h-1z M4 16h1v1h-1z M82 31h1v1h-1z M80 60h1v1h-1z M90
+    44h1v1h-1z M110 106h1v1h-1z M12 32h1v1h-1z M7 24h1v1h-1z M120 121h1v1h-1z"
+  />
+
+  <!-- The few stars bright enough to read as points rather than noise. -->
+  <path
+    shape-rendering="crispEdges"
+    fill="#93a2c0"
+    d="M125 0h1v1h-1z M108 0h1v1h-1z M85 28h1v1h-1z M29 5h1v1h-1z M100 33h1v1h-1z M42
+    98h1v1h-1z M1 95h1v1h-1z M99 125h1v1h-1z M14 92h1v1h-1z M73 15h1v1h-1z"
+  />
+</svg>

@@ -1,5 +1,6 @@
 mod abilities;
 mod arena;
+mod background;
 mod blasters;
 mod camera;
 mod confirmed;

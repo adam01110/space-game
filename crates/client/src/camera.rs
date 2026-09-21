@@ -17,6 +17,12 @@ use canvas::{canvas_size, create_canvas, resize_canvas};
 
 pub(super) struct ClientCameraPlugin;
 
+// Camera placement, so that presentation that reads the camera can run after it.
+#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+pub(super) enum CameraSystems {
+    Follow,
+}
+
 impl Plugin for ClientCameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup_camera.in_set(ClientStartup::Camera))
@@ -24,6 +30,7 @@ impl Plugin for ClientCameraPlugin {
             .add_systems(
                 PostUpdate,
                 follow_player
+                    .in_set(CameraSystems::Follow)
                     .after(PhysicsSystems::Writeback)
                     .before(TransformSystems::Propagate),
             );
