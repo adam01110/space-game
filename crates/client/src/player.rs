@@ -1,15 +1,20 @@
 use avian2d::prelude::{Position, Rotation};
 use bevy::prelude::*;
+use bevy_resvg::prelude::{Svg, SvgColor, SvgFile};
 use lightyear::prelude::{Controlled, Predicted, input::native::InputMarker};
 
 use space_game_protocol::{Player, PlayerInput};
+
+// The ship's rendered rectangle in world units.
+const PLAYER_SIZE: Vec2 = Vec2::new(33.6, 52.8);
+const PLAYER_SPRITE: &str = "sprites/player.svg";
 
 pub(super) struct ClientPlayerPlugin;
 
 impl Plugin for ClientPlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_observer(prepare_controlled_player)
-            .add_systems(Update, add_player_visuals);
+            .add_systems(Update, (add_player_visuals, size_player_sprites));
     }
 }
 
@@ -47,6 +52,7 @@ fn add_player_visuals(
             Without<Sprite>,
         ),
     >,
+    asset_server: Res<AssetServer>,
     mut commands: Commands,
 ) {
     for (entity, controlled) in &players {
@@ -54,9 +60,20 @@ fn add_player_visuals(
             true => Color::srgb(0.35, 0.75, 1.0),
             false => Color::srgb(1.0, 0.4, 0.35),
         };
+        // `SvgPlugin` inserts the `Sprite` once the raster is ready, so the ship stays invisible
+        // instead of wearing a placeholder for the frames the asset loads.
+        let sprite: Handle<SvgFile> = asset_server.load(PLAYER_SPRITE);
 
         commands
             .entity(entity)
-            .insert(Sprite::from_color(color, Vec2::new(33.6, 52.8)));
+            .insert((Svg(sprite), SvgColor(color)));
+    }
+}
+
+// The SVG rasterises at its declared size, so the sprite would inherit the SVG's pixel
+// dimensions; the ship keeps the rectangle the collider was tuned against instead.
+fn size_player_sprites(mut sprites: Query<&mut Sprite, (With<Player>, Added<Sprite>)>) {
+    for mut sprite in &mut sprites {
+        sprite.custom_size = Some(PLAYER_SIZE);
     }
 }

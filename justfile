@@ -60,6 +60,7 @@ wasm:
     wasm-opt -Os --output web/dist/space_game_client_bg.opt.wasm web/dist/space_game_client_bg.wasm
     mv web/dist/space_game_client_bg.opt.wasm web/dist/space_game_client_bg.wasm
     cp web/index.html web/dist/index.html
+    cp -r assets web/dist/assets
 
 # Build the browser client with loopback HTTP enabled.
 web-build:
@@ -69,6 +70,7 @@ web-build:
     wasm-opt -Os --output web/dist/space_game_client_bg.opt.wasm web/dist/space_game_client_bg.wasm
     mv web/dist/space_game_client_bg.opt.wasm web/dist/space_game_client_bg.wasm
     cp web/index.html web/dist/index.html
+    cp -r assets web/dist/assets
 
 # Build and serve the browser client, proxying /connect to `just server`.
 web: web-build

@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_resvg::prelude::SvgPlugin;
 #[cfg(feature = "dev")]
 use lightyear::frame_interpolation::FrameInterpolationSystems;
 
@@ -27,6 +28,7 @@ impl Plugin for ClientAppPlugin {
             arena::draw_arena.after(FrameInterpolationSystems::Interpolate),
         );
         app.add_plugins((
+            SvgPlugin,
             abilities::ClientAbilitiesPlugin,
             camera::ClientCameraPlugin,
             focus::ClientFocusPlugin,
