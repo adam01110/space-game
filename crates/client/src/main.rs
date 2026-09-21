@@ -3,8 +3,6 @@ mod arena;
 mod background;
 mod blasters;
 mod camera;
-mod confirmed;
-mod focus;
 mod guest;
 mod input;
 mod network;
@@ -20,8 +18,6 @@ use std::time::Duration;
 
 #[cfg(feature = "dev")]
 use avian2d::prelude::{PhysicsDebugPlugin, PhysicsGizmos};
-#[cfg(not(feature = "dev"))]
-use bevy::winit::WinitSettings;
 use bevy::{
     prelude::*,
     window::{PresentMode, WindowPlugin},
@@ -79,32 +75,23 @@ fn main() {
         )
         .add_plugins(PhysicsDebugPlugin);
     #[cfg(not(feature = "dev"))]
-    let app = app
-        .add_plugins(
-            DefaultPlugins
-                .set(ImagePlugin::default_nearest())
-                .set(AssetPlugin {
-                    file_path: ASSET_PATH.to_owned(),
-                    ..default()
-                })
-                .set(WindowPlugin {
-                    primary_window: Some(Window {
-                        // VSync bounds rendering to the display refresh rate instead of
-                        // spinning the GPU and CPU at an unbounded frame rate.
-                        present_mode: PresentMode::AutoVsync,
-                        ..default()
-                    }),
+    let app = app.add_plugins(
+        DefaultPlugins
+            .set(ImagePlugin::default_nearest())
+            .set(AssetPlugin {
+                file_path: ASSET_PATH.to_owned(),
+                ..default()
+            })
+            .set(WindowPlugin {
+                primary_window: Some(Window {
+                    // VSync bounds rendering to the display refresh rate instead of
+                    // spinning the GPU and CPU at an unbounded frame rate.
+                    present_mode: PresentMode::AutoVsync,
                     ..default()
                 }),
-        )
-        .insert_resource(WinitSettings {
-            // Reduced update cadence while unfocused; the focus plugin resumes simulation
-            // from authoritative state when focus returns.
-            unfocused_mode: bevy::winit::UpdateMode::reactive_low_power(Duration::from_secs_f64(
-                1.0 / 30.0,
-            )),
-            ..default()
-        });
+                ..default()
+            }),
+    );
 
     app.add_plugins((
         ClientPlugins {

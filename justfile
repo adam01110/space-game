@@ -9,6 +9,21 @@ dev-features := "space-game-client/dev,space-game-server/dev"
 client:
     cargo run -p space-game-client --features dev
 
+# Add latency and packet loss to server-to-client game traffic; run `just netem-reset` to restore networking.
+netem latency="100ms" loss="0%":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    trap 'sudo tc qdisc del dev lo root 2>/dev/null || true' ERR
+    sudo tc qdisc replace dev lo root handle 1: prio
+    sudo tc qdisc add dev lo parent 1:3 handle 30: netem delay "{{latency}}" loss "{{loss}}"
+    sudo tc filter add dev lo protocol ip parent 1: prio 3 u32 match ip protocol 17 0xff match ip sport 5000 0xffff flowid 1:3
+    trap - ERR
+    echo "Server-to-client network emulation enabled: latency={{latency}}, loss={{loss}}"
+
+# Remove server-to-client latency and packet loss.
+netem-reset:
+    @if sudo tc qdisc del dev lo root 2>/dev/null; then echo "Server-to-client network emulation disabled"; else echo "Server-to-client network emulation was not enabled"; fi
+
 # Run the local development server.
 server:
     #!/usr/bin/env bash

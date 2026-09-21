@@ -3,7 +3,4 @@
 
 mod background;
 mod camera;
-mod confirmed;
-mod focus;
-mod input;
 mod palette;
