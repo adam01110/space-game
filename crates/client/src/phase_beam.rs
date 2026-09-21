@@ -4,6 +4,8 @@ use lightyear::prelude::Predicted;
 use space_game_game::phase_beam::{BEAM_LENGTH, BEAM_WIDTH, NOSE_OFFSET};
 use space_game_protocol::{PhaseBeamSegment, Player};
 
+use crate::palette::Palette;
+
 #[derive(Component)]
 pub(super) struct BeamVisual;
 
@@ -22,10 +24,7 @@ pub(super) fn add_phase_beam_visuals(
         // Parenting follows the rendered ship pose, including prediction smoothing,
         // and despawns the beam with its ship.
         commands.spawn((
-            Sprite::from_color(
-                Color::srgb(0.3, 1.0, 1.0),
-                Vec2::new(BEAM_WIDTH, BEAM_LENGTH),
-            ),
+            Sprite::from_color(Palette::Mint.color(), Vec2::new(BEAM_WIDTH, BEAM_LENGTH)),
             Transform::from_xyz(0.0, NOSE_OFFSET + BEAM_LENGTH / 2.0, 1.0),
             Visibility::Hidden,
             ChildOf(player),

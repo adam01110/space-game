@@ -9,7 +9,7 @@
 >
   <path
     shape-rendering="crispEdges"
-    fill="#3f4a68"
+    fill="#3d476e"
     d="M188 160h1v1h-1z M173 162h1v1h-1z M178 45h1v1h-1z M153 11h1v1h-1z M146 94h1v1h-1z M128 100h1v1h-1z M101 8h1v1h-1z M15 148h1v1h-1z M37 31h1v1h-1z M101 123h1v1h-1z M88 175h1v1h-1z M190 125h1v1h-1z
     M80 47h1v1h-1z M108 154h1v1h-1z M174 133h1v1h-1z M119 105h1v1h-1z M153 88h1v1h-1z M79 29h1v1h-1z M37 106h1v1h-1z M27 19h1v1h-1z M161 36h1v1h-1z M47 159h1v1h-1z M2 71h1v1h-1z M171 48h1v1h-1z
     M187 81h1v1h-1z M80 74h1v1h-1z M130 82h1v1h-1z M0 62h1v1h-1z M95 154h1v1h-1z M160 171h1v1h-1z M25 152h1v1h-1z M19 18h1v1h-1z M128 15h1v1h-1z M156 123h1v1h-1z M182 114h1v1h-1z M32 188h1v1h-1z
@@ -19,7 +19,7 @@
 
   <path
     shape-rendering="crispEdges"
-    fill="#75849f"
+    fill="#5d858c"
     d="M51 78h1v1h-1z M99 146h1v1h-1z M108 37h1v1h-1z M64 19h1v1h-1z M79 3h1v1h-1z M21 142h1v1h-1z M116 55h1v1h-1z M96 85h1v1h-1z M143 135h1v1h-1z M56 87h1v1h-1z M2 36h1v1h-1z M63 35h1v1h-1z
     M151 45h1v1h-1z M30 179h1v1h-1z M186 13h1v1h-1z M167 170h1v1h-1z M35 156h1v1h-1z M118 178h1v1h-1z M21 15h1v1h-1z M110 117h1v1h-1z M73 172h1v1h-1z M88 29h1v1h-1z M153 177h1v1h-1z M139 86h1v1h-1z
     M37 156h1v1h-1z M127 120h1v1h-1z M30 77h1v1h-1z M112 113h1v1h-1z M71 75h1v1h-1z M49 189h1v1h-1z"
@@ -27,7 +27,7 @@
 
   <path
     shape-rendering="crispEdges"
-    fill="#b8c6de"
+    fill="#d6c2ba"
     d="M104 175h2v2h-2z M156 173h2v2h-2z M160 164h2v2h-2z M80 111h2v2h-2z M184 116h2v2h-2z M125 10h2v2h-2z M124 180h2v2h-2z M64 28h2v2h-2z M103 150h2v2h-2z M27 160h2v2h-2z M124 91h2v2h-2z M62 39h2v2h-2z"
   />
 </svg>

@@ -7,6 +7,7 @@ use crossbeam_channel::Receiver;
 use lightyear::prelude::{PredictionManager, client::*};
 
 use super::{guest, plugins::ClientStartup};
+use crate::palette::Palette;
 
 use connection::{monitor_client, poll_guest, retry_connection};
 
@@ -67,7 +68,7 @@ fn setup_connection(mut commands: Commands, time: Res<Time<Real>>) {
             font_size: FontSize::Px(20.0),
             ..default()
         },
-        TextColor(Color::WHITE),
+        TextColor(Palette::Cream.color()),
         Node {
             position_type: PositionType::Absolute,
             top: px(16),

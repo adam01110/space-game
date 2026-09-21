@@ -11,7 +11,7 @@
   <!-- Stars far enough to stay points. -->
   <path
     shape-rendering="crispEdges"
-    fill="#4d5a7a"
+    fill="#5d858c"
     d="M35 176h2v2h-2z M89 80h2v2h-2z M228 51h2v2h-2z M126 228h2v2h-2z M121 101h2v2h-2z
     M165 63h2v2h-2z M80 76h2v2h-2z M111 213h2v2h-2z M46 164h2v2h-2z M80 164h2v2h-2z M212
     212h2v2h-2z M194 83h2v2h-2z M160 12h2v2h-2z M84 227h2v2h-2z M68 102h2v2h-2z M97
@@ -26,7 +26,7 @@
   <!-- Mid stars. -->
   <path
     shape-rendering="crispEdges"
-    fill="#8fa3c6"
+    fill="#d6c2ba"
     d="M42 9h2v2h-2z M138 40h2v2h-2z M237 204h2v2h-2z M174 178h2v2h-2z M12 105h2v2h-2z M104
     233h2v2h-2z M51 124h2v2h-2z M172 112h2v2h-2z M95 234h2v2h-2z M105 47h2v2h-2z M59
     254h2v2h-2z M94 190h2v2h-2z M108 146h2v2h-2z M52 144h2v2h-2z M203 123h2v2h-2z M228
@@ -36,7 +36,7 @@
   <!-- Close, bright stars. -->
   <path
     shape-rendering="crispEdges"
-    fill="#d5dfef"
+    fill="#ede8e1"
     d="M170 216h3v3h-3z M25 253h3v3h-3z M167 79h3v3h-3z M220 227h3v3h-3z M0 251h3v3h-3z"
   />
 </svg>

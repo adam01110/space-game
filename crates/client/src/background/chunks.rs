@@ -7,6 +7,8 @@ use bevy::prelude::*;
 #[cfg(feature = "dev")]
 use super::layers::BACKDROP_LAYERS;
 use super::layers::BackdropLayer;
+#[cfg(feature = "dev")]
+use crate::palette::Palette;
 
 // Cells that have to be alive to cover the view, plus `margin` cells on every side.
 pub(crate) const CHUNK_MARGIN: i32 = 1;
@@ -77,13 +79,13 @@ const fn mix(value: u32) -> u32 {
     spread ^ (spread >> 13)
 }
 
-// One chunk outline colour per layer, so the streaming grid of each depth is distinguishable.
+// One palette swatch per layer, so the streaming grid of each depth is distinguishable.
 #[cfg(feature = "dev")]
 const CHUNK_OUTLINE_COLORS: [Color; 4] = [
-    Color::srgb(1.0, 0.4, 0.2),
-    Color::srgb(0.4, 1.0, 0.4),
-    Color::srgb(0.4, 0.6, 1.0),
-    Color::srgb(1.0, 0.9, 0.3),
+    Palette::Citron.color(),
+    Palette::Mint.color(),
+    Palette::Rose.color(),
+    Palette::Tan.color(),
 ];
 
 // Outlines of every live backdrop chunk, on the debug render layer. Runs after the layout pass

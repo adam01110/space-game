@@ -11,7 +11,7 @@
   <!-- Faint background stars. -->
   <path
     shape-rendering="crispEdges"
-    fill="#333c55"
+    fill="#3d476e"
     d="M84 49h1v1h-1z M124 0h1v1h-1z M79 51h1v1h-1z M88 11h1v1h-1z M62 121h1v1h-1z M53
     31h1v1h-1z M4 117h1v1h-1z M6 65h1v1h-1z M108 98h1v1h-1z M35 43h1v1h-1z M22
     56h1v1h-1z M108 88h1v1h-1z M98 17h1v1h-1z M122 120h1v1h-1z M56 17h1v1h-1z M123
@@ -31,7 +31,7 @@
   <!-- Mid stars. -->
   <path
     shape-rendering="crispEdges"
-    fill="#5a6785"
+    fill="#5d858c"
     d="M53 6h1v1h-1z M110 6h1v1h-1z M66 60h1v1h-1z M0 52h1v1h-1z M45 44h1v1h-1z M106
     111h1v1h-1z M113 84h1v1h-1z M72 124h1v1h-1z M60 106h1v1h-1z M88 97h1v1h-1z M119
     109h1v1h-1z M119 2h1v1h-1z M17 39h1v1h-1z M36 109h1v1h-1z M41 120h1v1h-1z M101
@@ -43,7 +43,7 @@
   <!-- The few stars bright enough to read as points rather than noise. -->
   <path
     shape-rendering="crispEdges"
-    fill="#93a2c0"
+    fill="#a7dbbb"
     d="M125 0h1v1h-1z M108 0h1v1h-1z M85 28h1v1h-1z M29 5h1v1h-1z M100 33h1v1h-1z M42
     98h1v1h-1z M1 95h1v1h-1z M99 125h1v1h-1z M14 92h1v1h-1z M73 15h1v1h-1z"
   />

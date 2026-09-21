@@ -5,6 +5,8 @@ use lightyear::prelude::{Controlled, Predicted, input::native::InputMarker};
 
 use space_game_protocol::{Player, PlayerInput};
 
+use crate::palette::Palette;
+
 // The ship's rendered rectangle in world units.
 const PLAYER_SIZE: Vec2 = Vec2::new(33.6, 52.8);
 const PLAYER_SPRITE: &str = "sprites/player.svg";
@@ -57,8 +59,8 @@ fn add_player_visuals(
 ) {
     for (entity, controlled) in &players {
         let color = match controlled {
-            true => Color::srgb(0.35, 0.75, 1.0),
-            false => Color::srgb(1.0, 0.4, 0.35),
+            true => Palette::Teal.color(),
+            false => Palette::Rose.color(),
         };
         // `SvgPlugin` inserts the `Sprite` once the raster is ready, so the ship stays invisible
         // instead of wearing a placeholder for the frames the asset loads.

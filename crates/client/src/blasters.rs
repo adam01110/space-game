@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use space_game_protocol::BlasterShot;
 
+use crate::palette::Palette;
+
 fn shot_transform(shot: &BlasterShot) -> Transform {
     Transform::from_translation(shot.position.extend(1.0)).with_rotation(Quat::from_rotation_z(
         shot.direction.y.atan2(shot.direction.x) - std::f32::consts::FRAC_PI_2,
@@ -13,7 +15,7 @@ pub(super) fn add_shot_visuals(
 ) {
     for (entity, shot) in &shots {
         commands.entity(entity).insert((
-            Sprite::from_color(Color::srgb(1.0, 0.9, 0.3), Vec2::new(4.0, 16.0)),
+            Sprite::from_color(Palette::Citron.color(), Vec2::new(4.0, 16.0)),
             shot_transform(shot),
         ));
     }

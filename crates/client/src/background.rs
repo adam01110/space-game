@@ -6,6 +6,7 @@ mod tiles;
 use bevy::{camera::CameraUpdateSystems, prelude::*, transform::TransformSystems};
 
 use crate::camera::CameraSystems;
+use crate::palette::Palette;
 
 #[cfg(feature = "dev")]
 pub(crate) use chunks::draw_chunk_outlines;
@@ -21,14 +22,11 @@ pub(crate) use stream::{BACKDROP_DRIFT, world_view};
 use stream::{BackdropChunks, drift_backdrop, layout_backdrop};
 use tiles::{load_backdrop_tiles, shape_backdrop_chunks};
 
-// Deep space, clear behind every backdrop layer.
-const SPACE_COLOR: Color = Color::srgb_u8(6, 8, 16);
-
 pub(super) struct ClientBackgroundPlugin;
 
 impl Plugin for ClientBackgroundPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(ClearColor(SPACE_COLOR))
+        app.insert_resource(ClearColor(Palette::PlumBlack.color()))
             .init_resource::<BackdropChunks>()
             .init_resource::<BackdropDrift>()
             .add_systems(Startup, load_backdrop_tiles)

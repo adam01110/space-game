@@ -5,3 +5,4 @@ mod background;
 mod confirmed;
 mod focus;
 mod input;
+mod palette;
