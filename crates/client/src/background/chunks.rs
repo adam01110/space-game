@@ -4,9 +4,9 @@ use avian2d::prelude::PhysicsGizmos;
 use bevy::math::Rot2;
 use bevy::prelude::*;
 
+use super::layers::BackdropLayer;
 #[cfg(feature = "dev")]
 use super::layers::BACKDROP_LAYERS;
-use super::layers::BackdropLayer;
 #[cfg(feature = "dev")]
 use crate::palette::Palette;
 
@@ -96,14 +96,12 @@ pub(crate) fn draw_chunk_outlines(
     chunks: Query<(&BackdropChunk, &Transform)>,
     mut gizmos: Option<Gizmos<PhysicsGizmos>>,
 ) {
+    let Some(gizmos) = gizmos.as_mut() else {
+        return;
+    };
+
     for (chunk, transform) in &chunks {
-        let Some(layer) = BACKDROP_LAYERS.get(chunk.layer) else {
-            continue;
-        };
         let Some(&color) = CHUNK_OUTLINE_COLORS.get(chunk.layer) else {
-            continue;
-        };
-        let Some(gizmos) = gizmos.as_mut() else {
             continue;
         };
 
@@ -111,7 +109,7 @@ pub(crate) fn draw_chunk_outlines(
         let (_, _, yaw) = transform.rotation.to_euler(EulerRot::XYZ);
         gizmos.rect_2d(
             Isometry2d::new(transform.translation.xy(), Rot2::radians(yaw)),
-            Vec2::splat(layer.chunk),
+            Vec2::splat(BACKDROP_LAYERS[chunk.layer].chunk),
             color,
         );
     }
