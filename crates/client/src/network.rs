@@ -1,10 +1,12 @@
 mod connection;
+pub(crate) mod policy;
+pub(crate) mod recovery;
 
 use std::time::Duration;
 
 use bevy::prelude::*;
 use crossbeam_channel::Receiver;
-use lightyear::prelude::{PredictionManager, client::*};
+use lightyear::prelude::client::*;
 
 use super::{guest, plugins::ClientStartup};
 use crate::palette::Palette;
@@ -17,7 +19,11 @@ const RETRY_INTERVAL: Duration = Duration::from_secs(4);
 
 impl Plugin for ClientNetworkPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup_connection.in_set(ClientStartup::Connection))
+        recovery::install(app);
+        app.insert_resource(policy::timeline_config())
+            .insert_resource(policy::prediction_manager())
+            .add_observer(connection::log_disconnect)
+            .add_systems(Startup, setup_connection.in_set(ClientStartup::Connection))
             .add_systems(Update, update_connection);
     }
 }
@@ -78,7 +84,6 @@ fn setup_connection(mut commands: Commands, time: Res<Time<Real>>) {
     ));
 
     commands.insert_resource(connection);
-    commands.insert_resource(PredictionManager::default());
 }
 
 fn update_status(status: &mut Query<&mut Text, With<ConnectionStatus>>, message: &str) {
@@ -94,10 +99,15 @@ fn update_connection(
     time: Res<Time<Real>>,
     keys: Res<ButtonInput<KeyCode>>,
     mut connection: ResMut<GuestConnection>,
-    clients: Query<(Has<Connected>, Has<Disconnected>), With<Client>>,
+    clients: Query<(Has<Connected>, Option<&Disconnected>), With<Client>>,
+    suspension: Res<recovery::Suspension>,
     mut status: Query<&mut Text, With<ConnectionStatus>>,
 ) {
     let now = time.elapsed();
+    if suspension.is_suspended() {
+        update_status(&mut status, &connection.message);
+        return;
+    }
 
     if connection.can_retry
         && (keys.just_pressed(KeyCode::KeyR)

@@ -1,31 +1,9 @@
-<!-- Player ship: an arrow cursor rotated to the +Y facing the simulation uses, so the tip
-     leads and the notched tail trails. Flat shapes only, because the gameplay canvas
-     rasterises every 4 world units into one pixel and finer detail never survives. Drawn
-     light and desaturated because `SvgColor` multiplies the raster, tinting the ship per
-     ownership. -->
 <svg
   xmlns="http://www.w3.org/2000/svg"
   width="33.6"
   height="52.8"
   viewBox="0 0 33.6 52.8"
 >
-  <!-- Cursor hull: straight edges, deep V notch between the two tail corners. -->
-  <path
-    d="M 16.8 2 L 31.2 46 L 16.8 33 L 2.4 46 Z"
-    fill="#ede8e1"
-    stroke="#27142b"
-    stroke-width="1.2"
-    stroke-linejoin="round"
-  />
-
-  <!-- Canopy, the only remaining hint of a ship. -->
-  <ellipse
-    cx="16.8"
-    cy="20"
-    rx="2.8"
-    ry="5"
-    fill="#5d858c"
-    stroke="#27142b"
-    stroke-width="1.1"
-  />
+  <path d="M 16.8 2 L 31.2 46 L 16.8 33 L 2.4 46 Z" fill="#ede8e1" />
+  <path d="M 16.8 15 L 21.8 20 L 16.8 25 L 11.8 20 Z" fill="#5d858c" />
 </svg>

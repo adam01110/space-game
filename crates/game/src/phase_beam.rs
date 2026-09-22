@@ -47,8 +47,10 @@ fn sync_beam(
 
     match segment {
         Some(mut component) => {
-            component.origin = segment_origin(position, rotation);
-            component.direction = segment_direction(rotation);
+            component.set_if_neq(PhaseBeamSegment {
+                origin: segment_origin(position, rotation),
+                direction: segment_direction(rotation),
+            });
         }
         None => {
             commands.entity(entity).insert(PhaseBeamSegment {
@@ -65,13 +67,15 @@ fn update_beams(
     delta: std::time::Duration,
 ) {
     for (entity, position, rotation, input, mut charge, segment) in players {
+        let mut next_charge = *charge;
         let active = match input.0.phase_beam {
-            true => charge.0.drain(CHARGE_DRAIN_PER_SECOND, delta),
+            true => next_charge.0.drain(CHARGE_DRAIN_PER_SECOND, delta),
             false => {
-                charge.0.regenerate(CHARGE_REGEN_PER_SECOND, delta);
+                next_charge.0.regenerate(CHARGE_REGEN_PER_SECOND, delta);
                 false
             }
         };
+        charge.set_if_neq(next_charge);
         sync_beam(commands, entity, position, rotation, active, segment);
     }
 }

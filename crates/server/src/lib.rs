@@ -8,4 +8,5 @@ mod security;
 #[cfg(test)]
 mod tests;
 
+pub use abilities::ServerAbilitiesPlugin;
 pub use player::{SPAWN_CLEARANCE, find_spawn_position, spawn_player_for_client};

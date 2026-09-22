@@ -2,9 +2,9 @@ use bevy::prelude::*;
 use lightyear::prelude::*;
 
 use crate::{
-    ArenaBoundary, BlasterReload, BlasterShot, BlasterTrigger, CircleBody, PhaseBeamSegment,
-    Player, PlayerBlasters, PlayerBoost, PlayerHealth, PlayerIdentity, PlayerInput,
-    PlayerPhaseBeam,
+    ArenaBoundary, BlasterReload, BlasterShot, BlasterTrajectory, BlasterTrigger, CircleBody,
+    PhaseBeamSegment, Player, PlayerBlasters, PlayerBoost, PlayerHealth, PlayerIdentity,
+    PlayerInput, PlayerPhaseBeam,
 };
 
 // Registers replicated components and the shared player input type.
@@ -16,6 +16,10 @@ impl Plugin for ProtocolPlugin {
             config: input::InputConfig {
                 // All colliding players run on the prediction timeline, including remote ones.
                 rebroadcast_inputs: true,
+                // About 250 ms at 60 packets/s versus the default 5 (~83 ms).
+                // More redundant history tolerates short loss bursts, at the cost of
+                // larger client packets and server rebroadcast traffic.
+                packet_redundancy: 15,
                 ..default()
             },
         });
@@ -27,6 +31,7 @@ impl Plugin for ProtocolPlugin {
         app.component::<BlasterTrigger>().replicate().predict();
         app.component::<BlasterReload>().replicate().predict();
         app.component::<BlasterShot>().replicate().predict();
+        app.component::<BlasterTrajectory>().replicate().predict();
         app.component::<PlayerBoost>().replicate().predict();
         app.component::<PlayerHealth>().replicate().predict();
         app.component::<PlayerPhaseBeam>().replicate().predict();

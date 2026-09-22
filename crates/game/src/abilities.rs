@@ -1,7 +1,10 @@
 use bevy::prelude::*;
 
 use crate::{
-    blasters::{advance_shots, shoot_authoritative_players, shoot_predicted_players},
+    blasters::{
+        advance_authoritative_shots, advance_predicted_shots, shoot_authoritative_players,
+        shoot_predicted_players,
+    },
     movement::{move_authoritative_players, move_predicted_players},
     phase_beam::{beam_authoritative_players, beam_predicted_players},
 };
@@ -15,7 +18,7 @@ impl Plugin for ClientAbilitiesPlugin {
         app.add_systems(
             FixedUpdate,
             (
-                (advance_shots, shoot_predicted_players).chain(),
+                (advance_predicted_shots, shoot_predicted_players).chain(),
                 beam_predicted_players,
             )
                 .after(move_predicted_players),
@@ -28,7 +31,7 @@ impl Plugin for ServerAbilitiesPlugin {
         app.add_systems(
             FixedUpdate,
             (
-                (advance_shots, shoot_authoritative_players).chain(),
+                (advance_authoritative_shots, shoot_authoritative_players).chain(),
                 beam_authoritative_players,
             )
                 .after(move_authoritative_players),

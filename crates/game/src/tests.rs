@@ -2,6 +2,7 @@
 // test module instead of a separate integration test target.
 
 mod arena;
+mod blasters;
 mod collision;
 mod movement;
 mod phase_beam;

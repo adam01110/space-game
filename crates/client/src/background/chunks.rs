@@ -4,9 +4,9 @@ use avian2d::prelude::PhysicsGizmos;
 use bevy::math::Rot2;
 use bevy::prelude::*;
 
-use super::layers::BackdropLayer;
 #[cfg(feature = "dev")]
 use super::layers::BACKDROP_LAYERS;
+use super::layers::BackdropLayer;
 #[cfg(feature = "dev")]
 use crate::palette::Palette;
 

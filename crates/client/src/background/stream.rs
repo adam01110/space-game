@@ -4,8 +4,8 @@ use bevy::{platform::collections::HashMap, prelude::*, window::PrimaryWindow};
 
 use crate::camera::{GameplayCamera, PIXEL_SIZE};
 
-use super::chunks::{chunk_range, chunk_translation, chunk_variation, BackdropChunk};
-use super::layers::{BackdropLayer, BACKDROP_LAYERS};
+use super::chunks::{BackdropChunk, chunk_range, chunk_translation, chunk_variation};
+use super::layers::{BACKDROP_LAYERS, BackdropLayer};
 use super::tiles::BackdropTiles;
 
 // Travel the backdrop carries on its own, in world units per second. Each layer scales it by its

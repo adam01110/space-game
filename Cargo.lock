@@ -8406,6 +8406,7 @@ dependencies = [
  "serde_json",
  "space-game-game",
  "space-game-protocol",
+ "space-game-server",
  "url",
  "web-sys",
 ]

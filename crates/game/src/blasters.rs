@@ -4,15 +4,18 @@ use std::time::Duration;
 
 use avian2d::prelude::{Position, Rotation};
 use bevy::prelude::*;
-use lightyear::prelude::{Predicted, SyncedLocalTimeline, input::native::ActionState};
+use lightyear::prelude::{
+    ControlledBy, Predicted, SyncedLocalTimeline,
+    input::native::{ActionState, InputMarker},
+};
 
 use space_game_protocol::{
     AbilityCharge, BlasterReload, BlasterTrigger, Player, PlayerBlasters, PlayerIdentity,
     PlayerInput,
 };
 
-pub(crate) use shots::advance_shots;
 use shots::spawn_shots;
+pub(crate) use shots::{advance_authoritative_shots, advance_predicted_shots};
 
 const SHOT_COST: u8 = 2;
 const RELOAD_DURATION: Duration = Duration::from_secs(5);
@@ -113,40 +116,79 @@ fn update_blasters(
     }
 }
 
+type PredictedFiringPlayers<'w, 's> = Query<
+    'w,
+    's,
+    (FiringPlayer<'static>, Has<InputMarker<PlayerInput>>),
+    (With<Player>, With<Predicted>),
+>;
+
 pub(super) fn shoot_predicted_players(
     _timeline: SyncedLocalTimeline,
     mut commands: Commands,
     time: Res<Time<Fixed>>,
-    mut players: Query<FiringPlayer, (With<Player>, With<Predicted>)>,
+    mut players: PredictedFiringPlayers,
 ) {
-    for ((mut charge, mut trigger, mut reload, input), position, rotation, identity) in &mut players
+    for (((charge, trigger, reload, input), position, rotation, identity), controlled) in
+        &mut players
     {
-        let shots = update_blasters(
-            &mut charge,
-            &mut trigger,
-            &mut reload,
-            &input.0,
-            time.delta(),
-        );
-
-        spawn_shots(&mut commands, position, rotation, *identity, shots);
+        let shots = tick_blasters(charge, trigger, reload, &input.0, time.delta());
+        if controlled {
+            spawn_shots(
+                &mut commands,
+                position,
+                rotation,
+                *identity,
+                shots,
+                input.0.blaster_clicks,
+                None,
+            );
+        }
     }
 }
 
 pub(super) fn shoot_authoritative_players(
     mut commands: Commands,
     time: Res<Time<Fixed>>,
-    mut players: Query<FiringPlayer, With<Player>>,
+    mut players: Query<(FiringPlayer, Option<&ControlledBy>), With<Player>>,
 ) {
-    for ((mut charge, mut trigger, mut reload, input), position, rotation, identity) in &mut players
+    for (((charge, trigger, reload, input), position, rotation, identity), controlled) in
+        &mut players
     {
-        let shots = update_blasters(
-            &mut charge,
-            &mut trigger,
-            &mut reload,
-            &input.0,
-            time.delta(),
+        let shots = tick_blasters(charge, trigger, reload, &input.0, time.delta());
+        spawn_shots(
+            &mut commands,
+            position,
+            rotation,
+            *identity,
+            shots,
+            input.0.blaster_clicks,
+            controlled.map(|control| control.owner),
         );
-        spawn_shots(&mut commands, position, rotation, *identity, shots);
     }
+}
+
+// Bevy tracks mutable access, not value differences. Do not replicate idle weapon
+// state every tick merely because the simulation inspected it.
+fn tick_blasters(
+    mut charge: Mut<PlayerBlasters>,
+    mut trigger: Mut<BlasterTrigger>,
+    mut reload: Mut<BlasterReload>,
+    input: &PlayerInput,
+    delta: Duration,
+) -> u8 {
+    let (mut next_charge, mut next_trigger, mut next_reload) = (*charge, *trigger, *reload);
+    let shots = update_blasters(
+        &mut next_charge,
+        &mut next_trigger,
+        &mut next_reload,
+        input,
+        delta,
+    );
+
+    charge.set_if_neq(next_charge);
+    trigger.set_if_neq(next_trigger);
+    reload.set_if_neq(next_reload);
+
+    shots
 }

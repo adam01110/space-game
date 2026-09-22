@@ -49,6 +49,9 @@ space-game-protocol.workspace = true
 serde_json = "1"
 url = "2.5"
 
+[target.'cfg(not(target_family = "wasm"))'.dev-dependencies]
+space-game-server = { path = "../server" }
+
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 bevy = { workspace = true, features = ["webgpu"] }
 bevy_extended_ui = { version = "1.7.0", default-features = false, features = [
@@ -63,4 +66,4 @@ bevy_extended_ui = { version = "1.7.0", default-features = false, features = [
   "providers",
   "wasm-default",
 ] }
-web-sys = { version = "0.3", features = ["Location", "Window"] }
+web-sys = { version = "0.3", features = ["Document", "Location", "Window"] }

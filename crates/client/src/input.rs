@@ -20,10 +20,13 @@ pub(super) struct ClientInputPlugin;
 
 impl Plugin for ClientInputPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<AbilityInputs>();
+        app.init_resource::<AbilityInputs>()
+            .init_resource::<SessionInputReset>();
         app.add_systems(
             PreUpdate,
-            capture_ability_inputs.after(bevy::input::InputSystems),
+            (finish_session_input_reset, capture_ability_inputs)
+                .chain()
+                .after(bevy::input::InputSystems),
         );
         app.add_systems(
             PreUpdate,
@@ -71,6 +74,37 @@ struct AbilityInputs {
     blaster_clicks: u8,
     blaster_reload_requests: u8,
     phase_beam: bool,
+}
+
+#[derive(Resource, Default)]
+struct SessionInputReset(bool);
+
+// Run during retirement, before packet receive. Also clear events that accumulated
+// during the pause; otherwise Bevy could turn an old key-down back into held input.
+pub(super) fn reset_session_inputs(world: &mut World) {
+    world.insert_resource(AbilityInputs::default());
+    world.insert_resource(SessionInputReset(true));
+    world
+        .resource_mut::<Messages<bevy::input::keyboard::KeyboardInput>>()
+        .clear();
+    world
+        .resource_mut::<Messages<bevy::input::mouse::MouseButtonInput>>()
+        .clear();
+    world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+    world.resource_mut::<ButtonInput<MouseButton>>().reset_all();
+}
+
+// OS input can arrive after First; clear again after Bevy processes it, before
+// capturing abilities. Ordinary frames must NOT reset the captured click counters.
+fn finish_session_input_reset(
+    mut reset: ResMut<SessionInputReset>,
+    mut keyboard: ResMut<ButtonInput<KeyCode>>,
+    mut mouse: ResMut<ButtonInput<MouseButton>>,
+) {
+    if std::mem::take(&mut reset.0) {
+        keyboard.reset_all();
+        mouse.reset_all();
+    }
 }
 
 // Capture ability controls once per render frame. Counters preserve discrete presses across

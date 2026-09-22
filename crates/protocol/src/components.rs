@@ -44,8 +44,13 @@ pub struct BlasterReload {
 #[derive(Component, Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct BlasterShot {
     pub position: Vec2,
-    pub direction: Vec2,
     pub ticks_left: u8,
+}
+
+// Immutable firing direction is sent on spawn, not with every position update.
+#[derive(Component, Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct BlasterTrajectory {
+    pub direction: Vec2,
 }
 
 // World-space phase beam state produced by the authoritative and predicted simulations.
