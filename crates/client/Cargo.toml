@@ -51,7 +51,16 @@ url = "2.5"
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 bevy = { workspace = true, features = ["webgpu"] }
+bevy_extended_ui = { version = "1.7.0", default-features = false, features = [
+  "css-breakpoints",
+  "providers",
+  "svg",
+] }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 bevy = { workspace = true, features = ["webgl2"] }
+bevy_extended_ui = { version = "1.7.0", default-features = false, features = [
+  "providers",
+  "wasm-default",
+] }
 web-sys = { version = "0.3", features = ["Location", "Window"] }

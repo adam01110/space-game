@@ -4,8 +4,8 @@
 use bevy::{ecs::query::QueryFilter, prelude::*};
 
 use crate::camera::{
-    CANVAS_CAMERA_SCALE, CanvasCamera, DEBUG_CAMERA_SCALE, DEBUG_ZOOM_FACTOR, DebugCamera,
-    DebugZoom, GameplayCamera, PIXEL_SIZE, toggle_debug_zoom,
+    CANVAS_CAMERA_SCALE, CanvasCamera, DEBUG_ZOOM_FACTOR, DebugCamera, DebugZoom, GameplayCamera,
+    PIXEL_SIZE, toggle_debug_zoom,
 };
 
 fn orthographic(scale: f32) -> Projection {
@@ -25,7 +25,7 @@ fn zoom_app() -> App {
     app.world_mut()
         .spawn((Camera2d, orthographic(CANVAS_CAMERA_SCALE), CanvasCamera));
     app.world_mut()
-        .spawn((Camera2d, orthographic(DEBUG_CAMERA_SCALE), DebugCamera));
+        .spawn((Camera2d, orthographic(1.0), DebugCamera));
 
     app
 }
@@ -86,10 +86,7 @@ fn the_debug_zoom_key_shrinks_the_display_without_moving_the_streamed_view() {
         scale::<With<CanvasCamera>>(&mut app),
         CANVAS_CAMERA_SCALE * DEBUG_ZOOM_FACTOR,
     );
-    assert_scale(
-        scale::<With<DebugCamera>>(&mut app),
-        DEBUG_CAMERA_SCALE * DEBUG_ZOOM_FACTOR,
-    );
+    assert_scale(scale::<With<DebugCamera>>(&mut app), DEBUG_ZOOM_FACTOR);
     assert_scale(scale::<With<GameplayCamera>>(&mut app), PIXEL_SIZE);
 
     // The key is a toggle on the press edge, so holding it does not flip the zoom back.
@@ -110,6 +107,6 @@ fn the_debug_zoom_key_shrinks_the_display_without_moving_the_streamed_view() {
     press_zoom(&mut app);
     next_frame(&mut app);
     assert_scale(scale::<With<CanvasCamera>>(&mut app), CANVAS_CAMERA_SCALE);
-    assert_scale(scale::<With<DebugCamera>>(&mut app), DEBUG_CAMERA_SCALE);
+    assert_scale(scale::<With<DebugCamera>>(&mut app), DEBUG_ZOOM_FACTOR);
     assert_scale(scale::<With<GameplayCamera>>(&mut app), PIXEL_SIZE);
 }
