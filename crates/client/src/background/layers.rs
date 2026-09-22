@@ -13,28 +13,28 @@ pub(crate) struct BackdropLayer {
 pub(crate) const BACKDROP_LAYERS: [BackdropLayer; 4] = [
     BackdropLayer {
         sprites: &[
-            "sprites/nebula-a.svg",
-            "sprites/nebula-b.svg",
-            "sprites/nebula-c.svg",
+            "sprites/nebula-a.png",
+            "sprites/nebula-b.png",
+            "sprites/nebula-c.png",
         ],
         chunk: 2048.0,
         z: -150.0,
         parallax: 0.05,
     },
     BackdropLayer {
-        sprites: &["sprites/starfield-far.svg"],
+        sprites: &["sprites/starfield-far.png"],
         chunk: 512.0,
         z: -110.0,
         parallax: 0.25,
     },
     BackdropLayer {
-        sprites: &["sprites/starfield-mid.svg"],
+        sprites: &["sprites/starfield-mid.png"],
         chunk: 768.0,
         z: -80.0,
         parallax: 0.45,
     },
     BackdropLayer {
-        sprites: &["sprites/starfield-near.svg"],
+        sprites: &["sprites/starfield-near.png"],
         chunk: 1024.0,
         z: -50.0,
         parallax: 0.65,

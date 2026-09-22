@@ -20,6 +20,7 @@ bevy = { workspace = true, features = [
   "bevy_settings",
   "keyboard",
   "mouse",
+  "png",
   "ui",
   "web_asset_cache",
   # keep-sorted end

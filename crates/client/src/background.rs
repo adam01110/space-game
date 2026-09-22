@@ -12,14 +12,14 @@ use crate::palette::Palette;
 pub(crate) use chunks::draw_chunk_outlines;
 #[cfg(test)]
 pub(crate) use chunks::{
-    BackdropChunk, CHUNK_MARGIN, ChunkVariation, chunk_range, chunk_translation, chunk_variation,
+    chunk_range, chunk_translation, chunk_variation, BackdropChunk, ChunkVariation,
 };
 #[cfg(test)]
 pub(crate) use layers::BACKDROP_LAYERS;
 pub(crate) use stream::BackdropDrift;
+use stream::{drift_backdrop, layout_backdrop, BackdropChunks};
 #[cfg(test)]
-pub(crate) use stream::{BACKDROP_DRIFT, world_view};
-use stream::{BackdropChunks, drift_backdrop, layout_backdrop};
+pub(crate) use stream::{world_view, BACKDROP_DRIFT};
 use tiles::{load_backdrop_tiles, shape_backdrop_chunks};
 
 pub(super) struct ClientBackgroundPlugin;

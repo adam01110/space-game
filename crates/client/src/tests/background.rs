@@ -2,16 +2,16 @@ use std::time::Duration;
 
 use bevy::{
     asset::AssetPlugin,
+    image::{CompressedImageFormats, ImageLoader, ImagePlugin},
     prelude::*,
     time::TimeUpdateStrategy,
     window::{PrimaryWindow, WindowResolution},
 };
-use bevy_resvg::prelude::SvgPlugin;
 
 use crate::{
     background::{
-        BACKDROP_DRIFT, BACKDROP_LAYERS, BackdropChunk, BackdropDrift, CHUNK_MARGIN,
-        ClientBackgroundPlugin, chunk_range, chunk_translation, chunk_variation, world_view,
+        chunk_range, chunk_translation, chunk_variation, world_view, BackdropChunk, BackdropDrift,
+        ClientBackgroundPlugin, BACKDROP_DRIFT, BACKDROP_LAYERS,
     },
     camera::{GameplayCamera, PIXEL_SIZE},
 };
@@ -28,10 +28,12 @@ fn backdrop_app() -> App {
             file_path: format!("{}/../../assets", env!("CARGO_MANIFEST_DIR")),
             ..default()
         },
-        SvgPlugin,
+        ImagePlugin::default_nearest(),
         ClientBackgroundPlugin,
     ))
-    .init_asset::<Image>();
+    // The tiles are ordinary `Image` assets, whose loader the renderer registers while
+    // `ImagePlugin` only reserves it, so an app without a renderer registers it itself.
+    .register_asset_loader(ImageLoader::new(CompressedImageFormats::NONE));
     app.world_mut()
         .spawn((Window::default(), PrimaryWindow))
         .insert(Window {
@@ -87,7 +89,7 @@ fn assert_covered(app: &mut App, position: Vec2) {
     for (index, layer) in BACKDROP_LAYERS.into_iter().enumerate() {
         let layer_position = (position - travelled) * layer.parallax;
         let anchor = position - layer_position;
-        let range = chunk_range(layer_position, WINDOW, layer.chunk, CHUNK_MARGIN);
+        let range = chunk_range(layer_position, WINDOW, layer.chunk);
         let centres: Vec<Vec2> = found
             .iter()
             .filter(|(chunk_layer, _)| *chunk_layer == index)
@@ -168,7 +170,7 @@ fn a_chunk_grid_of_every_layer_covers_the_view_around_the_camera() {
 
     for layer in BACKDROP_LAYERS {
         for position in positions {
-            let range = chunk_range(position, WINDOW, layer.chunk, CHUNK_MARGIN);
+            let range = chunk_range(position, WINDOW, layer.chunk);
             let covered_min = range.min.as_vec2() * layer.chunk;
             let covered_max = (range.max.as_vec2() + Vec2::ONE) * layer.chunk;
 
@@ -277,26 +279,31 @@ fn backdrop_rasters_match_their_chunk_size() {
 
         for path in layer.sprites {
             let file = format!("{}/../../assets/{path}", env!("CARGO_MANIFEST_DIR"));
-            let source = std::fs::read_to_string(&file).expect("backdrop tile");
-            let view_box = source
-                .split_once("viewBox=\"")
-                .and_then(|(_, rest)| rest.split_once('"'))
-                .map(|(value, _)| value)
-                .expect("viewBox attribute");
+            let source = std::fs::read(&file).expect("backdrop tile");
 
-            let mut parts = view_box.split_whitespace().skip(2);
-            let width: f32 = parts
-                .next()
-                .and_then(|value| value.parse().ok())
-                .expect("view box width");
-            let height: f32 = parts
-                .next()
-                .and_then(|value| value.parse().ok())
-                .expect("view box height");
-
-            assert_eq!(Vec2::new(width, height), raster, "{file}");
+            assert_eq!(png_size(&source), raster, "{file}");
         }
     }
+}
+
+// Width and height out of the PNG header: behind the signature the format pins its first chunk to
+// IHDR, whose two big-endian dimensions sit right after the chunk name.
+fn png_size(source: &[u8]) -> Vec2 {
+    const SIGNATURE: [u8; 8] = [137, b'P', b'N', b'G', 13, 10, 26, 10];
+
+    assert_eq!(source.get(..SIGNATURE.len()), Some(SIGNATURE.as_slice()));
+    assert_eq!(source.get(12..16), Some(b"IHDR".as_slice()));
+
+    let dimension = |at: usize| {
+        let bytes = source
+            .get(at..at + 4)
+            .and_then(|slice| <[u8; 4]>::try_from(slice).ok())
+            .expect("png dimension");
+
+        f32::from(u16::try_from(u32::from_be_bytes(bytes)).expect("tile dimension"))
+    };
+
+    Vec2::new(dimension(16), dimension(20))
 }
 
 // The backdrop carries its own travel, so the layers keep sliding while the camera holds still.
@@ -419,9 +426,16 @@ fn the_layers_are_ordered_from_back_to_front() {
     }
 }
 
-fn sprites(app: &mut App) -> usize {
-    let mut query = app.world_mut().query::<(&BackdropChunk, &Sprite)>();
-    query.iter(app.world()).count()
+fn loaded_tiles(app: &mut App) -> usize {
+    let mut query = app
+        .world_mut()
+        .query_filtered::<&Sprite, With<BackdropChunk>>();
+    let images = app.world().resource::<Assets<Image>>();
+
+    query
+        .iter(app.world())
+        .filter(|sprite| images.contains(&sprite.image))
+        .count()
 }
 
 #[test]
@@ -443,7 +457,7 @@ fn travelling_spawns_only_the_chunks_that_enter_the_view() {
     // Chunks left behind are gone. The rasters load asynchronously, so wait for them before
     // checking that every live chunk is painted at its chunk size, mirrored as its cell asks for.
     let mut waited = 0;
-    while sprites(&mut app) < chunks(&mut app).len() {
+    while loaded_tiles(&mut app) < chunks(&mut app).len() {
         waited += 1;
         assert!(waited < 2_000, "tile rasters did not load");
         app.update();

@@ -1,12 +1,11 @@
 use std::f32::consts::FRAC_PI_2;
 
 use bevy::{platform::collections::HashMap, prelude::*, window::PrimaryWindow};
-use bevy_resvg::prelude::Svg;
 
 use crate::camera::{GameplayCamera, PIXEL_SIZE};
 
-use super::chunks::{BackdropChunk, CHUNK_MARGIN, chunk_range, chunk_translation, chunk_variation};
-use super::layers::{BACKDROP_LAYERS, BackdropLayer};
+use super::chunks::{chunk_range, chunk_translation, chunk_variation, BackdropChunk};
+use super::layers::{BackdropLayer, BACKDROP_LAYERS};
 use super::tiles::BackdropTiles;
 
 // Travel the backdrop carries on its own, in world units per second. Each layer scales it by its
@@ -102,7 +101,7 @@ impl LayerStream<'_> {
         mut commands: Commands,
         mut placed: Query<&mut Transform, With<BackdropChunk>>,
     ) {
-        let range = chunk_range(self.layer_position, view, self.layer.chunk, CHUNK_MARGIN);
+        let range = chunk_range(self.layer_position, view, self.layer.chunk);
 
         // Chunks the camera left behind.
         self.chunks.retain(|&(chunk_layer, cell), &mut entity| {
@@ -153,7 +152,7 @@ impl LayerStream<'_> {
 
         let entity = commands
             .spawn((
-                Svg(path.clone()),
+                Sprite::from_image(path.clone()),
                 BackdropChunk {
                     layer: self.index,
                     flip_x: variation.flip_x,

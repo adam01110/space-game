@@ -10,9 +10,6 @@ use super::layers::BACKDROP_LAYERS;
 #[cfg(feature = "dev")]
 use crate::palette::Palette;
 
-// Cells that have to be alive to cover the view, plus `margin` cells on every side.
-pub(crate) const CHUNK_MARGIN: i32 = 1;
-
 // A live chunk of the backdrop, addressed by its cell in its layer's grid.
 #[derive(Component)]
 pub(crate) struct BackdropChunk {
@@ -35,12 +32,12 @@ pub(crate) fn chunk_translation(layer: BackdropLayer, cell: IVec2) -> Vec3 {
     (cell.as_vec2() * layer.chunk + Vec2::splat(layer.chunk * 0.5)).extend(layer.z)
 }
 
-// Cells that have to be alive to cover the view, plus `margin` cells on every side.
-pub(crate) fn chunk_range(position: Vec2, view: Vec2, chunk: f32, margin: i32) -> IRect {
+// Cells that have to be alive to cover the view.
+pub(crate) fn chunk_range(position: Vec2, view: Vec2, chunk: f32) -> IRect {
     let span = Vec2::splat(chunk);
 
-    let min = ((position - view * 0.5) / span).floor().as_ivec2() - IVec2::splat(margin);
-    let max = ((position + view * 0.5) / span).floor().as_ivec2() + IVec2::splat(margin);
+    let min = ((position - view * 0.5) / span).floor().as_ivec2();
+    let max = ((position + view * 0.5) / span).floor().as_ivec2();
 
     IRect::from_corners(min, max)
 }

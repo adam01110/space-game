@@ -34,11 +34,23 @@ impl Plugin for ClientCameraPlugin {
                     .after(PhysicsSystems::Writeback)
                     .before(TransformSystems::Propagate),
             );
+        #[cfg(feature = "dev")]
+        app.init_resource::<DebugZoom>()
+            .add_systems(Update, toggle_debug_zoom);
     }
 }
 
 // Size of one rendered pixel in world and window units.
 pub(super) const PIXEL_SIZE: f32 = 4.0;
+
+// Scale of the camera that displays the pixel-art canvas on the window. The canvas holds the
+// gameplay view at one pixel per `PIXEL_SIZE` world units, so this undoes that downscale.
+pub(super) const CANVAS_CAMERA_SCALE: f32 = 1.0 / PIXEL_SIZE;
+
+// How much further the debug keybind pulls the view back. Five times the world on screen is enough
+// for the edge of the streamed backdrop to sit well inside the window.
+#[cfg(feature = "dev")]
+pub(super) const DEBUG_ZOOM_FACTOR: f32 = 2.0;
 
 // How quickly the camera approaches the player position.
 const CAMERA_DECAY_RATE: f32 = 6.0;
@@ -50,17 +62,35 @@ pub(super) const DEBUG_RENDER_LAYERS: RenderLayers = RenderLayers::layer(2);
 #[derive(Component)]
 pub(super) struct GameplayCamera;
 
+// The rendered gameplay canvas, and the camera that displays it on the window.
 #[derive(Component)]
 struct GameplayCanvas;
 
 #[derive(Component)]
-struct DebugCamera;
+pub(super) struct CanvasCamera;
+
+#[derive(Component)]
+pub(super) struct DebugCamera;
+
+// Whether the debug zoom keybind is holding the view back. Development builds only.
+#[cfg(feature = "dev")]
+#[derive(Resource, Default)]
+pub(super) struct DebugZoom(bool);
 
 type GameplayCameraFilter = (With<Camera2d>, With<GameplayCamera>, Without<DebugCamera>);
+// Only the debug zoom moves the canvas camera, so its filter exists with the keybind.
+#[cfg(feature = "dev")]
+type CanvasCameraFilter = (
+    With<Camera2d>,
+    With<CanvasCamera>,
+    Without<GameplayCamera>,
+    Without<DebugCamera>,
+);
 type DebugCameraFilter = (
     With<Camera2d>,
     With<DebugCamera>,
     Without<GameplayCamera>,
+    Without<CanvasCamera>,
     Without<InputMarker<PlayerInput>>,
 );
 
@@ -93,10 +123,11 @@ fn setup_camera(
     commands.spawn((
         Camera2d,
         Projection::Orthographic(OrthographicProjection {
-            scale: 1.0 / PIXEL_SIZE,
+            scale: CANVAS_CAMERA_SCALE,
             ..OrthographicProjection::default_2d()
         }),
         Msaa::Off,
+        CanvasCamera,
         CANVAS_LAYERS,
     ));
 
@@ -111,12 +142,65 @@ fn setup_camera(
             clear_color: ClearColorConfig::None,
             ..default()
         },
+        Projection::Orthographic(OrthographicProjection {
+            scale: 1.0,
+            ..OrthographicProjection::default_2d()
+        }),
         // All cameras targeting the window must use the same sample count. Native
         // resolution still avoids the 4x pixelation from the gameplay canvas.
         Msaa::Off,
         DebugCamera,
         DEBUG_RENDER_LAYERS,
     ));
+}
+
+// Debug keybind: `Z` pulls the view back by `DEBUG_ZOOM_FACTOR`, so the game view shrinks to a
+// fifth of the window with the streamed backdrop still visible around it.
+//
+// The one camera the zoom deliberately leaves alone is the gameplay camera: the backdrop streamer
+// reads its projection as the view it has to cover, so zooming it out would stream several times
+// the chunks and push the edge of what is spawned off screen, which is the one thing this keybind
+// is for looking at. Shrinking what displays the canvas instead keeps the whole streamed region
+// inside the window around the smaller view of the game.
+//
+// The scale is applied every frame from the toggle, so a camera spawned after the key was pressed
+// is zoomed too.
+#[cfg(feature = "dev")]
+pub(super) fn toggle_debug_zoom(
+    keyboard: Res<ButtonInput<KeyCode>>,
+    mut zoom: ResMut<DebugZoom>,
+    mut canvas_cameras: Query<&mut Projection, CanvasCameraFilter>,
+    mut debug_cameras: Query<&mut Projection, DebugCameraFilter>,
+) {
+    if keyboard.just_pressed(KeyCode::KeyZ) {
+        zoom.0 = !zoom.0;
+        info!(
+            "Debug zoom {} (game view {}x smaller)",
+            if zoom.0 { "on" } else { "off" },
+            DEBUG_ZOOM_FACTOR
+        );
+    }
+
+    let factor = if zoom.0 { DEBUG_ZOOM_FACTOR } else { 1.0 };
+
+    for mut projection in &mut canvas_cameras {
+        set_scale(&mut projection, CANVAS_CAMERA_SCALE * factor);
+    }
+
+    // Diagnostics are drawn to the window rather than through the canvas, so they zoom on the same
+    // factor with their own scale to stay aligned with the canvas they annotate.
+    for mut projection in &mut debug_cameras {
+        set_scale(&mut projection, 1.0 * factor);
+    }
+}
+
+// Only the orthographic canvas and diagnostic views are zoomable; any other projection is left as
+// it was spawned.
+#[cfg(feature = "dev")]
+const fn set_scale(projection: &mut Projection, scale: f32) {
+    if let Projection::Orthographic(orthographic) = projection {
+        orthographic.scale = scale;
+    }
 }
 
 fn follow_player(
