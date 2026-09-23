@@ -129,6 +129,8 @@ fn setup_camera(
         Msaa::Off,
         CanvasCamera,
         CANVAS_LAYERS,
+        #[cfg(not(target_family = "wasm"))]
+        IsDefaultUiCamera,
     ));
 
     // Draw diagnostics directly to the window instead of baking them into the
@@ -175,7 +177,7 @@ pub(super) fn toggle_debug_zoom(
     if keyboard.just_pressed(KeyCode::KeyZ) {
         zoom.0 = !zoom.0;
         info!(
-            "Debug zoom {} (game view {}x smaller)",
+            "Debug zoom {} ({}x smaller)",
             if zoom.0 { "on" } else { "off" },
             DEBUG_ZOOM_FACTOR
         );

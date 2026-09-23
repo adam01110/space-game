@@ -9,6 +9,7 @@ use crossbeam_channel::Receiver;
 use lightyear::prelude::client::*;
 
 use super::{guest, plugins::ClientStartup};
+#[cfg(target_family = "wasm")]
 use crate::palette::Palette;
 
 use connection::{monitor_client, poll_guest, retry_connection};
@@ -36,6 +37,8 @@ pub(super) struct GuestConnection {
     pub(super) started: Duration,
     pub(super) message: String,
     pub(super) can_retry: bool,
+    #[cfg(not(target_family = "wasm"))]
+    pub(super) started_by_play: bool,
 }
 
 impl GuestConnection {
@@ -60,13 +63,19 @@ impl GuestConnection {
     }
 }
 
+#[cfg(target_family = "wasm")]
 #[derive(Component)]
 struct ConnectionStatus;
 
 fn setup_connection(mut commands: Commands, time: Res<Time<Real>>) {
+    #[cfg(not(target_family = "wasm"))]
+    let _ = &time;
+    #[cfg(target_family = "wasm")]
     let mut connection = GuestConnection::default();
+    #[cfg(target_family = "wasm")]
     connection.request(time.elapsed());
 
+    #[cfg(target_family = "wasm")]
     commands.spawn((
         ConnectionStatus,
         Text::new(connection.message.clone()),
@@ -83,9 +92,12 @@ fn setup_connection(mut commands: Commands, time: Res<Time<Real>>) {
         },
     ));
 
+    #[cfg(not(target_family = "wasm"))]
+    let connection = GuestConnection::default();
     commands.insert_resource(connection);
 }
 
+#[cfg(target_family = "wasm")]
 fn update_status(status: &mut Query<&mut Text, With<ConnectionStatus>>, message: &str) {
     for mut text in status {
         if text.0 != message {
@@ -101,14 +113,20 @@ fn update_connection(
     mut connection: ResMut<GuestConnection>,
     clients: Query<(Has<Connected>, Option<&Disconnected>), With<Client>>,
     suspension: Res<recovery::Suspension>,
-    mut status: Query<&mut Text, With<ConnectionStatus>>,
+    #[cfg(target_family = "wasm")] mut status: Query<&mut Text, With<ConnectionStatus>>,
 ) {
-    let now = time.elapsed();
+    #[cfg(not(target_family = "wasm"))]
+    if !connection.started_by_play {
+        return;
+    }
+
     if suspension.is_suspended() {
+        #[cfg(target_family = "wasm")]
         update_status(&mut status, &connection.message);
         return;
     }
 
+    let now = time.elapsed();
     if connection.can_retry
         && (keys.just_pressed(KeyCode::KeyR)
             || now.saturating_sub(connection.started) >= RETRY_INTERVAL)
@@ -124,5 +142,6 @@ fn update_connection(
         },
     }
 
+    #[cfg(target_family = "wasm")]
     update_status(&mut status, &connection.message);
 }

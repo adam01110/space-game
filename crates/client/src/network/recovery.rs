@@ -96,6 +96,10 @@ fn recover_suspended_session(
     let Some(mut connection) = connection else {
         return;
     };
+    #[cfg(not(target_family = "wasm"))]
+    if !connection.started_by_play {
+        return;
+    }
     if recovery == Recovery::None {
         return;
     }

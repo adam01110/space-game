@@ -8398,6 +8398,7 @@ dependencies = [
  "avian2d",
  "bevy",
  "bevy_extended_ui",
+ "bevy_extended_ui_macros",
  "bevy_resvg",
  "crossbeam-channel",
  "ehttp",

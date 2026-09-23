@@ -1,0 +1,143 @@
+@font-face {
+  font-family: "Pixelify Sans";
+  src: url("./assets/PixelifySans/PixelifySans-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Pixelify Sans";
+  src: url("./assets/PixelifySans/PixelifySans-Bold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700 900;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: dark;
+  --background: #27142b;
+  --mint: #a7dbbb;
+  --cream: #ede8e1;
+  --rose: #a66372;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--background);
+}
+
+body {
+  font-family: "Pixelify Sans", ui-monospace, monospace;
+  color: var(--cream);
+}
+
+/* Bevy appends its canvas to the document body. */
+body > canvas {
+  position: fixed !important;
+  inset: 0;
+  width: 100vw !important;
+  height: 100vh !important;
+  visibility: hidden;
+  touch-action: none;
+}
+
+body.entered > canvas {
+  visibility: visible;
+}
+
+#game-shell {
+  display: none;
+}
+
+#menu {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  background: var(--background);
+}
+
+.menu-content {
+  width: min(100% - 48px, 640px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+h1 {
+  margin: 0 0 36px;
+  font-size: clamp(46px, 10vw, 104px);
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.105em;
+  text-transform: uppercase;
+}
+
+h1 span {
+  display: block;
+  padding-right: 0.105em;
+}
+
+h1 span:last-child {
+  color: var(--mint);
+}
+
+#play {
+  min-width: 214px;
+  min-height: 54px;
+  padding: 14px 34px;
+  border: 1px solid var(--mint);
+  border-radius: 0;
+  background: var(--mint);
+  color: var(--background);
+  font: inherit;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+#play:hover:not(:disabled) {
+  background: var(--cream);
+}
+
+#play:focus-visible {
+  outline: 2px solid var(--cream);
+  outline-offset: 5px;
+}
+
+#play:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+#status {
+  min-height: 2.7em;
+  max-width: 34ch;
+  margin: 20px 0 0;
+  color: var(--mint);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+#status.failed {
+  color: var(--rose);
+}
+
+body.entered #menu {
+  display: none;
+}

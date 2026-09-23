@@ -6,6 +6,7 @@ mod tiles;
 use bevy::{camera::CameraUpdateSystems, prelude::*, transform::TransformSystems};
 
 use crate::camera::CameraSystems;
+use crate::network::GuestConnection;
 use crate::palette::Palette;
 
 #[cfg(feature = "dev")]
@@ -24,6 +25,18 @@ use tiles::{load_backdrop_tiles, shape_backdrop_chunks};
 
 pub(super) struct ClientBackgroundPlugin;
 
+fn game_started(connection: Res<GuestConnection>) -> bool {
+    #[cfg(not(target_family = "wasm"))]
+    {
+        connection.started_by_play
+    }
+    #[cfg(target_family = "wasm")]
+    {
+        let _ = connection;
+        true
+    }
+}
+
 impl Plugin for ClientBackgroundPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(ClearColor(Palette::PlumBlack.color()))
@@ -40,6 +53,7 @@ impl Plugin for ClientBackgroundPlugin {
                     shape_backdrop_chunks,
                 )
                     .chain()
+                    .run_if(game_started)
                     .before(TransformSystems::Propagate),
             );
         #[cfg(feature = "dev")]
@@ -47,6 +61,7 @@ impl Plugin for ClientBackgroundPlugin {
             PostUpdate,
             draw_chunk_outlines
                 .after(shape_backdrop_chunks)
+                .run_if(game_started)
                 .before(TransformSystems::Propagate),
         );
     }
