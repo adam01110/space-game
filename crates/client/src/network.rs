@@ -127,21 +127,32 @@ fn update_connection(
     }
 
     let now = time.elapsed();
-    if connection.can_retry
-        && (keys.just_pressed(KeyCode::KeyR)
-            || now.saturating_sub(connection.started) >= RETRY_INTERVAL)
-    {
+    if retry_due(&connection, &keys, now) {
         retry_connection(&mut commands, &mut connection, now);
     }
 
-    match connection.pending.is_some() {
-        true => poll_guest(&mut commands, &mut connection, now),
-        false => match connection.can_retry {
-            true => {}
-            false => monitor_client(&mut commands, &mut connection, &clients, now),
-        },
-    }
+    advance(&mut commands, &mut connection, &clients, now);
 
     #[cfg(target_family = "wasm")]
     update_status(&mut status, &connection.message);
+}
+
+fn retry_due(connection: &GuestConnection, keys: &ButtonInput<KeyCode>, now: Duration) -> bool {
+    connection.can_retry
+        && (keys.just_pressed(KeyCode::KeyR)
+            || now.saturating_sub(connection.started) >= RETRY_INTERVAL)
+}
+
+fn advance(
+    commands: &mut Commands,
+    connection: &mut GuestConnection,
+    clients: &Query<(Has<Connected>, Option<&Disconnected>), With<Client>>,
+    now: Duration,
+) {
+    if connection.pending.is_some() {
+        poll_guest(commands, connection, now);
+        return;
+    } else if !connection.can_retry {
+        monitor_client(commands, connection, clients, now);
+    }
 }

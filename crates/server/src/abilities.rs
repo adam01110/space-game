@@ -90,30 +90,53 @@ fn update_projectile_visibility(
         .retain(|(shot, client), _| shots.contains(*shot) && clients.contains(*client));
 
     for client in &clients {
-        let origin = players
-            .iter()
-            .find(|(_, control)| control.owner == client)
-            .map(|(position, _)| position.0);
+        let origin = owner_position(&players, client);
 
         for (entity, shot, control) in &shots {
-            let previous = cache.0.get(&(entity, client)).copied();
-            let visible = interested(
-                previous.unwrap_or(false),
-                control.is_some_and(|control| control.owner == client),
-                origin.map_or(f32::INFINITY, |origin| {
-                    origin.distance_squared(shot.position)
-                }),
+            let key = (entity, client);
+            let owner = control.is_some_and(|control| control.owner == client);
+            let Some(visible) = visibility_change(
+                cache.0.get(&key).copied(),
+                owner,
+                shot_distance(origin, shot.position),
                 &policy,
-            );
+            ) else {
+                continue;
+            };
 
-            if previous != Some(visible) {
-                match visible {
-                    true => commands.gain_visibility(entity, client),
-                    false => commands.lose_visibility(entity, client),
-                }
-
-                cache.0.insert((entity, client), visible);
-            }
+            apply_visibility(&mut commands, entity, client, visible);
+            cache.0.insert(key, visible);
         }
+    }
+}
+
+fn owner_position(
+    players: &Query<(&Position, &ControlledBy), With<Player>>,
+    client: Entity,
+) -> Option<Vec2> {
+    players
+        .iter()
+        .find(|(_, control)| control.owner == client)
+        .map(|(position, _)| position.0)
+}
+
+fn shot_distance(origin: Option<Vec2>, position: Vec2) -> f32 {
+    origin.map_or(f32::INFINITY, |origin| origin.distance_squared(position))
+}
+
+fn visibility_change(
+    previous: Option<bool>,
+    owner: bool,
+    distance_squared: f32,
+    policy: &ProjectileInterest,
+) -> Option<bool> {
+    let visible = interested(previous.unwrap_or(false), owner, distance_squared, policy);
+    (previous != Some(visible)).then_some(visible)
+}
+
+fn apply_visibility(commands: &mut Commands, entity: Entity, client: Entity, visible: bool) {
+    match visible {
+        true => commands.gain_visibility(entity, client),
+        false => commands.lose_visibility(entity, client),
     }
 }

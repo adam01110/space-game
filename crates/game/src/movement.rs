@@ -59,39 +59,50 @@ fn apply_movement(
     phase_beam_active: bool,
     delta_seconds: f32,
 ) {
-    let normalized_aim = input
-        .aim
-        .is_finite()
-        .then_some(input.aim)
-        .and_then(Vec2::try_normalize)
-        .map(snap_cardinal_aim);
-
-    if let Some(aim) = normalized_aim {
-        let target = aim.y.atan2(aim.x) - std::f32::consts::FRAC_PI_2;
-
-        let turn_speed = match phase_beam_active {
-            true => PHASE_BEAM_TURN_SPEED,
-            false => TURN_SPEED,
-        };
-
-        *rotation = Rotation::radians(turn_towards(
-            rotation.as_radians(),
-            target,
-            turn_speed * delta_seconds,
-        ));
-    }
+    apply_aim(rotation, input.aim, phase_beam_active, delta_seconds);
 
     // Never translate the body directly: the solver integrates velocity and blocks/slides
     // it at contacts. Invalid or released input must clear the previous desired velocity.
-    let move_speed = match phase_beam_active {
-        true => PHASE_BEAM_MOVE_SPEED,
-        false => MOVE_SPEED,
+    velocity.0 = desired_velocity(input.movement, phase_beam_active);
+}
+
+fn apply_aim(rotation: &mut Rotation, aim: Vec2, phase_beam_active: bool, delta_seconds: f32) {
+    let Some(aim) = normalized_aim(aim) else {
+        return;
     };
 
-    velocity.0 = match input.movement.is_finite() {
-        true => input.movement.clamp_length_max(1.0) * move_speed,
+    let target = aim.y.atan2(aim.x) - std::f32::consts::FRAC_PI_2;
+    let step = turn_speed(phase_beam_active) * delta_seconds;
+
+    *rotation = Rotation::radians(turn_towards(rotation.as_radians(), target, step));
+}
+
+fn normalized_aim(aim: Vec2) -> Option<Vec2> {
+    aim.is_finite()
+        .then_some(aim)
+        .and_then(Vec2::try_normalize)
+        .map(snap_cardinal_aim)
+}
+
+const fn turn_speed(phase_beam_active: bool) -> f32 {
+    match phase_beam_active {
+        true => PHASE_BEAM_TURN_SPEED,
+        false => TURN_SPEED,
+    }
+}
+
+const fn move_speed(phase_beam_active: bool) -> f32 {
+    match phase_beam_active {
+        true => PHASE_BEAM_MOVE_SPEED,
+        false => MOVE_SPEED,
+    }
+}
+
+fn desired_velocity(movement: Vec2, phase_beam_active: bool) -> Vec2 {
+    match movement.is_finite() {
+        true => movement.clamp_length_max(1.0) * move_speed(phase_beam_active),
         false => Vec2::ZERO,
-    };
+    }
 }
 
 fn snap_cardinal_aim(aim: Vec2) -> Vec2 {

@@ -67,12 +67,21 @@ fn generate_key_file(args: &[String]) -> Result<Option<ServerKey>, Error> {
 }
 
 fn print_token(args: &[String]) -> Result<Option<ServerKey>, Error> {
-    let [path, address, client_id] = command_args(args)?;
-    let key = load_key(Path::new(path))?;
-    let address: SocketAddr = address.parse()?;
-    let token = issue_token(&key, address, client_id.parse()?)?;
+    let token = issue_command_token(args)?;
     println!("{}", encode_hex(&token.try_into_bytes()?));
     Ok(None)
+}
+
+fn issue_command_token(args: &[String]) -> Result<ConnectToken, Error> {
+    let [path, address, client_id] = command_args(args)?;
+    let key = load_key(Path::new(path))?;
+    let (address, client_id) = parse_token_target(address, client_id)?;
+
+    issue_token(&key, address, client_id)
+}
+
+fn parse_token_target(address: &str, client_id: &str) -> Result<(SocketAddr, u64), Error> {
+    Ok((address.parse()?, client_id.parse()?))
 }
 
 fn configure_command(command: &str, args: &[String]) -> Result<Option<ServerKey>, Error> {

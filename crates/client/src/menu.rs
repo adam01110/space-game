@@ -54,27 +54,48 @@ fn sync_menu_status(
     if !players.is_empty() {
         // Retire both the framework source and its rendered tree so asset reloads
         // cannot recreate the menu after entering the game.
-        for (entity, source) in &sources {
-            if source.source_id == "framework-index" {
-                commands.entity(entity).despawn();
-            }
-        }
-        for (entity, body) in &bodies {
-            if body.html_key.as_deref() == Some("framework-index") {
-                commands.entity(entity).despawn();
-            }
-        }
+        retire_menu(&mut commands, &sources, &bodies);
         *closed = true;
         return;
     }
 
-    let message = if connection.message.is_empty() {
-        "Waiting for your player…"
-    } else {
-        &connection.message
-    };
+    update_status(&mut statuses, status_message(&connection));
+}
 
-    for (id, mut status) in &mut statuses {
+fn retire_menu(
+    commands: &mut Commands,
+    sources: &Query<(Entity, &HtmlSource)>,
+    bodies: &Query<(Entity, &Body)>,
+) {
+    retire_sources(commands, sources);
+    retire_bodies(commands, bodies);
+}
+
+fn retire_sources(commands: &mut Commands, sources: &Query<(Entity, &HtmlSource)>) {
+    for (entity, source) in sources {
+        if source.source_id == "framework-index" {
+            commands.entity(entity).despawn();
+        }
+    }
+}
+
+fn retire_bodies(commands: &mut Commands, bodies: &Query<(Entity, &Body)>) {
+    for (entity, body) in bodies {
+        if body.html_key.as_deref() == Some("framework-index") {
+            commands.entity(entity).despawn();
+        }
+    }
+}
+
+fn status_message(connection: &GuestConnection) -> &str {
+    match connection.message.is_empty() {
+        true => "Waiting for your player…",
+        false => &connection.message,
+    }
+}
+
+fn update_status(statuses: &mut Query<(&CssID, &mut Paragraph)>, message: &str) {
+    for (id, mut status) in statuses {
         if id.0 == "status" && status.text != message {
             message.clone_into(&mut status.text);
         }

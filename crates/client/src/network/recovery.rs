@@ -24,31 +24,35 @@ pub(crate) struct Suspension {
 impl Suspension {
     pub(crate) fn observe(&mut self, now: Duration, gap: Duration, hidden: bool) -> Recovery {
         match hidden {
-            true => {
-                let since = *self.hidden_since.get_or_insert(now);
-
-                match !self.suspended
-                    && (gap >= MAX_FRAME_GAP || now.saturating_sub(since) >= MAX_FRAME_GAP)
-                {
-                    true => {
-                        self.suspended = true;
-                        return Recovery::Suspend;
-                    }
-                    false => return Recovery::None,
-                }
-            }
-            false => {
-                let long_hidden = self
-                    .hidden_since
-                    .take()
-                    .is_some_and(|since| now.saturating_sub(since) >= MAX_FRAME_GAP);
-
-                match std::mem::take(&mut self.suspended) || long_hidden || gap >= MAX_FRAME_GAP {
-                    true => Recovery::Reconnect,
-                    false => Recovery::None,
-                }
-            }
+            true => self.observe_hidden(now, gap),
+            false => self.observe_visible(now, gap),
         }
+    }
+
+    fn observe_hidden(&mut self, now: Duration, gap: Duration) -> Recovery {
+        let since = *self.hidden_since.get_or_insert(now);
+        let clamped = gap >= MAX_FRAME_GAP || now.saturating_sub(since) >= MAX_FRAME_GAP;
+
+        match !self.suspended && clamped {
+            true => {
+                self.suspended = true;
+                Recovery::Suspend
+            }
+            false => Recovery::None,
+        }
+    }
+
+    fn observe_visible(&mut self, now: Duration, gap: Duration) -> Recovery {
+        let long_hidden = self
+            .hidden_since
+            .take()
+            .is_some_and(|since| now.saturating_sub(since) >= MAX_FRAME_GAP);
+
+        if std::mem::take(&mut self.suspended) || long_hidden || gap >= MAX_FRAME_GAP {
+            return Recovery::Reconnect;
+        }
+
+        Recovery::None
     }
 
     pub(crate) const fn is_suspended(&self) -> bool {
@@ -82,20 +86,43 @@ fn recover_suspended_session(
     connection: Option<ResMut<GuestConnection>>,
     windows: Query<&Window, With<bevy::window::PrimaryWindow>>,
 ) {
-    // An unfocused native window normally continues at 60 Hz. Only suspend it
-    // if its compositor actually throttles updates; avoid reconnecting every
-    // throttled frame while it remains unfocused.
-    let throttled_unfocused = windows.single().is_ok_and(|window| !window.focused)
-        && (time.delta() >= MAX_FRAME_GAP || suspension.is_suspended());
-    let recovery = suspension.observe(
-        time.elapsed(),
-        time.delta(),
-        browser_hidden() || throttled_unfocused,
-    );
+    let inactive = client_inactive(&windows, &time, &suspension);
+    let recovery = suspension.observe(time.elapsed(), time.delta(), inactive);
 
     let Some(mut connection) = connection else {
         return;
     };
+
+    apply_recovery(
+        &mut commands,
+        &mut connection,
+        recovery,
+        time.elapsed(),
+        time.delta(),
+    );
+}
+
+// An unfocused native window normally continues at 60 Hz. Only suspend it if
+// its compositor actually throttles updates; avoid reconnecting every throttled
+// frame while it remains unfocused.
+fn client_inactive(
+    windows: &Query<&Window, With<bevy::window::PrimaryWindow>>,
+    time: &Time<Real>,
+    suspension: &Suspension,
+) -> bool {
+    let throttled_unfocused = windows.single().is_ok_and(|window| !window.focused)
+        && (time.delta() >= MAX_FRAME_GAP || suspension.is_suspended());
+
+    browser_hidden() || throttled_unfocused
+}
+
+fn apply_recovery(
+    commands: &mut Commands,
+    connection: &mut GuestConnection,
+    recovery: Recovery,
+    now: Duration,
+    gap: Duration,
+) {
     #[cfg(not(target_family = "wasm"))]
     if !connection.started_by_play {
         return;
@@ -104,13 +131,17 @@ fn recover_suspended_session(
         return;
     }
 
-    warn!(?recovery, gap = ?time.delta(), "Retiring stale network session after suspension");
+    warn!(?recovery, gap = ?gap, "Retiring stale network session after suspension");
 
     // First's deferred commands (including Lightyear receiver-removal cleanup)
     // are flushed before any PreUpdate packet receive / rollback systems run.
-    retire_session(&mut commands, &mut connection);
+    retire_session(commands, connection);
+    announce_recovery(connection, recovery, now);
+}
+
+fn announce_recovery(connection: &mut GuestConnection, recovery: Recovery, now: Duration) {
     match recovery {
-        Recovery::Reconnect => connection.request(time.elapsed()),
+        Recovery::Reconnect => connection.request(now),
         Recovery::Suspend => {
             connection.can_retry = false;
             "Paused while client is inactive".clone_into(&mut connection.message);
