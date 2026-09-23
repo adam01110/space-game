@@ -10,9 +10,9 @@ use lightyear::frame_interpolation::FrameInterpolationSystems;
 
 #[cfg(feature = "dev")]
 use crate::arena;
-#[cfg(not(target_family = "wasm"))]
-use crate::menu;
 use crate::{abilities, background, camera, input, network, player};
+#[cfg(not(target_family = "wasm"))]
+use crate::{frame, hud, menu};
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub(super) enum ClientStartup {
@@ -47,7 +47,12 @@ impl Plugin for ClientAppPlugin {
             asset_root_fs_path: format!("{}/../../assets", env!("CARGO_MANIFEST_DIR")),
             index_html_file: "index.html".into(),
         })
-        .add_plugins((ExtendedUiPlugin, menu::NativeMenuPlugin));
+        .add_plugins((
+            ExtendedUiPlugin,
+            menu::NativeMenuPlugin,
+            frame::NativeFramePlugin,
+            hud::NativeHudPlugin,
+        ));
         app.add_plugins((
             SvgPlugin,
             abilities::ClientAbilitiesPlugin,

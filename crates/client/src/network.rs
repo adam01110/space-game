@@ -1,4 +1,5 @@
 mod connection;
+pub(crate) mod death;
 pub(crate) mod policy;
 pub(crate) mod recovery;
 
@@ -20,6 +21,7 @@ const RETRY_INTERVAL: Duration = Duration::from_secs(4);
 
 impl Plugin for ClientNetworkPlugin {
     fn build(&self, app: &mut App) {
+        death::install(app);
         recovery::install(app);
         app.insert_resource(policy::timeline_config())
             .insert_resource(policy::prediction_manager())

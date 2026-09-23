@@ -4,6 +4,7 @@
 mod arena;
 mod blasters;
 mod collision;
+mod damage;
 mod movement;
 mod phase_beam;
 mod support;

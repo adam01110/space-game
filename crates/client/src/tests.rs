@@ -3,5 +3,7 @@
 
 mod background;
 mod camera;
+#[cfg(not(target_family = "wasm"))]
+mod hud;
 mod network;
 mod palette;

@@ -1,19 +1,11 @@
 :root {
   --black: #27142b;
-  --wine: #2e0f29;
-  --plum: #451e3e;
-  --navy: #32244d;
   --mint: #a7dbbb;
   --cream: #ede8e1;
-  --teal: #5d858c;
 }
 
 body {
-  width: 100vw;
-  height: 100vh;
-  margin: 0;
   color: var(--cream);
-  font-family: PixelifySans;
 }
 
 #backdrop {
@@ -23,18 +15,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: var(--black);
-  background: linear-gradient(135deg, var(--black), var(--plum), var(--wine));
-}
-
-#frame {
-  position: absolute;
-  left: 24px;
-  right: 24px;
-  top: 24px;
-  bottom: 24px;
-  border: 1px #5d858c;
-  pointer-events: none;
+  background: var(--black);
 }
 
 #content {

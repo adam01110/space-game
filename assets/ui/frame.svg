@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <path id="frame-mask" d="M0 0 H800 V600 H0 Z M230 30 H570 L770 230 V370 L570 570 H230 L30 370 V230 Z" fill="#2e0f29" fill-rule="evenodd"/>
+  <path id="frame-outline" d="M230 30 H570 L770 230 V370 L570 570 H230 L30 370 V230 Z" fill="none" stroke="#d6c2ba" stroke-width="2" stroke-linejoin="round"/>
+</svg>

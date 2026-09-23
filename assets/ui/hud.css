@@ -1,0 +1,191 @@
+:root {
+  /* Nebulaspace swatches, shared with the menu, the frame and the world sprites. */
+  --hud-ink: #d6c2ba;
+  --hud-dim: #bf9684;
+  --hud-remote: #a66372;
+}
+
+/* The overlay never takes pointer input: the menu owns clicks before the match
+   starts and the game owns them afterwards. */
+#hud {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+#hud p {
+  margin: 0;
+  color: var(--hud-ink);
+  font-size: 12px;
+  line-height: 15px;
+  text-wrap: nowrap;
+  pointer-events: none;
+}
+
+/* The framework maps pointer-events per node rather than inheriting it. */
+#hud-status {
+  position: absolute;
+  left: 31px;
+  top: 35px;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+}
+
+/* Minimap. The ring is the map's range, not the arena wall: the HUD system
+   scales every blip by the visible area and blinks the whole block. */
+
+#hud-map {
+  position: absolute;
+  right: 32px;
+  top: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+
+#hud-map-ring {
+  position: relative;
+  width: 78px;
+  height: 78px;
+  border: 1px var(--hud-ink);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+#hud-map-range {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  width: 52px;
+  height: 52px;
+  border: 1px var(--hud-dim);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+#hud-map-axis-x {
+  position: absolute;
+  left: 0;
+  top: 37px;
+  width: 76px;
+  height: 1px;
+  background-color: var(--hud-dim);
+  pointer-events: none;
+}
+
+#hud-map-axis-y {
+  position: absolute;
+  left: 37px;
+  top: 0;
+  width: 1px;
+  height: 76px;
+  background-color: var(--hud-dim);
+  pointer-events: none;
+}
+
+#hud-map-label {
+  font-size: 11px;
+  line-height: 12px;
+  text-align: center;
+}
+
+/* Blips are placed by the HUD system from world offsets; anything the map has
+   no data for stays hidden. */
+.hud-blip {
+  position: absolute;
+  display: none;
+  width: 8px;
+  height: 8px;
+  background-color: var(--hud-remote);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+/* Ability charges */
+
+#hud-abilities {
+  position: absolute;
+  left: 31px;
+  bottom: 37px;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+}
+
+#hud-abilities p {
+  line-height: 16px;
+}
+
+.hud-ability {
+  display: flex;
+  flex-direction: row;
+  pointer-events: none;
+}
+
+.hud-ability-name {
+  width: 73px;
+}
+
+.hud-ability-key {
+  width: 52px;
+}
+
+.hud-ability-charge {
+  width: 20px;
+  text-align: right;
+}
+
+/* Match readout */
+
+/* Hull readout. It sits in the frame's bottom band, below the border, so it never
+   covers the play area. The bar is a box the HUD system resizes from the local ship's
+   health, and the number repeats the same value for players who read numbers faster
+   than lengths. */
+#hud-health {
+  position: absolute;
+  left: 0;
+  bottom: 8px;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+#hud-health-track {
+  width: 140px;
+  height: 8px;
+  background-color: var(--hud-dim);
+  pointer-events: none;
+}
+
+#hud-health-fill {
+  width: 100%;
+  height: 100%;
+  background-color: var(--hud-ink);
+  pointer-events: none;
+}
+
+#hud-alert {
+  position: absolute;
+  right: 33px;
+  bottom: 37px;
+  width: 124px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+#hud-alert p {
+  line-height: 16px;
+  text-align: center;
+}

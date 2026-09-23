@@ -3,7 +3,17 @@ mod arena;
 mod background;
 mod blasters;
 mod camera;
+#[cfg(not(target_family = "wasm"))]
+mod frame;
+#[cfg(not(target_family = "wasm"))]
+#[path = "frame.component.rs"]
+mod frame_component;
 mod guest;
+#[cfg(not(target_family = "wasm"))]
+mod hud;
+#[cfg(not(target_family = "wasm"))]
+#[path = "hud.component.rs"]
+mod hud_component;
 mod input;
 #[cfg(not(target_family = "wasm"))]
 mod menu;

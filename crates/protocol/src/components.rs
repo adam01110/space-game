@@ -65,9 +65,14 @@ pub struct PhaseBeamSegment {
 #[derive(Component, Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct PlayerHealth(pub u8);
 
+impl PlayerHealth {
+    // Health a player spawns with, and the maximum any readout should assume.
+    pub const FULL: u8 = 100;
+}
+
 impl Default for PlayerHealth {
     fn default() -> Self {
-        Self(100)
+        Self(Self::FULL)
     }
 }
 

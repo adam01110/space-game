@@ -1,3 +1,6 @@
+#[cfg(not(target_family = "wasm"))]
+#[path = "network/death.rs"]
+mod death_tests;
 #[path = "network/policy.rs"]
 mod policy_tests;
 #[path = "network/recovery.rs"]

@@ -98,7 +98,10 @@ pub(crate) fn draw_chunk_outlines(
     };
 
     for (chunk, transform) in &chunks {
-        let Some(&color) = CHUNK_OUTLINE_COLORS.get(chunk.layer) else {
+        let (Some(&color), Some(layer)) = (
+            CHUNK_OUTLINE_COLORS.get(chunk.layer),
+            BACKDROP_LAYERS.get(chunk.layer),
+        ) else {
             continue;
         };
 
@@ -106,7 +109,7 @@ pub(crate) fn draw_chunk_outlines(
         let (_, _, yaw) = transform.rotation.to_euler(EulerRot::XYZ);
         gizmos.rect_2d(
             Isometry2d::new(transform.translation.xy(), Rot2::radians(yaw)),
-            Vec2::splat(BACKDROP_LAYERS[chunk.layer].chunk),
+            Vec2::splat(layer.chunk),
             color,
         );
     }
