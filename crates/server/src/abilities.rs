@@ -69,11 +69,11 @@ pub(crate) fn interested(
     distance_squared: f32,
     policy: &ProjectileInterest,
 ) -> bool {
-    let radius = if was_visible {
-        policy.exit
-    } else {
-        policy.enter
+    let radius = match was_visible {
+        true => policy.exit,
+        false => policy.enter,
     };
+
     owner || distance_squared <= radius * radius
 }
 
@@ -88,11 +88,13 @@ fn update_projectile_visibility(
     cache
         .0
         .retain(|(shot, client), _| shots.contains(*shot) && clients.contains(*client));
+
     for client in &clients {
         let origin = players
             .iter()
             .find(|(_, control)| control.owner == client)
             .map(|(position, _)| position.0);
+
         for (entity, shot, control) in &shots {
             let previous = cache.0.get(&(entity, client)).copied();
             let visible = interested(
@@ -103,12 +105,13 @@ fn update_projectile_visibility(
                 }),
                 &policy,
             );
+
             if previous != Some(visible) {
-                if visible {
-                    commands.gain_visibility(entity, client);
-                } else {
-                    commands.lose_visibility(entity, client);
+                match visible {
+                    true => commands.gain_visibility(entity, client),
+                    false => commands.lose_visibility(entity, client),
                 }
+
                 cache.0.insert((entity, client), visible);
             }
         }

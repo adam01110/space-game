@@ -1,12 +1,6 @@
 use bevy::prelude::Color;
 
-// Every colour the client draws comes from the sixteen-swatch nebulaspace palette
-// (https://lospec.com/palette-list/nebulaspace), so the code and the art under `assets/sprites`
-// stay on one hue wheel instead of drifting apart. Variants keep the palette's own order and are
-// named after their hue rather than their job, so a swatch can change job without being renamed.
-// The complete set is listed even where no job uses a swatch yet, so this stays the palette
-// rather than a running list of what happens to be drawn today. `tests::palette` pins every
-// variant to the published hex.
+// (https://lospec.com/palette-list/nebulaspace)
 #[cfg_attr(
     not(test),
     expect(

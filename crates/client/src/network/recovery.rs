@@ -23,29 +23,31 @@ pub(crate) struct Suspension {
 
 impl Suspension {
     pub(crate) fn observe(&mut self, now: Duration, gap: Duration, hidden: bool) -> Recovery {
-        if hidden {
-            let since = *self.hidden_since.get_or_insert(now);
+        match hidden {
+            true => {
+                let since = *self.hidden_since.get_or_insert(now);
 
-            match !self.suspended
-                && (gap >= MAX_FRAME_GAP || now.saturating_sub(since) >= MAX_FRAME_GAP)
-            {
-                true => {
-                    self.suspended = true;
-
-                    return Recovery::Suspend;
+                match !self.suspended
+                    && (gap >= MAX_FRAME_GAP || now.saturating_sub(since) >= MAX_FRAME_GAP)
+                {
+                    true => {
+                        self.suspended = true;
+                        return Recovery::Suspend;
+                    }
+                    false => return Recovery::None,
                 }
-                false => return Recovery::None,
             }
-        }
+            false => {
+                let long_hidden = self
+                    .hidden_since
+                    .take()
+                    .is_some_and(|since| now.saturating_sub(since) >= MAX_FRAME_GAP);
 
-        let long_hidden = self
-            .hidden_since
-            .take()
-            .is_some_and(|since| now.saturating_sub(since) >= MAX_FRAME_GAP);
-        if std::mem::take(&mut self.suspended) || long_hidden || gap >= MAX_FRAME_GAP {
-            Recovery::Reconnect
-        } else {
-            Recovery::None
+                match std::mem::take(&mut self.suspended) || long_hidden || gap >= MAX_FRAME_GAP {
+                    true => Recovery::Reconnect,
+                    false => Recovery::None,
+                }
+            }
         }
     }
 
@@ -90,6 +92,7 @@ fn recover_suspended_session(
         time.delta(),
         browser_hidden() || throttled_unfocused,
     );
+
     let Some(mut connection) = connection else {
         return;
     };
@@ -98,6 +101,7 @@ fn recover_suspended_session(
     }
 
     warn!(?recovery, gap = ?time.delta(), "Retiring stale network session after suspension");
+
     // First's deferred commands (including Lightyear receiver-removal cleanup)
     // are flushed before any PreUpdate packet receive / rollback systems run.
     retire_session(&mut commands, &mut connection);
