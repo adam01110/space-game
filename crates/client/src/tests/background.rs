@@ -22,6 +22,11 @@ const WINDOW: Vec2 = Vec2::new(1280.0, 720.0);
 // the layout runs against the same data it sees in the game.
 fn backdrop_app() -> App {
     let mut app = App::new();
+    app.insert_resource(crate::network::GuestConnection {
+        #[cfg(not(target_family = "wasm"))]
+        started_by_play: true,
+        ..default()
+    });
     app.add_plugins((
         MinimalPlugins,
         AssetPlugin {

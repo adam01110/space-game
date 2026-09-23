@@ -151,7 +151,6 @@ fn advance(
 ) {
     if connection.pending.is_some() {
         poll_guest(commands, connection, now);
-        return;
     } else if !connection.can_retry {
         monitor_client(commands, connection, clients, now);
     }

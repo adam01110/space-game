@@ -9,40 +9,17 @@ dev-features := "space-game-client/dev,space-game-server/dev"
 client:
     cargo run -p space-game-client --features dev
 
-# Add latency and packet loss to server-to-client game traffic; run `just netem-reset` to restore networking.
+# Add round-trip latency and packet loss to game traffic in both directions; run `just netem-reset` to restore networking.
 netem latency="100ms" loss="0%":
-    #!/usr/bin/env bash
-    set -euo pipefail
-    trap 'sudo tc qdisc del dev lo root 2>/dev/null || true' ERR
-    sudo tc qdisc replace dev lo root handle 1: prio
-    sudo tc qdisc add dev lo parent 1:3 handle 30: netem delay "{{latency}}" loss "{{loss}}"
-    sudo tc filter add dev lo protocol ip parent 1: prio 3 u32 match ip protocol 17 0xff match ip sport 5000 0xffff flowid 1:3
-    trap - ERR
-    echo "Server-to-client network emulation enabled: latency={{latency}}, loss={{loss}}"
+    bash scripts/netem.sh apply "{{latency}}" "{{loss}}"
 
-# Remove server-to-client latency and packet loss.
+# Remove game traffic latency and packet loss.
 netem-reset:
-    @if sudo tc qdisc del dev lo root 2>/dev/null; then echo "Server-to-client network emulation disabled"; else echo "Server-to-client network emulation was not enabled"; fi
+    bash scripts/netem.sh reset
 
 # Run the local development server.
 server:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    umask 077
-    state="${XDG_STATE_HOME:-$HOME/.local/state}/space-game/dev"
-    mkdir -p "$state"
-    chmod 700 "$state"
-    exec 9>"$state/server.lock"
-    if ! flock -n 9; then
-        echo 'A local development server is already running.' >&2
-        exit 1
-    fi
-    cargo build -p space-game-server --features dev
-    export SPACE_GAME_NETCODE_KEY_FILE="$state/netcode.key"
-    if [[ ! -e "$SPACE_GAME_NETCODE_KEY_FILE" ]]; then
-        cargo run --quiet -p space-game-server --features dev -- generate-key "$SPACE_GAME_NETCODE_KEY_FILE"
-    fi
-    exec cargo run -p space-game-server --features dev
+    bash scripts/server.sh
 
 # Type-check every crate and target with development features.
 check:
@@ -69,26 +46,12 @@ native-release:
 
 # Build and package the production WebAssembly client for size.
 wasm:
-    cargo build -p space-game-client --target wasm32-unknown-unknown --profile wasm-release
-    rm -rf web/dist
-    wasm-bindgen --out-dir web/dist --out-name space_game_client --target web --no-typescript target/wasm32-unknown-unknown/wasm-release/space-game-client.wasm
-    wasm-opt -Os --output web/dist/space_game_client_bg.opt.wasm web/dist/space_game_client_bg.wasm
-    mv web/dist/space_game_client_bg.opt.wasm web/dist/space_game_client_bg.wasm
-    cp web/index.html web/dist/index.html
-    cp web/menu.css web/menu.js web/dist/
-    cp -r assets web/dist/assets
+    bash scripts/build-wasm.sh
 
 # Build the browser client with loopback HTTP enabled.
 web-build:
-    cargo build -p space-game-client --target wasm32-unknown-unknown --profile wasm-release --features browser-dev
-    rm -rf web/dist
-    wasm-bindgen --out-dir web/dist --out-name space_game_client --target web --no-typescript target/wasm32-unknown-unknown/wasm-release/space-game-client.wasm
-    wasm-opt -Os --output web/dist/space_game_client_bg.opt.wasm web/dist/space_game_client_bg.wasm
-    mv web/dist/space_game_client_bg.opt.wasm web/dist/space_game_client_bg.wasm
-    cp web/index.html web/dist/index.html
-    cp web/menu.css web/menu.js web/dist/
-    cp -r assets web/dist/assets
+    bash scripts/build-wasm.sh --features browser-dev
 
-# Build and serve the browser client, proxying /connect to `just server`.
-web: web-build
-    caddy run --config web/Caddyfile
+# Build and serve the browser client, asking before it rebuilds the bundle; proxies /connect to `just server`.
+web:
+    bash scripts/web.sh

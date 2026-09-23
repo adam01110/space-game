@@ -94,6 +94,8 @@ fn retirement_cleans_replication_inputs_and_pending_credentials_before_preupdate
     app.insert_resource(GuestConnection {
         client: Some(client),
         pending: Some(receiver),
+        #[cfg(not(target_family = "wasm"))]
+        started_by_play: true,
         ..default()
     });
     let unmatched_shot = app
@@ -150,6 +152,23 @@ fn retirement_cleans_replication_inputs_and_pending_credentials_before_preupdate
             .max_rollback_ticks,
         policy::PREDICTION_TICKS
     );
+}
+
+#[cfg(not(target_family = "wasm"))]
+#[test]
+fn a_long_frame_before_play_does_not_start_a_guest_connection() {
+    let mut app = headless_client();
+    app.insert_resource(GuestConnection::default());
+    app.insert_resource(TimeUpdateStrategy::ManualDuration(Duration::from_millis(
+        300,
+    )));
+    recovery::install(&mut app);
+    app.update();
+    let connection = app.world().resource::<GuestConnection>();
+    assert!(connection.client.is_none());
+    assert!(connection.pending.is_none());
+    assert_eq!(connection.message, "");
+    assert!(!connection.can_retry);
 }
 
 #[test]

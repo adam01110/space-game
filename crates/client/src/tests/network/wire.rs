@@ -18,6 +18,9 @@ use space_game_server::ServerAbilitiesPlugin;
 
 use crate::network::policy;
 
+#[path = "wire/remote.rs"]
+mod remote;
+
 const FRAME: Duration = Duration::from_millis(10);
 const TICK: Duration = Duration::from_nanos(16_666_667);
 
@@ -276,7 +279,15 @@ fn delayed_lossy_wire_converges_and_matches_projectiles() {
             .query_filtered::<Entity, With<BlasterShot>>()
             .single(harness.client.world())
             .expect("immediate local shot");
-        harness.frames(60);
+        // Reliable spawn delivery can require a retransmission. Wait for the
+        // actual acknowledgment path, bounded below the 50-tick unmatched
+        // prespawn lifetime, rather than assuming a fixed 600 ms arrival.
+        for _ in 0..75 {
+            harness.step();
+            if harness.client.world().get::<Remote>(local_shot).is_some() {
+                break;
+            }
+        }
         let shots: Vec<_> = harness
             .client
             .world_mut()
@@ -288,7 +299,10 @@ fn delayed_lossy_wire_converges_and_matches_projectiles() {
             [local_shot],
             "authoritative shot must match the prespawn (loss={loss}, abrupt={abrupt})"
         );
-        assert!(harness.client.world().get::<Remote>(local_shot).is_some());
+        assert!(
+            harness.client.world().get::<Remote>(local_shot).is_some(),
+            "prespawn not confirmed (loss={loss}, abrupt={abrupt})"
+        );
         harness.frames(200);
         assert_eq!(
             harness
