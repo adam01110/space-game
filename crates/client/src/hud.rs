@@ -3,10 +3,10 @@ use std::collections::{HashMap, HashSet};
 use bevy::diagnostic::{Diagnostic, DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
-use bevy_extended_ui::{ExtendedUiPlugin, styles::CssID, widgets::Paragraph};
-use lightyear::prelude::PingManager;
+use bevy_extended_ui::{styles::CssID, widgets::Paragraph, ExtendedUiPlugin};
 use lightyear::prelude::client::Client;
 use lightyear::prelude::input::native::InputMarker;
+use lightyear::prelude::PingManager;
 
 use space_game_protocol::{
     Player, PlayerBlasters, PlayerBoost, PlayerHealth, PlayerInput, PlayerPhaseBeam,
@@ -92,9 +92,9 @@ fn update_hud(
     write_line(&mut hud, "hud-beam", &charge_text(beam.0.units()));
 }
 
-// The readouts belong to a running match: the menu owns the screen until a player exists, and the
-// blips blink on their own cycle.
-fn update_hud_visibility(
+// Hide both overlay roots while the menu owns the screen. Hiding the HUD root also hides
+// its readouts; the frame is a separate sibling in the framework entrypoint.
+pub(super) fn update_hud_visibility(
     local_player: Query<(), (With<Player>, With<InputMarker<PlayerInput>>)>,
     time: Res<Time>,
     mut cycle: Local<f32>,
@@ -105,24 +105,24 @@ fn update_hud_visibility(
     let playing = !local_player.is_empty();
     let blips_shown = playing && *cycle < MAP_VISIBLE_SECONDS;
 
-    for (_, mut visibility) in hud.iter_mut().filter(|(id, _)| is_match_readout(id)) {
-        set_visibility(&mut visibility, playing);
+    for (id, mut visibility) in &mut hud {
+        if matches!(
+            id.0.as_str(),
+            "hud"
+                | "frame-layer"
+                | "hud-map"
+                | "hud-status"
+                | "hud-abilities"
+                | "hud-health"
+                | "hud-alert"
+        ) {
+            set_visibility(&mut visibility, playing);
+        }
     }
 
     for mut visibility in &mut blips {
         set_visibility(&mut visibility, blips_shown);
     }
-}
-
-fn is_match_readout(id: &CssID) -> bool {
-    [
-        "hud-map",
-        "hud-status",
-        "hud-abilities",
-        "hud-health",
-        "hud-alert",
-    ]
-    .contains(&id.0.as_str())
 }
 
 fn set_visibility(visibility: &mut Visibility, shown: bool) {

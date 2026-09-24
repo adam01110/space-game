@@ -4,7 +4,9 @@ use lightyear::prelude::input::native::InputMarker;
 
 use space_game_protocol::{Player, PlayerHealth, PlayerInput};
 
-use crate::hud::{HEALTH_BAR_WIDTH_PX, HudMapBlip, update_hud_health, update_hud_map};
+use crate::hud::{
+    HEALTH_BAR_WIDTH_PX, HudMapBlip, update_hud_health, update_hud_map, update_hud_visibility,
+};
 
 // The framework builds the HUD from the stylesheet, so the readout only has to find the
 // nodes the stylesheet names.
@@ -37,6 +39,50 @@ fn width(app: &mut App, id: &str) -> Val {
         .find(|(css_id, _)| css_id.0 == id)
         .map(|(_, node)| node.width)
         .expect("hud node")
+}
+
+#[test]
+fn the_menu_hides_the_hud_and_frame_until_a_local_ship_joins() {
+    let mut app = App::new();
+    app.add_plugins(MinimalPlugins);
+    app.add_systems(Update, update_hud_visibility);
+    let roots: Vec<_> = ["hud", "frame-layer"]
+        .into_iter()
+        .map(|id| {
+            app.world_mut()
+                .spawn((CssID(id.into()), Visibility::Inherited))
+                .id()
+        })
+        .collect();
+
+    app.update();
+    for &root in &roots {
+        assert_eq!(
+            app.world().get::<Visibility>(root),
+            Some(&Visibility::Hidden)
+        );
+    }
+
+    let player = app
+        .world_mut()
+        .spawn((Player, InputMarker::<PlayerInput>::default()))
+        .id();
+    app.update();
+    for &root in &roots {
+        assert_eq!(
+            app.world().get::<Visibility>(root),
+            Some(&Visibility::Inherited)
+        );
+    }
+
+    app.world_mut().despawn(player);
+    app.update();
+    for &root in &roots {
+        assert_eq!(
+            app.world().get::<Visibility>(root),
+            Some(&Visibility::Hidden)
+        );
+    }
 }
 
 #[test]
