@@ -74,6 +74,7 @@ struct AbilityInputs {
     blaster_clicks: u8,
     blaster_reload_requests: u8,
     phase_beam: bool,
+    boost: bool,
 }
 
 #[derive(Resource, Default)]
@@ -129,39 +130,7 @@ fn capture_ability_inputs(
         .wrapping_add(u8::from(keyboard.just_pressed(KeyCode::KeyR)));
 
     inputs.phase_beam = mouse.pressed(MouseButton::Right);
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn phase_beam_tracks_right_mouse_button_not_space() {
-        let mut app = App::new();
-        app.init_resource::<AbilityInputs>()
-            .init_resource::<ButtonInput<KeyCode>>()
-            .init_resource::<ButtonInput<MouseButton>>()
-            .add_systems(Update, capture_ability_inputs);
-        app.world_mut().spawn(InputMarker::<PlayerInput>::default());
-        app.world_mut()
-            .resource_mut::<ButtonInput<KeyCode>>()
-            .press(KeyCode::Space);
-
-        app.update();
-        assert!(!app.world().resource::<AbilityInputs>().phase_beam);
-
-        app.world_mut()
-            .resource_mut::<ButtonInput<MouseButton>>()
-            .press(MouseButton::Right);
-        app.update();
-        assert!(app.world().resource::<AbilityInputs>().phase_beam);
-
-        app.world_mut()
-            .resource_mut::<ButtonInput<MouseButton>>()
-            .release(MouseButton::Right);
-        app.update();
-        assert!(!app.world().resource::<AbilityInputs>().phase_beam);
-    }
+    inputs.boost = keyboard.pressed(KeyCode::Space);
 }
 
 fn buffer_player_input(
@@ -195,5 +164,45 @@ fn buffer_player_input(
         blaster_clicks: abilities.blaster_clicks,
         blaster_reload_requests: abilities.blaster_reload_requests,
         phase_beam: abilities.phase_beam,
+        boost: abilities.boost,
     };
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn phase_beam_tracks_right_mouse_button_not_space() {
+        let mut app = App::new();
+        app.init_resource::<AbilityInputs>()
+            .init_resource::<ButtonInput<KeyCode>>()
+            .init_resource::<ButtonInput<MouseButton>>()
+            .add_systems(Update, capture_ability_inputs);
+        app.world_mut().spawn(InputMarker::<PlayerInput>::default());
+        app.world_mut()
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .press(KeyCode::Space);
+
+        app.update();
+        assert!(!app.world().resource::<AbilityInputs>().phase_beam);
+        assert!(app.world().resource::<AbilityInputs>().boost);
+
+        app.world_mut()
+            .resource_mut::<ButtonInput<MouseButton>>()
+            .press(MouseButton::Right);
+        app.update();
+        assert!(app.world().resource::<AbilityInputs>().phase_beam);
+
+        app.world_mut()
+            .resource_mut::<ButtonInput<MouseButton>>()
+            .release(MouseButton::Right);
+        app.update();
+        assert!(!app.world().resource::<AbilityInputs>().phase_beam);
+        app.world_mut()
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .release(KeyCode::Space);
+        app.update();
+        assert!(!app.world().resource::<AbilityInputs>().boost);
+    }
 }

@@ -12,8 +12,10 @@ pub struct PlayerInput {
     pub blaster_clicks: u8,
     // Cumulative R presses, consumed once even across repeated simulation ticks.
     pub blaster_reload_requests: u8,
-    // Held state; the visual beam disappears when Space is released.
+    // Held state; the visual beam disappears when RMB is released.
     pub phase_beam: bool,
+    // Held state; boost consumes its finite charge while Space is pressed.
+    pub boost: bool,
 }
 
 impl Default for PlayerInput {
@@ -24,6 +26,7 @@ impl Default for PlayerInput {
             blaster_clicks: 0,
             blaster_reload_requests: 0,
             phase_beam: false,
+            boost: false,
         }
     }
 }

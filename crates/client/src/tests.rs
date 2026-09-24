@@ -4,6 +4,7 @@
 mod background;
 mod beacons;
 mod camera;
+mod flame;
 #[cfg(not(target_family = "wasm"))]
 mod frame;
 mod gizmos;

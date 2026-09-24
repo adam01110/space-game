@@ -1,9 +1,13 @@
+use std::time::Duration;
+
 use avian2d::prelude::*;
 use bevy::{ecs::query::QueryFilter, prelude::*};
 use lightyear::prelude::input::native::ActionState;
 use lightyear::prelude::{Predicted, SyncedLocalTimeline};
 
-use space_game_protocol::{Player, PlayerInput, PlayerPhaseBeam};
+use space_game_protocol::{Player, PlayerBoost, PlayerInput, PlayerPhaseBeam};
+
+use crate::boost::{SPEED_MULTIPLIER, use_boost};
 
 const MOVE_SPEED: f32 = 512.0;
 const PHASE_BEAM_MOVE_SPEED: f32 = MOVE_SPEED * 0.75;
@@ -18,6 +22,7 @@ type PlayerMovement<'a> = (
     &'a mut Rotation,
     &'a ActionState<PlayerInput>,
     &'a PlayerPhaseBeam,
+    &'a mut PlayerBoost,
 );
 
 type PredictedPlayer = (With<Player>, With<Predicted>);
@@ -28,26 +33,30 @@ pub(super) fn move_predicted_players(
     time: Res<Time<Fixed>>,
     mut players: Query<PlayerMovement, PredictedPlayer>,
 ) {
-    move_players(&mut players, time.delta_secs());
+    move_players(&mut players, time.delta());
 }
 
 pub(super) fn move_authoritative_players(
     time: Res<Time<Fixed>>,
     mut players: Query<PlayerMovement, With<Player>>,
 ) {
-    move_players(&mut players, time.delta_secs());
+    move_players(&mut players, time.delta());
 }
 
-fn move_players<F: QueryFilter>(players: &mut Query<PlayerMovement, F>, delta_seconds: f32) {
-    for (mut velocity, mut rotation, input, phase_beam) in players {
+fn move_players<F: QueryFilter>(players: &mut Query<PlayerMovement, F>, delta: Duration) {
+    for (mut velocity, mut rotation, input, phase_beam, mut boost) in players {
         let phase_beam_active = input.0.phase_beam && phase_beam.0.units() > 0;
+        let mut next_boost = *boost;
+        let boost_active = use_boost(&mut next_boost, input.0.boost, delta);
+        boost.set_if_neq(next_boost);
 
         apply_movement(
             &mut velocity,
             &mut rotation,
             &input.0,
             phase_beam_active,
-            delta_seconds,
+            boost_active,
+            delta.as_secs_f32(),
         );
     }
 }
@@ -57,13 +66,14 @@ fn apply_movement(
     rotation: &mut Rotation,
     input: &PlayerInput,
     phase_beam_active: bool,
+    boost_active: bool,
     delta_seconds: f32,
 ) {
     apply_aim(rotation, input.aim, phase_beam_active, delta_seconds);
 
     // Never translate the body directly: the solver integrates velocity and blocks/slides
     // it at contacts. Invalid or released input must clear the previous desired velocity.
-    velocity.0 = desired_velocity(input.movement, phase_beam_active);
+    velocity.0 = desired_velocity(input.movement, phase_beam_active, boost_active);
 }
 
 fn apply_aim(rotation: &mut Rotation, aim: Vec2, phase_beam_active: bool, delta_seconds: f32) {
@@ -98,9 +108,10 @@ const fn move_speed(phase_beam_active: bool) -> f32 {
     }
 }
 
-fn desired_velocity(movement: Vec2, phase_beam_active: bool) -> Vec2 {
+fn desired_velocity(movement: Vec2, phase_beam_active: bool, boost_active: bool) -> Vec2 {
+    let speed = move_speed(phase_beam_active) * if boost_active { SPEED_MULTIPLIER } else { 1.0 };
     match movement.is_finite() {
-        true => movement.clamp_length_max(1.0) * move_speed(phase_beam_active),
+        true => movement.clamp_length_max(1.0) * speed,
         false => Vec2::ZERO,
     }
 }

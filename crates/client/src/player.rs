@@ -5,7 +5,10 @@ use lightyear::prelude::{Controlled, Predicted, input::native::InputMarker};
 
 use space_game_protocol::{Player, PlayerInput};
 
-use crate::palette::Palette;
+use crate::{
+    flame::{FlameAssets, add_player_flame},
+    palette::Palette,
+};
 
 // The ship's rendered rectangle in world units.
 const PLAYER_SIZE: Vec2 = Vec2::new(33.6, 52.8);
@@ -16,7 +19,7 @@ pub(super) struct ClientPlayerPlugin;
 impl Plugin for ClientPlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_observer(prepare_controlled_player)
-            .add_systems(Update, (add_player_visuals, size_player_sprites));
+            .add_systems(Update, (add_player_visuals, size_player_sprites).chain());
     }
 }
 
@@ -51,10 +54,11 @@ fn add_player_visuals(
             With<Predicted>,
             With<Position>,
             With<Rotation>,
-            Without<Sprite>,
+            Without<Svg>,
         ),
     >,
     asset_server: Res<AssetServer>,
+    flames: Res<FlameAssets>,
     mut commands: Commands,
 ) {
     for (entity, controlled) in &players {
@@ -69,6 +73,7 @@ fn add_player_visuals(
         commands
             .entity(entity)
             .insert((Svg(sprite), SvgColor(color)));
+        add_player_flame(&mut commands, entity, &flames);
     }
 }
 

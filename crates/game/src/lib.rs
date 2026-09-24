@@ -1,6 +1,7 @@
 mod abilities;
 mod arena;
 mod blasters;
+mod boost;
 mod damage;
 mod movement;
 pub mod phase_beam;

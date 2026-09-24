@@ -8,7 +8,7 @@ use bevy_resvg::prelude::SvgPlugin;
 #[cfg(feature = "dev")]
 use lightyear::frame_interpolation::FrameInterpolationSystems;
 
-use crate::{abilities, background, beacons, camera, input, network, player};
+use crate::{abilities, background, beacons, camera, flame, input, network, player};
 #[cfg(feature = "dev")]
 use crate::{arena, gizmos};
 #[cfg(not(target_family = "wasm"))]
@@ -65,6 +65,7 @@ impl Plugin for ClientAppPlugin {
             background::ClientBackgroundPlugin,
             beacons::ClientBeaconPlugin,
             camera::ClientCameraPlugin,
+            flame::ClientFlamePlugin,
             input::ClientInputPlugin,
             network::ClientNetworkPlugin,
             player::ClientPlayerPlugin,

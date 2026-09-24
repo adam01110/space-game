@@ -14,8 +14,17 @@ pub struct AbilityCharge {
 #[derive(Component, Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 pub struct PlayerBlasters(pub AbilityCharge);
 
-#[derive(Component, Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Component, Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct PlayerBoost(pub AbilityCharge);
+
+impl Default for PlayerBoost {
+    fn default() -> Self {
+        Self(AbilityCharge {
+            units: 50,
+            ..AbilityCharge::default()
+        })
+    }
+}
 
 #[derive(Component, Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 pub struct PlayerPhaseBeam(pub AbilityCharge);

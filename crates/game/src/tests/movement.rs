@@ -2,7 +2,7 @@ use avian2d::prelude::{LinearVelocity, Rotation};
 use bevy::prelude::*;
 use lightyear::prelude::input::native::ActionState;
 
-use space_game_protocol::PlayerInput;
+use space_game_protocol::{PlayerBoost, PlayerInput};
 
 use crate::PlayerBundle;
 
@@ -57,4 +57,99 @@ fn phase_beam_reduces_movement_and_turn_speeds() {
     assert!(phase_beam_turn < regular_turn);
     assert!((phase_beam_turn * 4.0 - regular_turn).abs() < 0.001);
     assert!((phase_beam_speed - regular_speed * 0.75).abs() < 0.001);
+}
+
+#[test]
+fn boost_is_finite_and_multiplies_movement_speed() {
+    let mut app = simulation();
+    let player = spawn_turning_player(&mut app, false);
+    let mut input = app
+        .world_mut()
+        .get_mut::<ActionState<PlayerInput>>(player)
+        .expect("player input");
+    input.0.boost = true;
+
+    app.update();
+    assert_eq!(
+        app.world()
+            .get::<PlayerBoost>(player)
+            .expect("boost charge")
+            .0
+            .units(),
+        50
+    );
+    assert!(
+        (app.world()
+            .get::<LinearVelocity>(player)
+            .expect("boost velocity")
+            .length()
+            - 512.0 * 1.5)
+            .abs()
+            < 0.001
+    );
+
+    for _ in 1..60 {
+        app.update();
+    }
+    assert_eq!(
+        app.world()
+            .get::<PlayerBoost>(player)
+            .expect("boost charge")
+            .0
+            .units(),
+        48
+    );
+
+    app.world_mut()
+        .get_mut::<ActionState<PlayerInput>>(player)
+        .expect("player input")
+        .0
+        .boost = false;
+    for _ in 0..60 {
+        app.update();
+    }
+    assert_eq!(
+        app.world()
+            .get::<PlayerBoost>(player)
+            .expect("boost charge")
+            .0
+            .units(),
+        48
+    );
+    assert!(
+        (app.world()
+            .get::<LinearVelocity>(player)
+            .expect("regular velocity")
+            .length()
+            - 512.0)
+            .abs()
+            < 0.001
+    );
+
+    app.world_mut()
+        .get_mut::<ActionState<PlayerInput>>(player)
+        .expect("player input")
+        .0
+        .boost = true;
+    for _ in 0..1440 {
+        app.update();
+    }
+    assert_eq!(
+        app.world()
+            .get::<PlayerBoost>(player)
+            .expect("boost charge")
+            .0
+            .units(),
+        0
+    );
+    app.update();
+    assert!(
+        (app.world()
+            .get::<LinearVelocity>(player)
+            .expect("exhausted velocity")
+            .length()
+            - 512.0)
+            .abs()
+            < 0.001
+    );
 }
