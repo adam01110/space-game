@@ -43,9 +43,15 @@ pub(super) fn log_disconnect(
     clients: Query<&Disconnected, With<Client>>,
 ) {
     if let Ok(disconnected) = clients.get(event.entity) {
-        // Netcode requires an initial Unknown marker before Connect.
-        if disconnected.reason != DisconnectedReason::Unknown {
-            warn!(client = ?event.entity, reason = %disconnected.reason, "Client disconnected");
+        match &disconnected.reason {
+            // Netcode requires an initial Unknown marker before Connect.
+            DisconnectedReason::Unknown => {}
+            DisconnectedReason::UserRequested(_) => {
+                info!(client = ?event.entity, reason = %disconnected.reason, "Client disconnected");
+            }
+            _ => {
+                warn!(client = ?event.entity, reason = %disconnected.reason, "Client disconnected");
+            }
         }
     }
 }

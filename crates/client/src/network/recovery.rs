@@ -131,7 +131,7 @@ fn apply_recovery(
         return;
     }
 
-    warn!(?recovery, gap = ?gap, "Retiring stale network session after suspension");
+    info!(?recovery, gap = ?gap, "Retiring stale network session after suspension");
 
     // First's deferred commands (including Lightyear receiver-removal cleanup)
     // are flushed before any PreUpdate packet receive / rollback systems run.

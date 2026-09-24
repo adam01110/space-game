@@ -72,7 +72,7 @@ fn add_player_visuals(
 
         commands
             .entity(entity)
-            .insert((Svg(sprite), SvgColor(color)));
+            .insert((Svg(sprite), SvgColor(color), Visibility::Inherited));
         add_player_flame(&mut commands, entity, &flames);
     }
 }
