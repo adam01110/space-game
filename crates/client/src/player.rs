@@ -16,9 +16,19 @@ const PLAYER_SPRITE: &str = "sprites/player.svg";
 
 pub(super) struct ClientPlayerPlugin;
 
+#[derive(Resource)]
+pub(super) struct PlayerSprite(pub(super) Handle<SvgFile>);
+
+impl FromWorld for PlayerSprite {
+    fn from_world(world: &mut World) -> Self {
+        Self(world.resource::<AssetServer>().load(PLAYER_SPRITE))
+    }
+}
+
 impl Plugin for ClientPlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_observer(prepare_controlled_player)
+        app.init_resource::<PlayerSprite>()
+            .add_observer(prepare_controlled_player)
             .add_systems(Update, (add_player_visuals, size_player_sprites).chain());
     }
 }
@@ -46,7 +56,7 @@ fn prepare_controlled_player(
     clippy::type_complexity,
     reason = "The query waits for the complete predicted physics pose before adding visuals"
 )]
-fn add_player_visuals(
+pub(super) fn add_player_visuals(
     players: Query<
         (Entity, Has<Controlled>),
         (
@@ -57,22 +67,27 @@ fn add_player_visuals(
             Without<Svg>,
         ),
     >,
-    asset_server: Res<AssetServer>,
+    sprite: Res<PlayerSprite>,
+    svg_files: Res<Assets<SvgFile>>,
     flames: Res<FlameAssets>,
     mut commands: Commands,
 ) {
+    if !svg_files.contains(&sprite.0) {
+        return;
+    }
+
     for (entity, controlled) in &players {
         let color = match controlled {
             true => Palette::Teal.color(),
             false => Palette::Rose.color(),
         };
-        // `SvgPlugin` inserts the `Sprite` once the raster is ready, so the ship stays invisible
-        // instead of wearing a placeholder while the asset loads.
-        let sprite: Handle<SvgFile> = asset_server.load(PLAYER_SPRITE);
 
-        commands
-            .entity(entity)
-            .insert((Svg(sprite), SvgColor(color), Visibility::Inherited));
+        commands.entity(entity).insert((
+            Svg(sprite.0.clone()),
+            SvgColor(color),
+            Visibility::Inherited,
+        ));
+
         add_player_flame(&mut commands, entity, &flames);
     }
 }

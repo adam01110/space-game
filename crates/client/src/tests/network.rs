@@ -17,7 +17,7 @@ use lightyear::{
 };
 use space_game_protocol::{PlayerInput, ProtocolPlugin};
 
-use crate::network::{GuestConnection, policy, recovery};
+use crate::network::{policy, recovery, GuestConnection};
 
 fn headless_client() -> App {
     let mut app = App::new();
@@ -146,11 +146,10 @@ fn retirement_cleans_replication_inputs_and_pending_credentials_before_preupdate
         assert_clean_before_receive.before(lightyear::link::LinkSystems::Receive),
     );
     app.update();
-    assert!(
-        app.world()
-            .resource::<recovery::Suspension>()
-            .is_suspended()
-    );
+    assert!(app
+        .world()
+        .resource::<recovery::Suspension>()
+        .is_suspended());
     assert!(sender.send(Err("obsolete credentials".to_owned())).is_err());
     assert_eq!(
         app.world()

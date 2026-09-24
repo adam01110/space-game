@@ -3,7 +3,7 @@ use bevy_resvg::resvg::usvg::{Options, Tree};
 
 use space_game_protocol::{PlayerBoost, PlayerInput};
 
-use crate::flame::{FlameColor, flame_color};
+use crate::flame::{flame_color, FlameColor};
 
 #[test]
 fn flame_sprites_are_valid_static_svgs() {

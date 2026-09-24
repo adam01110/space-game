@@ -12,3 +12,4 @@ mod gizmos;
 mod hud;
 mod network;
 mod palette;
+mod player;

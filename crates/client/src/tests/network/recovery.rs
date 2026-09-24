@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::network::recovery::{MAX_FRAME_GAP, Recovery, Suspension};
+use crate::network::recovery::{Recovery, Suspension, MAX_FRAME_GAP};
 
 #[test]
 fn normal_frames_and_short_visibility_changes_preserve_the_session() {

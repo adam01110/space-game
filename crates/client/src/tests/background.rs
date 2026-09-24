@@ -10,8 +10,8 @@ use bevy::{
 
 use crate::{
     background::{
-        BACKDROP_DRIFT, BACKDROP_LAYERS, BackdropChunk, BackdropDrift, ClientBackgroundPlugin,
-        chunk_range, chunk_translation, chunk_variation, world_view,
+        chunk_range, chunk_translation, chunk_variation, world_view, BackdropChunk, BackdropDrift,
+        ClientBackgroundPlugin, BACKDROP_DRIFT, BACKDROP_LAYERS,
     },
     camera::{GameplayCamera, PIXEL_SIZE},
 };

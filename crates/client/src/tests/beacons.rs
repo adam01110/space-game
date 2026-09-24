@@ -6,8 +6,8 @@ use lightyear::prelude::Predicted;
 use space_game_protocol::ArenaBoundary;
 
 use crate::beacons::{
-    BEACON_COUNT, BEACON_DIM, BEACON_LIGHT, BEACON_MAST, BeaconLight, BeaconPylon,
-    ClientBeaconPlugin,
+    BeaconLight, BeaconPylon, ClientBeaconPlugin, BEACON_COUNT, BEACON_DIM, BEACON_LIGHT,
+    BEACON_MAST,
 };
 
 const FRAME: Duration = Duration::from_millis(16);
@@ -212,11 +212,9 @@ fn lights_pulse_out_of_phase() {
         .into_iter()
         .map(|(_, alpha)| alpha)
         .collect::<Vec<_>>();
-    assert!(
-        second
-            .iter()
-            .all(|alpha| (BEACON_DIM..=1.0).contains(alpha))
-    );
+    assert!(second
+        .iter()
+        .all(|alpha| (BEACON_DIM..=1.0).contains(alpha)));
     assert!(
         first
             .iter()
