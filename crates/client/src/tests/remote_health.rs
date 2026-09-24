@@ -71,6 +71,9 @@ fn browser_template_builds_the_actual_extended_ui_nodes() {
         app.update();
     }
     let mut ids = app.world_mut().query::<(&CssID, &Node)>();
+    let mut frame_nodes = app
+        .world_mut()
+        .query::<(&CssID, &bevy::ui::widget::ImageNode)>();
     let nodes: Vec<_> = ids.iter(app.world()).map(|(id, _)| id.0.as_str()).collect();
     assert!(
         app.world()
@@ -80,6 +83,15 @@ fn browser_template_builds_the_actual_extended_ui_nodes() {
     );
     assert!(nodes.contains(&"hud-remote-health"), "{nodes:?}");
     assert!(nodes.contains(&"hud-health-fill"), "{nodes:?}");
+    // The frame is the background the readouts are drawn on, and the frame system can only fill it
+    // through the image node the template's empty div gets.
+    assert!(nodes.contains(&"frame-layer"), "{nodes:?}");
+    assert!(
+        frame_nodes
+            .iter(app.world())
+            .any(|(id, _)| id.0 == "frame-art"),
+        "the browser template carries the frame image node"
+    );
     let (_, layer) = ids
         .iter(app.world())
         .find(|(id, _)| id.0 == "hud-remote-health")

@@ -3,20 +3,21 @@ use bevy::prelude::*;
 use bevy_extended_ui::framework::ExtendedFrameworkConfiguration;
 use bevy_extended_ui::{ExtendedCam, ExtendedUiConfiguration, ExtendedUiPlugin};
 #[cfg(target_family = "wasm")]
-use bevy_extended_ui::{html::HtmlSource, io::HtmlAsset};
+use bevy_extended_ui::{html::HtmlSource, io::HtmlAsset, old::registry::UiRegistry};
 use bevy_resvg::prelude::SvgPlugin;
 #[cfg(feature = "dev")]
 use lightyear::frame_interpolation::FrameInterpolationSystems;
 
+#[cfg(not(target_family = "wasm"))]
+use crate::menu;
 #[cfg(target_family = "wasm")]
 use crate::page::PagePlugin;
 use crate::{
-    abilities, background, beacons, camera, flame, hud, input, network, player, remote_health,
+    abilities, background, beacons, camera, flame, frame, hud, input, network, player,
+    remote_health,
 };
 #[cfg(feature = "dev")]
 use crate::{arena, gizmos};
-#[cfg(not(target_family = "wasm"))]
-use crate::{frame, menu};
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub(super) enum ClientStartup {
@@ -63,13 +64,22 @@ impl Plugin for ClientAppPlugin {
             frame::NativeFramePlugin,
             hud::NativeHudPlugin,
         ));
+        // The framework's filesystem-based component discovery and its `assets/index.html`
+        // entrypoint are native-only, so the browser client links the frame and HUD templates into
+        // the entrypoint it registers itself. The page owns the menu, and the native build's menu
+        // component is deliberately absent here.
         #[cfg(target_family = "wasm")]
         app.insert_resource(ExtendedUiConfiguration {
             camera: ExtendedCam::None,
             assets_path: "assets/ui/".into(),
             ..default()
         })
-        .add_plugins((ExtendedUiPlugin, hud::NativeHudPlugin, PagePlugin))
+        .add_plugins((
+            ExtendedUiPlugin,
+            frame::NativeFramePlugin,
+            hud::NativeHudPlugin,
+            PagePlugin,
+        ))
         .add_systems(Startup, load_browser_hud);
         app.add_plugins((
             remote_health::RemoteHealthPlugin,
@@ -86,21 +96,32 @@ impl Plugin for ClientAppPlugin {
     }
 }
 
-// The framework's filesystem-based component discovery is native-only. On wasm, load the same
-// HUD template and stylesheet as extended-UI assets without loading the native menu or frame.
+// The framework's filesystem-based component discovery is native-only, so the browser client goes
+// through the legacy registry instead. That registry is what fills the structure map's active list
+// while the framework is absent, and the builder spawns no widget until that list names a key: a
+// bare HtmlSource parses the HUD template and then never draws it.
 #[cfg(target_family = "wasm")]
-fn load_browser_hud(mut commands: Commands, mut html_assets: ResMut<Assets<HtmlAsset>>) {
+#[expect(
+    deprecated,
+    reason = "the registry is the only way to activate UI while the framework is absent"
+)]
+fn load_browser_hud(mut html_assets: ResMut<Assets<HtmlAsset>>, mut registry: ResMut<UiRegistry>) {
     let handle = html_assets.add(HtmlAsset {
         html: browser_hud_html(),
         stylesheets: Vec::new(),
     });
-    commands.spawn(HtmlSource::from_handle(handle));
+
+    // The registry name becomes the source key the parsed HUD is stored and built under.
+    registry.add_and_use("browser-hud".to_owned(), HtmlSource::from_handle(handle));
 }
 
+// The frame first, as the background it is, then the readouts that sit on it: the build order of
+// `assets/index.html`, whose component tags the framework resolves on native.
 #[cfg(any(test, target_family = "wasm"))]
 pub(super) fn browser_hud_html() -> String {
     format!(
-        "<html><head><meta name=\"browser-hud\"><link rel=\"stylesheet\" href=\"ui/hud.css\"></head><body><div id=\"hud-remote-health\"></div>{}</body></html>",
+        "<html><head><meta name=\"browser-hud\"><link rel=\"stylesheet\" href=\"ui/frame.css\"><link rel=\"stylesheet\" href=\"ui/hud.css\"></head><body><div id=\"hud-remote-health\"></div>{}{}</body></html>",
+        include_str!("../../../assets/ui/frame.component.html"),
         include_str!("../../../assets/ui/hud.component.html")
     )
 }

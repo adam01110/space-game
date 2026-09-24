@@ -17,16 +17,23 @@ pub(crate) const CORNER: u16 = 200;
 pub(crate) const FRAME_SVG: &str = include_str!("../../../assets/ui/frame.svg");
 const BASE_SIZE: &str = "width=\"800\" height=\"600\" viewBox=\"0 0 800 600\"";
 
+// Both clients draw the frame: it is the HUD's background, painted over the game view's edges and
+// under every readout. Native client: the framework resolves the `app-frame` tag in
+// `assets/index.html` against this component. Browser client: `browser_hud_html` links the same
+// template and stylesheet into the entrypoint the page boots.
 pub(super) struct NativeFramePlugin;
 
 impl Plugin for NativeFramePlugin {
     fn build(&self, app: &mut App) {
         assert!(app.is_plugin_added::<ExtendedUiPlugin>());
-        let component = &crate::frame_component::FRAME_COMPONENT;
+        #[cfg(not(target_family = "wasm"))]
+        {
+            let component = &crate::frame_component::FRAME_COMPONENT;
 
-        debug_assert_eq!(component.template_name, "app-frame");
-        debug_assert_eq!(component.template_file, "frame.component.html");
-        debug_assert_eq!(component.styles, &["frame.css"]);
+            debug_assert_eq!(component.template_name, "app-frame");
+            debug_assert_eq!(component.template_file, "frame.component.html");
+            debug_assert_eq!(component.styles, &["frame.css"]);
+        }
 
         app.add_systems(Update, update_frame);
     }
