@@ -3,7 +3,10 @@ use lightyear::prelude::{ControlledBy, input::native::ActionState};
 
 use space_game_protocol::{BlasterShot, BlasterTrajectory, PlayerHealth, PlayerInput};
 
-use crate::{BULLET_DAMAGE, DamageConfig, PHASE_BEAM_DAMAGE_PER_SECOND, PlayerBundle};
+use crate::{
+    BULLET_DAMAGE, DamageConfig, HEALTH_REGEN_PER_SECOND, PHASE_BEAM_DAMAGE_PER_SECOND,
+    PlayerBundle,
+};
 
 use super::support::simulation;
 
@@ -117,14 +120,14 @@ fn phase_beam_damage_matches_its_per_second_rate() {
     app.world_mut().entity_mut(attacker).insert(held_beam());
     let victim = target(&mut app, Vec2::new(0.0, 300.0));
 
-    // Two seconds of contact at the configured rate; the fixed clock can advance an extra step at a
+    // The target regenerates during contact. The fixed clock can advance an extra step at a
     // boundary, so allow the one damage unit that comes with it.
     for _ in 0..120 {
         app.update();
     }
 
     let damage = FULL_HEALTH - health(&app, victim);
-    let expected = (PHASE_BEAM_DAMAGE_PER_SECOND - 1) * 2;
+    let expected = (PHASE_BEAM_DAMAGE_PER_SECOND - HEALTH_REGEN_PER_SECOND) * 2;
     assert!(
         damage.abs_diff(expected) <= 1,
         "expected about {expected} damage after two seconds, got {damage}"

@@ -30,7 +30,7 @@ type LocalCharges<'w, 's> = Query<
 
 // The minimap covers the rendered view plus a margin, so a blip at the ring is a ship just off
 // screen; the ring's inner radius is that range.
-const MAP_RADIUS_PX: f32 = 38.0;
+const MAP_RADIUS_PX: f32 = 45.0;
 const MAP_RANGE_MARGIN: f32 = 1.1;
 const BLIP_SIZE_PX: f32 = 8.0;
 

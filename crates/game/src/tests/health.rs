@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use space_game_protocol::PlayerHealth;
 
-use crate::PlayerBundle;
+use crate::{HEALTH_REGEN_PER_SECOND, PlayerBundle};
 
 use super::support::simulation;
 
@@ -21,30 +21,21 @@ fn health(app: &App, player: Entity) -> u8 {
 }
 
 #[test]
-fn damaged_players_regenerate_one_point_per_second_independently() {
+fn damaged_players_regenerate_at_the_configured_rate_independently() {
     let mut app = simulation();
-    let first = spawn_player(&mut app, 90);
+    let first = spawn_player(&mut app, 80);
 
-    for _ in 0..30 {
+    for _ in 0..60 {
         app.update();
     }
-    let second = spawn_player(&mut app, 80);
+    assert_eq!(health(&app, first), 80 + HEALTH_REGEN_PER_SECOND);
 
-    for _ in 0..29 {
+    let second = spawn_player(&mut app, 70);
+    for _ in 0..60 {
         app.update();
     }
-    assert_eq!(health(&app, first), 90);
-    assert_eq!(health(&app, second), 80);
-
-    app.update();
-    assert_eq!(health(&app, first), 91);
-    assert_eq!(health(&app, second), 80);
-
-    for _ in 0..30 {
-        app.update();
-    }
-    assert_eq!(health(&app, first), 91);
-    assert_eq!(health(&app, second), 81);
+    assert_eq!(health(&app, first), 80 + 2 * HEALTH_REGEN_PER_SECOND);
+    assert_eq!(health(&app, second), 70 + HEALTH_REGEN_PER_SECOND);
 }
 
 #[test]
@@ -61,12 +52,13 @@ fn regeneration_stops_at_full_health_and_restarts_after_damage() {
         app.update();
     }
     app.world_mut().entity_mut(player).insert(PlayerHealth(98));
+    app.update();
+    assert_eq!(health(&app, player), 98);
+
     for _ in 0..59 {
         app.update();
     }
-    assert_eq!(health(&app, player), 98);
-    app.update();
-    assert_eq!(health(&app, player), 99);
+    assert_eq!(health(&app, player), PlayerHealth::FULL);
 }
 
 #[test]

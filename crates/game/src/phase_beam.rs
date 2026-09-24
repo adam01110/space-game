@@ -6,7 +6,7 @@ use space_game_protocol::{PhaseBeamSegment, Player, PlayerInput, PlayerPhaseBeam
 
 use crate::PLAYER_RADIUS;
 
-pub const BEAM_LENGTH: f32 = 400.0;
+pub const BEAM_LENGTH: f32 = 600.0;
 pub const BEAM_WIDTH: f32 = 8.0;
 pub const NOSE_OFFSET: f32 = PLAYER_RADIUS + 4.0;
 
