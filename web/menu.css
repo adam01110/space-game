@@ -42,13 +42,16 @@ body {
   color: var(--cream);
 }
 
-/* Bevy appends its canvas to the document body. */
+/* Bevy appends its canvas to the document body. It keeps the tabindex that winit gives it so it
+   can capture keyboard input, which also makes it the focused element during play; with the dark
+   color scheme above, the browser would draw its focus ring as a white border around the view. */
 body > canvas {
   position: fixed !important;
   inset: 0;
   width: 100vw !important;
   height: 100vh !important;
   visibility: hidden;
+  outline: none;
   touch-action: none;
 }
 

@@ -23,7 +23,7 @@ pub(super) const BEACON_DIM: f32 = 0.15;
 // Behind the ships and shots, in front of the streamed backdrop.
 const BEACON_Z: f32 = -1.0;
 const MAST_COLOR: Color = Palette::Indigo.color();
-const LIGHT_COLOR: Color = Palette::Citron.color();
+const LIGHT_COLOR: Color = Palette::Rose.color();
 
 pub(super) struct ClientBeaconPlugin;
 

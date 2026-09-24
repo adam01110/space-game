@@ -18,7 +18,7 @@ use shots::spawn_shots;
 pub(crate) use shots::{advance_authoritative_shots, advance_predicted_shots};
 
 const SHOT_COST: u8 = 2;
-const RELOAD_DURATION: Duration = Duration::from_secs(5);
+const RELOAD_DURATION: Duration = Duration::from_secs(3);
 
 // Only one of these applies per tick, in this order: a running reload, a wanted reload, firing.
 enum BlasterAction {
