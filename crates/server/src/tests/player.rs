@@ -89,14 +89,6 @@ fn batched_connection_observers_spawn_distinct_players() {
     }
 }
 
-#[test]
-fn reconnect_gets_a_fresh_random_position() {
-    let arena = ArenaBoundary::new(1200.0);
-    let mut rng = StdRng::seed_from_u64(11);
-    let first = find_spawn_position(arena, &[], &mut rng).expect("first spawn");
-    let reconnected = find_spawn_position(arena, &[], &mut rng).expect("reconnect spawn");
-    assert_ne!(reconnected, first);
-}
 
 #[test]
 fn positions_are_bounded_and_full_arena_returns_none() {

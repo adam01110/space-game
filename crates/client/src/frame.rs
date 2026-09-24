@@ -11,8 +11,9 @@ use bevy_resvg::resvg::{
     usvg::{Options, Transform, Tree},
 };
 
-const INSET: f32 = 30.0;
-const CORNER: f32 = 200.0;
+// Frame thickness and corner-cut length, in logical pixels.
+pub(crate) const INSET: u16 = 30;
+pub(crate) const CORNER: u16 = 200;
 pub(crate) const FRAME_SVG: &str = include_str!("../../../assets/ui/frame.svg");
 const BASE_SIZE: &str = "width=\"800\" height=\"600\" viewBox=\"0 0 800 600\"";
 
@@ -56,9 +57,11 @@ pub(crate) fn frame_svg(width: f32, height: f32) -> Option<String> {
     replace_path(&masked, "frame-outline", &outline)
 }
 
+// Inset and corner cut at a given size, clamped so a small window cannot make them cross.
 fn frame_outline(width: f32, height: f32) -> String {
-    let inset = INSET.min(width.min(height) / 2.0);
-    let corner = CORNER.min((width.min(height) / 2.0 - inset).max(0.0));
+    let limit = width.min(height) / 2.0;
+    let inset = f32::from(INSET).min(limit);
+    let corner = f32::from(CORNER).min((limit - inset).max(0.0));
     let near = inset + corner;
     let far_x = width - near;
     let far_y = height - near;

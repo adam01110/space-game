@@ -6,7 +6,7 @@ use bevy_resvg::resvg::{
     usvg::{Options, Transform, Tree},
 };
 
-use crate::frame::{frame_svg, update_frame, FRAME_SVG};
+use crate::frame::{frame_svg, update_frame, CORNER, FRAME_SVG, INSET};
 
 #[test]
 fn the_frameworks_existing_image_node_receives_the_rendered_frame() {
@@ -53,10 +53,14 @@ fn the_svg_has_continuous_corners_and_a_transparent_play_area() {
             let offset = ((y * width + x) * 4 + 3) as usize;
             pixels.data()[offset]
         };
+        // These windows are large enough that the clamp leaves the cut at its full length; the
+        // probes below fail loudly if that ever stops holding.
+        let edge = u32::from(INSET);
+        let near = u32::from(INSET + CORNER);
 
         assert_eq!(alpha(0, 0), 255, "masked corner");
-        assert!(alpha(30, 230) > 0, "left cut joins the vertical edge");
-        assert!(alpha(230, 30) > 0, "top cut joins the horizontal edge");
+        assert!(alpha(edge, near) > 0, "left cut joins the vertical edge");
+        assert!(alpha(near, edge) > 0, "top cut joins the horizontal edge");
         assert_eq!(alpha(width / 2, height / 2), 0, "clear play area");
     }
 }
