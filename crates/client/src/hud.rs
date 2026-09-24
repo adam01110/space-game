@@ -3,10 +3,10 @@ use std::collections::{HashMap, HashSet};
 use bevy::diagnostic::{Diagnostic, DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
-use bevy_extended_ui::{ExtendedUiPlugin, styles::CssID, widgets::Paragraph};
-use lightyear::prelude::PingManager;
+use bevy_extended_ui::{styles::CssID, widgets::Paragraph, ExtendedUiPlugin};
 use lightyear::prelude::client::Client;
 use lightyear::prelude::input::native::InputMarker;
+use lightyear::prelude::PingManager;
 
 use space_game_protocol::{
     Player, PlayerBlasters, PlayerBoost, PlayerHealth, PlayerInput, PlayerPhaseBeam,
@@ -96,7 +96,7 @@ fn update_hud_visibility(
     local_player: Query<(), (With<Player>, With<InputMarker<PlayerInput>>)>,
     time: Res<Time>,
     mut cycle: Local<f32>,
-    mut hud: Query<(&CssID, &mut Visibility)>,
+    mut hud: Query<(&CssID, &mut Visibility), Without<HudMapBlip>>,
     mut blips: Query<&mut Visibility, With<HudMapBlip>>,
 ) {
     *cycle = (*cycle + time.delta_secs()) % MAP_CYCLE_SECONDS;
