@@ -4,7 +4,7 @@ use bevy::prelude::*;
 
 use space_game_protocol::{Player, PlayerHealth};
 
-pub const HEALTH_REGEN_PER_SECOND: u8 = 1;
+pub const HEALTH_REGEN_PER_SECOND: u8 = 5;
 
 // Server-only elapsed time since the last health point; each player starts their own clock.
 #[derive(Component, Default)]
