@@ -17,9 +17,17 @@ netem latency="100ms" loss="0%":
 netem-reset:
     bash scripts/netem.sh reset
 
+# Allow one LAN tester's IPv4 address to reach HTTPS and game UDP until Ctrl-C (requires sudo).
+playtest-firewall tester-ip:
+    bash scripts/playtest-firewall.sh "{{tester-ip}}"
+
 # Run the local development server.
 server:
     bash scripts/server.sh
+
+# Run the game server with guest tokens pointing at this machine's LAN IPv4 address.
+server-lan host-ip:
+    SPACE_GAME_SERVER_ADDRESS="{{host-ip}}:5000" bash scripts/server.sh
 
 # Type-check every crate and target with development features.
 check:
@@ -55,3 +63,7 @@ web-build:
 # Build and serve the browser client, asking before it rebuilds the bundle; proxies /connect to `just server`.
 web:
     bash scripts/web.sh
+
+# Serve the browser client over LAN HTTPS with a Caddy-managed local certificate.
+web-lan host-ip:
+    SPACE_GAME_LAN_IP="{{host-ip}}" bash scripts/web.sh --lan

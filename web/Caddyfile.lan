@@ -1,0 +1,20 @@
+{
+	auto_https disable_redirects
+	skip_install_trust
+	servers {
+		protocols h1 h2
+	}
+}
+
+https://{$SPACE_GAME_LAN_IP}:8000 {
+	tls internal
+
+	handle /connect {
+		reverse_proxy 127.0.0.1:5001
+	}
+
+	handle {
+		root * web/dist
+		file_server
+	}
+}
