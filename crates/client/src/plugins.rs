@@ -9,7 +9,8 @@ use bevy_resvg::prelude::SvgPlugin;
 use lightyear::frame_interpolation::FrameInterpolationSystems;
 
 use crate::{
-    abilities, background, beacons, camera, flame, hud, input, network, player, remote_health,
+    abilities, asteroids, background, beacons, camera, flame, hud, input, network, player,
+    remote_health,
 };
 #[cfg(feature = "dev")]
 use crate::{arena, gizmos};
@@ -73,6 +74,7 @@ impl Plugin for ClientAppPlugin {
             remote_health::RemoteHealthPlugin,
             SvgPlugin,
             abilities::ClientAbilitiesPlugin,
+            asteroids::ClientAsteroidPlugin,
             background::ClientBackgroundPlugin,
             beacons::ClientBeaconPlugin,
             camera::ClientCameraPlugin,

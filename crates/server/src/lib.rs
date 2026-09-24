@@ -1,4 +1,5 @@
 mod abilities;
+mod asteroids;
 mod auth;
 mod network;
 mod player;

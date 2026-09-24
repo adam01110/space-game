@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{abilities, network, player, security};
+use crate::{abilities, asteroids, network, player, security};
 
 pub struct ServerAppPlugin {
     key: security::ServerKey,
@@ -11,6 +11,7 @@ impl Plugin for ServerAppPlugin {
         app.insert_resource(security::ServerKey(self.key.0))
             .add_plugins((
                 abilities::ServerAbilitiesPlugin,
+                asteroids::ServerAsteroidPlugin,
                 network::ServerNetworkPlugin,
                 player::ServerPlayerPlugin,
             ));

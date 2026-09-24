@@ -7,22 +7,32 @@ use bevy_extended_ui::styles::CssID;
 use lightyear::prelude::input::native::InputMarker;
 
 use space_game_game::PLAYER_RADIUS;
-use space_game_protocol::{Player, PlayerHealth, PlayerInput};
+use space_game_protocol::{
+    Asteroid, AsteroidHealth, CircleBody, Player, PlayerHealth, PlayerInput,
+};
 
 use crate::{
     camera::{CanvasCamera, GameplayCamera, GameplayCanvas},
     palette::Palette,
 };
 
-const BAR_WIDTH: f32 = PLAYER_RADIUS * 2.0 * 0.75;
 const BAR_HEIGHT: f32 = 4.0;
 const BAR_GAP: f32 = 4.0;
 
 type RemoteShips<'w, 's> = Query<
     'w,
     's,
-    (Entity, &'static GlobalTransform, &'static PlayerHealth),
-    (With<Player>, Without<InputMarker<PlayerInput>>),
+    (
+        Entity,
+        &'static GlobalTransform,
+        Option<&'static PlayerHealth>,
+        Option<&'static AsteroidHealth>,
+        Option<&'static CircleBody>,
+    ),
+    (
+        Or<(With<Player>, With<Asteroid>)>,
+        Without<InputMarker<PlayerInput>>,
+    ),
 >;
 
 #[derive(Component)]
@@ -68,16 +78,13 @@ impl BarView<'_, '_> {
             .ok()
     }
 
-    fn layout(&self, ship: Vec3, health: PlayerHealth) -> Option<BarLayout> {
-        let top = ship.y - PLAYER_RADIUS - BAR_GAP;
-        let first = self.project(Vec3::new(ship.x - BAR_WIDTH / 2.0, top, ship.z))?;
-        let second = self.project(Vec3::new(
-            ship.x + BAR_WIDTH / 2.0,
-            top - BAR_HEIGHT,
-            ship.z,
-        ))?;
+    fn layout(&self, ship: Vec3, current: u8, full: u8, radius: f32) -> Option<BarLayout> {
+        let top = ship.y - radius - BAR_GAP;
+        let width = radius * 2.0 * 0.75;
+        let first = self.project(Vec3::new(ship.x - width / 2.0, top, ship.z))?;
+        let second = self.project(Vec3::new(ship.x + width / 2.0, top - BAR_HEIGHT, ship.z))?;
 
-        Some(BarLayout::between(first, second, health))
+        Some(BarLayout::between(first, second, current, full))
             .filter(|layout| layout.overlaps(self.window.size()))
     }
 }
@@ -89,14 +96,13 @@ struct BarLayout {
 }
 
 impl BarLayout {
-    fn between(first: Vec2, second: Vec2, health: PlayerHealth) -> Self {
+    fn between(first: Vec2, second: Vec2, current: u8, full: u8) -> Self {
         let size = (second - first).abs();
 
         Self {
             position: first.min(second),
             size,
-            fill_width: size.x * f32::from(health.0.min(PlayerHealth::FULL))
-                / f32::from(PlayerHealth::FULL),
+            fill_width: size.x * f32::from(current.min(full)) / f32::from(full),
         }
     }
 
@@ -202,10 +208,28 @@ fn update_remote_health_bars(
     let mut seen = HashSet::new();
 
     if let Some(root) = root {
-        for (player, layout) in remotes.iter().filter_map(|(player, transform, health)| {
-            view.layout(transform.translation(), *health)
-                .map(|layout| (player, layout))
-        }) {
+        for (player, layout) in
+            remotes
+                .iter()
+                .filter_map(|(player, transform, health, asteroid, body)| {
+                    let (current, full) = if let Some(health) = health {
+                        (health.0, PlayerHealth::FULL)
+                    } else {
+                        let current = asteroid?.0;
+                        if current >= AsteroidHealth::FULL {
+                            return None;
+                        }
+                        (current, AsteroidHealth::FULL)
+                    };
+                    view.layout(
+                        transform.translation(),
+                        current,
+                        full,
+                        body.map_or(PLAYER_RADIUS, |body| body.radius),
+                    )
+                    .map(|layout| (player, layout))
+                })
+        {
             seen.insert(player);
             bars.show(&mut commands, &mut nodes, root, player, &layout);
         }

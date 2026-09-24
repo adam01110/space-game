@@ -5,7 +5,9 @@ use crate::{
         advance_authoritative_shots, advance_predicted_shots, shoot_authoritative_players,
         shoot_predicted_players,
     },
-    damage::{DamageConfig, apply_bullet_damage, apply_phase_beam_damage},
+    damage::{
+        apply_bullet_damage, apply_phase_beam_damage, despawn_destroyed_asteroids, DamageConfig,
+    },
     health::regenerate_health,
     movement::{move_authoritative_players, move_predicted_players},
     phase_beam::{beam_authoritative_players, beam_predicted_players},
@@ -43,7 +45,12 @@ impl Plugin for ServerAbilitiesPlugin {
             // after both weapons moved instead of against stale positions.
             .add_systems(
                 FixedUpdate,
-                (apply_bullet_damage, apply_phase_beam_damage)
+                (
+                    apply_bullet_damage,
+                    apply_phase_beam_damage,
+                    despawn_destroyed_asteroids,
+                )
+                    .chain()
                     .after(advance_authoritative_shots)
                     .after(beam_authoritative_players),
             )

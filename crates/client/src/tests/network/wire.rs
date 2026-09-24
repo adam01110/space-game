@@ -1,7 +1,7 @@
 //! Real Lightyear packets over a deterministic test wire, without sockets or GPU.
 use std::{collections::VecDeque, time::Duration};
 
-use avian2d::prelude::Position;
+use avian2d::prelude::{Collider, Position, Rotation};
 use bevy::{prelude::*, state::app::StatesPlugin, time::TimeUpdateStrategy};
 use lightyear::{
     link::{recv_payload_from_bytes, SendPayload},
@@ -13,13 +13,85 @@ use lightyear::{
     },
 };
 use space_game_game::{ClientSimulationPlugin, GamePlugin, PlayerBundle, ServerSimulationPlugin};
-use space_game_protocol::{BlasterShot, Player, PlayerIdentity, PlayerInput, ProtocolPlugin};
+use space_game_protocol::{
+    Asteroid, AsteroidHealth, BlasterShot, CircleBody, Player, PlayerIdentity, PlayerInput,
+    ProtocolPlugin,
+};
 use space_game_server::ServerAbilitiesPlugin;
 
 use crate::network::policy;
 
 #[path = "wire/remote.rs"]
 mod remote;
+
+#[test]
+fn asteroid_pose_health_and_despawn_reach_predicted_clients() {
+    let mut harness = Harness::new(false);
+    let rock = harness
+        .server
+        .world_mut()
+        .spawn((
+            Asteroid {
+                variant: 2,
+                radius: 30.0,
+                stretch: Vec2::new(-1.2, 0.85),
+                angle: 1.4,
+            },
+            AsteroidHealth(100),
+            CircleBody::fixed(30.0),
+            Position(Vec2::new(130.0, 70.0)),
+            Rotation::default(),
+            Replicate::to_clients(NetworkTarget::All),
+            PredictionTarget::to_clients(NetworkTarget::All),
+        ))
+        .id();
+    harness.frames(120);
+    let mut query = harness
+        .client
+        .world_mut()
+        .query_filtered::<(&Asteroid, &AsteroidHealth, &Position, &Collider), With<Predicted>>();
+    let (sprite, health, position, _) = query
+        .iter(harness.client.world())
+        .find(|(sprite, _, _, _)| sprite.variant == 2)
+        .expect("replicated predicted asteroid collider");
+    assert_eq!(sprite.stretch, Vec2::new(-1.2, 0.85));
+    assert_eq!(position.0, Vec2::new(130.0, 70.0));
+    assert_eq!(health.0, 100);
+
+    harness
+        .server
+        .world_mut()
+        .get_mut::<AsteroidHealth>(rock)
+        .unwrap()
+        .0 = 40;
+    harness
+        .server
+        .world_mut()
+        .get_mut::<Position>(rock)
+        .unwrap()
+        .0 = Vec2::new(160.0, 110.0);
+    harness.frames(120);
+    let replicated: Vec<_> = query
+        .iter(harness.client.world())
+        .filter(|(sprite, _, _, _)| sprite.variant == 2)
+        .map(|(_, health, position, _)| (health.0, position.0))
+        .collect();
+    assert!(
+        replicated
+            .iter()
+            .any(|(health, position)| *health == 40
+                && position.distance(Vec2::new(160.0, 110.0)) < 4.0),
+        "server={:?}, client={replicated:?}",
+        harness.server.world().get::<Position>(rock)
+    );
+    harness.server.world_mut().entity_mut(rock).despawn();
+    harness.frames(120);
+    assert!(
+        !query
+            .iter(harness.client.world())
+            .any(|(sprite, _, _, _)| sprite.variant == 2)
+    );
+}
 
 const FRAME: Duration = Duration::from_millis(10);
 const TICK: Duration = Duration::from_nanos(16_666_667);

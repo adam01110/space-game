@@ -3,6 +3,7 @@
 
 mod abilities;
 mod arena;
+mod asteroids;
 mod background;
 mod beacons;
 mod blasters;

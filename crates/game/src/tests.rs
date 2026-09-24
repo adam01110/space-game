@@ -4,6 +4,7 @@
 mod arena;
 mod blasters;
 mod collision;
+mod contact_damage;
 mod damage;
 mod health;
 mod movement;

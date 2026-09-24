@@ -8,6 +8,7 @@ use crate::{
         advance_predicted_arena, contain_authoritative_bodies, contain_predicted_bodies,
         install_arena_interpolation, prepare_predicted_arena, resize_arena,
     },
+    contact_damage::damage_on_asteroid_contact,
     movement::{move_authoritative_players, move_predicted_players},
     physics::{install_physics, prepare_authoritative_body, prepare_predicted_body},
 };
@@ -58,6 +59,13 @@ impl Plugin for ServerSimulationPlugin {
                     .before(PhysicsSystems::Writeback)
                     .before(PredictionSystems::UpdateHistory),
             );
+        app.add_systems(
+            FixedPostUpdate,
+            damage_on_asteroid_contact
+                .after(PhysicsSystems::StepSimulation)
+                .before(PhysicsSystems::Writeback)
+                .before(PredictionSystems::UpdateHistory),
+        );
         app.add_systems(FixedUpdate, move_authoritative_players)
             .add_plugins(ServerAbilitiesPlugin);
     }

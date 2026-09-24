@@ -1,11 +1,15 @@
+use avian2d::prelude::Position;
 use bevy::prelude::*;
 use lightyear::prelude::{ControlledBy, input::native::ActionState};
 
-use space_game_protocol::{BlasterShot, BlasterTrajectory, PlayerHealth, PlayerInput};
+use space_game_protocol::{
+    Asteroid, AsteroidHealth, BlasterShot, BlasterTrajectory, CircleBody, PhaseBeamSegment,
+    PlayerHealth, PlayerInput,
+};
 
 use crate::{
-    BULLET_DAMAGE, DamageConfig, HEALTH_REGEN_PER_SECOND, PHASE_BEAM_DAMAGE_PER_SECOND,
-    PlayerBundle,
+    BULLET_DAMAGE, BeamDamageCarry, DamageConfig, HEALTH_REGEN_PER_SECOND,
+    PHASE_BEAM_DAMAGE_PER_SECOND, PlayerBundle,
 };
 
 use super::support::simulation;
@@ -134,6 +138,72 @@ fn phase_beam_damage_matches_its_per_second_rate() {
     );
     // The beam leaves its own muzzle, which touches the shooter's hit circle exactly.
     assert_eq!(health(&app, attacker), FULL_HEALTH);
+}
+
+fn rock(app: &mut App, position: Vec2, health: u8) -> Entity {
+    app.world_mut()
+        .spawn((
+            Asteroid {
+                variant: 0,
+                radius: 35.0,
+                stretch: Vec2::ONE,
+                angle: 0.0,
+            },
+            AsteroidHealth(health),
+            CircleBody::fixed(35.0),
+            Position(position),
+            BeamDamageCarry::default(),
+        ))
+        .id()
+}
+
+#[test]
+fn asteroid_shot_only_damages_rock_and_destroyed_rock_despawns() {
+    let mut app = simulation();
+    let shooter_owner = owner(&mut app);
+    let shooter = owned_by(&mut app, Vec2::new(0.0, -200.0), shooter_owner);
+    let asteroid = rock(&mut app, Vec2::ZERO, 7);
+    let shot = app
+        .world_mut()
+        .spawn((
+            BlasterShot {
+                position: Vec2::ZERO,
+                ticks_left: 10,
+            },
+            BlasterTrajectory { direction: Vec2::Y },
+            ControlledBy {
+                owner: shooter_owner,
+                lifetime: default(),
+            },
+        ))
+        .id();
+    app.update();
+    assert!(app.world().get_entity(asteroid).is_err());
+    assert!(app.world().get_entity(shot).is_err());
+    assert_eq!(health(&app, shooter), PlayerHealth::FULL);
+}
+
+#[test]
+fn asteroid_beam_only_damages_rock() {
+    let mut app = simulation();
+    app.insert_resource(DamageConfig {
+        bullet: 10,
+        phase_beam_per_second: 60,
+    });
+    let shooter_owner = owner(&mut app);
+    let shooter = owned_by(&mut app, Vec2::ZERO, shooter_owner);
+    let asteroid = rock(&mut app, Vec2::new(0.0, 150.0), 2);
+    app.world_mut()
+        .entity_mut(shooter)
+        .insert(PhaseBeamSegment {
+            origin: Vec2::ZERO,
+            direction: Vec2::Y,
+        });
+    for _ in 0..4 {
+        app.update();
+    }
+    assert!(app.world().get_entity(asteroid).is_err());
+    assert_eq!(health(&app, shooter), PlayerHealth::FULL);
 }
 
 #[test]

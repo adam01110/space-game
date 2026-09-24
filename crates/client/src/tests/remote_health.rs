@@ -15,7 +15,9 @@ use bevy_extended_ui::{
 };
 use lightyear::prelude::input::native::InputMarker;
 
-use space_game_protocol::{Player, PlayerHealth, PlayerInput};
+use space_game_protocol::{
+    Asteroid, AsteroidHealth, CircleBody, Player, PlayerHealth, PlayerInput,
+};
 
 use crate::{
     camera::{CANVAS_CAMERA_SCALE, CanvasCamera, GameplayCamera, GameplayCanvas, PIXEL_SIZE},
@@ -233,4 +235,46 @@ fn bars_use_render_cameras_and_follow_remote_health() {
     app.world_mut().despawn(remote);
     app.update();
     assert!(tracks.iter(app.world()).next().is_none());
+}
+
+#[test]
+fn asteroid_health_bar_uses_its_radius_and_disappears_on_despawn() {
+    let (mut app, root) = setup();
+    let asteroid = app
+        .world_mut()
+        .spawn((
+            Asteroid {
+                variant: 1,
+                radius: 40.0,
+                stretch: Vec2::ONE,
+                angle: 0.0,
+            },
+            AsteroidHealth(AsteroidHealth::FULL),
+            CircleBody::fixed(40.0),
+            Transform::from_xyz(50.0, 10.0, 0.0),
+        ))
+        .id();
+    app.update();
+    let mut bars = app
+        .world_mut()
+        .query_filtered::<(Entity, &Node), With<RemoteHealthBar>>();
+    assert!(bars.iter(app.world()).next().is_none());
+    app.world_mut()
+        .get_mut::<AsteroidHealth>(asteroid)
+        .unwrap()
+        .0 = 25;
+    app.update();
+    let (track, node) = bars.single(app.world()).unwrap();
+    assert_px(node.width, 60.0);
+    assert_px(node.top, 300.0 - 10.0 + 40.0 + 4.0);
+    let fill = app.world().get::<Children>(track).unwrap()[0];
+    assert_px(app.world().get::<Node>(fill).unwrap().width, 15.0);
+    app.world_mut().entity_mut(asteroid).despawn();
+    app.update();
+    assert!(app.world().get_entity(track).is_err());
+    assert!(
+        app.world()
+            .get::<Children>(root)
+            .is_none_or(Children::is_empty)
+    );
 }

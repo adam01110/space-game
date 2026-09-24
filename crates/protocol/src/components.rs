@@ -75,6 +75,22 @@ impl Default for PlayerHealth {
     }
 }
 
+// Server-authored shape and appearance; immutable for the lifetime of an asteroid.
+#[derive(Component, Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Asteroid {
+    pub variant: u8,
+    pub radius: f32,
+    pub stretch: Vec2,
+    pub angle: f32,
+}
+
+#[derive(Component, Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct AsteroidHealth(pub u8);
+
+impl AsteroidHealth {
+    pub const FULL: u8 = 100;
+}
+
 // Shape and motion configuration shared by every solid world object, not just players. Radii are
 // gameplay approximations in world units, independent of sprite geometry. Networked dynamic
 // objects must be predicted by every client that simulates them.
