@@ -98,7 +98,6 @@ fn retirement_cleans_replication_inputs_and_pending_credentials_before_preupdate
     app.insert_resource(GuestConnection {
         client: Some(client),
         pending: Some(receiver),
-        #[cfg(not(target_family = "wasm"))]
         started_by_play: true,
         ..default()
     });

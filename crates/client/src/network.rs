@@ -28,6 +28,9 @@ impl Plugin for ClientNetworkPlugin {
             .add_observer(connection::log_disconnect)
             .add_systems(Startup, setup_connection.in_set(ClientStartup::Connection))
             .add_systems(Update, update_connection);
+
+        #[cfg(target_family = "wasm")]
+        app.add_systems(Update, accept_play_request.before(update_connection));
     }
 }
 
@@ -39,7 +42,8 @@ pub(super) struct GuestConnection {
     pub(super) started: Duration,
     pub(super) message: String,
     pub(super) can_retry: bool,
-    #[cfg(not(target_family = "wasm"))]
+    // Whether PLAY asked for a session. Both menus own that decision, so the client only
+    // connects, retries and retires on its own while a session is being asked for.
     pub(super) started_by_play: bool,
 }
 
@@ -73,7 +77,11 @@ fn setup_connection(mut commands: Commands, time: Res<Time<Real>>) {
     #[cfg(not(target_family = "wasm"))]
     let _ = &time;
     #[cfg(target_family = "wasm")]
-    let mut connection = GuestConnection::default();
+    let mut connection = GuestConnection {
+        // The page boots this module from its Play button, so the first session starts with it.
+        started_by_play: true,
+        ..default()
+    };
     #[cfg(target_family = "wasm")]
     connection.request(time.elapsed());
 
@@ -108,6 +116,19 @@ fn update_status(status: &mut Query<&mut Text, With<ConnectionStatus>>, message:
     }
 }
 
+// The click always has to be consumed, even with a session already under way: the page requests
+// one on every click, including the first, which this module handled when the page booted it.
+#[cfg(target_family = "wasm")]
+fn accept_play_request(mut connection: ResMut<GuestConnection>, time: Res<Time<Real>>) {
+    let requested = crate::page::take_play_request();
+    if !requested || connection.started_by_play {
+        return;
+    }
+
+    connection.started_by_play = true;
+    connection.request(time.elapsed());
+}
+
 fn update_connection(
     mut commands: Commands,
     time: Res<Time<Real>>,
@@ -117,7 +138,6 @@ fn update_connection(
     suspension: Res<recovery::Suspension>,
     #[cfg(target_family = "wasm")] mut status: Query<&mut Text, With<ConnectionStatus>>,
 ) {
-    #[cfg(not(target_family = "wasm"))]
     if !connection.started_by_play {
         return;
     }

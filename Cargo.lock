@@ -8409,6 +8409,7 @@ dependencies = [
  "space-game-protocol",
  "space-game-server",
  "url",
+ "wasm-bindgen",
  "web-sys",
 ]
 

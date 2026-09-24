@@ -123,7 +123,7 @@ fn apply_recovery(
     now: Duration,
     gap: Duration,
 ) {
-    #[cfg(not(target_family = "wasm"))]
+    // A menu that owns the next session must not have one started behind it by a suspension.
     if !connection.started_by_play {
         return;
     }

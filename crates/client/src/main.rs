@@ -26,6 +26,8 @@ mod menu;
 #[path = "menu.component.rs"]
 mod menu_component;
 mod network;
+#[cfg(target_family = "wasm")]
+mod page;
 mod palette;
 mod phase_beam;
 mod player;
@@ -44,12 +46,8 @@ use bevy::{
     window::{PresentMode, WindowPlugin},
 };
 use lightyear::prelude::client::*;
-#[cfg(target_family = "wasm")]
-use lightyear::prelude::input::native::InputMarker;
 
 use space_game_game::{ClientSimulationPlugin, GamePlugin, SERVER_UPS};
-#[cfg(target_family = "wasm")]
-use space_game_protocol::PlayerInput;
 use space_game_protocol::ProtocolPlugin;
 
 #[cfg(feature = "dev")]
@@ -127,23 +125,5 @@ fn main() {
         ClientSimulationPlugin,
         ClientAppPlugin,
     ));
-    #[cfg(target_family = "wasm")]
-    app.add_systems(Update, signal_game_ready);
     app.run();
-}
-
-#[cfg(target_family = "wasm")]
-fn signal_game_ready(
-    players: Query<(), With<InputMarker<PlayerInput>>>,
-    mut signaled: Local<bool>,
-) {
-    if *signaled || players.is_empty() {
-        return;
-    } else if web_sys::window()
-        .and_then(|window| window.document())
-        .and_then(|document| document.get_element_by_id("game-shell"))
-        .is_some_and(|shell| shell.set_attribute("data-game-ready", "true").is_ok())
-    {
-        *signaled = true;
-    }
 }

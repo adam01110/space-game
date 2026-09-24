@@ -3,7 +3,7 @@ use lightyear::prelude::{Controlled, input::native::InputMarker};
 
 use space_game_protocol::{Player, PlayerHealth, PlayerInput};
 
-use super::{GuestConnection, connection::retire_session, update_connection};
+use super::{GuestConnection, connection::retire_session};
 
 type LocalPlayer = (
     With<Player>,
@@ -12,7 +12,11 @@ type LocalPlayer = (
 );
 
 pub(crate) fn install(app: &mut App) {
-    app.add_systems(Update, end_dead_session.before(update_connection));
+    // Retiring despawns ships that asset-driven systems may still hold queued commands for: the SVG
+    // rasteriser inserts a sprite into the entity it rasterised, and an entity despawned before that
+    // command is flushed panics the browser client with `unreachable`. Retiring in the last schedule
+    // of the frame lets every queue of this frame flush first.
+    app.add_systems(Last, end_dead_session);
 }
 
 // Health reaches zero in the authoritative simulation, so the client only reacts. Retiring
@@ -22,7 +26,6 @@ fn end_dead_session(
     mut connection: ResMut<GuestConnection>,
     players: Query<&PlayerHealth, LocalPlayer>,
     mut ended: Local<bool>,
-    #[cfg(target_family = "wasm")] time: Res<Time<Real>>,
 ) {
     let destroyed = players.iter().any(|health| health.0 == 0);
 
@@ -32,15 +35,14 @@ fn end_dead_session(
         *ended = true;
         warn!("Player destroyed; returning to the menu");
         retire_session(&mut commands, &mut connection);
+        // Each menu owns the next session: the framework menu is rebuilt here, the browser menu is
+        // asked to open, and either way PLAY starts the connection again.
+        connection.started_by_play = false;
 
         #[cfg(not(target_family = "wasm"))]
-        {
-            // The menu is the native entry point: PLAY starts the next session.
-            connection.started_by_play = false;
-            commands.trigger(crate::menu::ShowMenu);
-        }
+        commands.trigger(crate::menu::ShowMenu);
 
         #[cfg(target_family = "wasm")]
-        connection.request(time.elapsed());
+        crate::page::request_menu();
     }
 }

@@ -8,6 +8,8 @@ use bevy_resvg::prelude::SvgPlugin;
 #[cfg(feature = "dev")]
 use lightyear::frame_interpolation::FrameInterpolationSystems;
 
+#[cfg(target_family = "wasm")]
+use crate::page::PagePlugin;
 use crate::{
     abilities, background, beacons, camera, flame, hud, input, network, player, remote_health,
 };
@@ -67,7 +69,7 @@ impl Plugin for ClientAppPlugin {
             assets_path: "assets/ui/".into(),
             ..default()
         })
-        .add_plugins((ExtendedUiPlugin, hud::NativeHudPlugin))
+        .add_plugins((ExtendedUiPlugin, hud::NativeHudPlugin, PagePlugin))
         .add_systems(Startup, load_browser_hud);
         app.add_plugins((
             remote_health::RemoteHealthPlugin,
