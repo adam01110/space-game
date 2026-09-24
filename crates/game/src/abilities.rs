@@ -6,6 +6,7 @@ use crate::{
         shoot_predicted_players,
     },
     damage::{DamageConfig, apply_bullet_damage, apply_phase_beam_damage},
+    health::regenerate_health,
     movement::{move_authoritative_players, move_predicted_players},
     phase_beam::{beam_authoritative_players, beam_predicted_players},
 };
@@ -45,6 +46,12 @@ impl Plugin for ServerAbilitiesPlugin {
                 (apply_bullet_damage, apply_phase_beam_damage)
                     .after(advance_authoritative_shots)
                     .after(beam_authoritative_players),
+            )
+            .add_systems(
+                FixedUpdate,
+                regenerate_health
+                    .after(apply_bullet_damage)
+                    .after(apply_phase_beam_damage),
             );
     }
 }

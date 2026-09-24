@@ -6,7 +6,7 @@ use space_game_protocol::{
     PlayerPhaseBeam,
 };
 
-use crate::damage::BeamDamageCarry;
+use crate::{damage::BeamDamageCarry, health::HealthRegenCarry};
 
 pub const PLAYER_RADIUS: f32 = 23.4;
 
@@ -18,6 +18,7 @@ pub struct PlayerBundle {
     beam_damage_carry: BeamDamageCarry,
     boost: PlayerBoost,
     health: PlayerHealth,
+    health_regen_carry: HealthRegenCarry,
     phase_beam: PlayerPhaseBeam,
     player: Player,
     circle: CircleBody,
@@ -35,6 +36,7 @@ impl PlayerBundle {
             beam_damage_carry: BeamDamageCarry::default(),
             boost: PlayerBoost::default(),
             health: PlayerHealth::default(),
+            health_regen_carry: HealthRegenCarry::default(),
             phase_beam: PlayerPhaseBeam::default(),
             player: Player,
             circle: CircleBody::dynamic(PLAYER_RADIUS),

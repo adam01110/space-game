@@ -5,7 +5,7 @@ use lightyear::prelude::{AppInterpolationExt, FrameInterpolate, InterpolationFns
 use space_game_protocol::{ArenaBoundary, BodyMotion, CircleBody, Player};
 
 // Radius for an empty or solo arena, in world units.
-pub const BASE_ARENA_RADIUS: f32 = 1200.0;
+pub const BASE_ARENA_RADIUS: f32 = 1300.0;
 // 1.0 square-root scaling; 2.0 doubles the added radius.
 pub const ARENA_GROWTH_MULTIPLIER: f32 = 1.0;
 // Maximum radius change in world units per second, for both growth and shrinkage.

@@ -2,14 +2,15 @@ use avian2d::prelude::{Position, Rotation};
 use bevy::{ecs::query::QueryFilter, prelude::*};
 use lightyear::prelude::{Predicted, SyncedLocalTimeline, input::native::ActionState};
 
-use crate::PLAYER_RADIUS;
 use space_game_protocol::{PhaseBeamSegment, Player, PlayerInput, PlayerPhaseBeam};
 
-pub const BEAM_LENGTH: f32 = 800.0;
+use crate::PLAYER_RADIUS;
+
+pub const BEAM_LENGTH: f32 = 400.0;
 pub const BEAM_WIDTH: f32 = 8.0;
 pub const NOSE_OFFSET: f32 = PLAYER_RADIUS + 4.0;
 
-const CHARGE_DRAIN_PER_SECOND: u8 = 25;
+const CHARGE_DRAIN_PER_SECOND: u8 = 40;
 const CHARGE_REGEN_PER_SECOND: u8 = 25;
 
 fn segment_origin(position: &Position, rotation: &Rotation) -> Vec2 {
@@ -75,6 +76,7 @@ fn update_beams(
                 false
             }
         };
+
         charge.set_if_neq(next_charge);
         sync_beam(commands, entity, position, rotation, active, segment);
     }

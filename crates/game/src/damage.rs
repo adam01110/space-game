@@ -14,13 +14,13 @@ use crate::{
 pub const BULLET_DAMAGE: u8 = 10;
 
 // Damage a phase beam deals per second of contact.
-pub const PHASE_BEAM_DAMAGE_PER_SECOND: u8 = 25;
+pub const PHASE_BEAM_DAMAGE_PER_SECOND: u8 = 15;
 
 // Hit circle of a shot. The rendered projectile is a 4 x 16 rectangle, so its width is the
 // closer approximation, and the circle stays wider than the 20 units a shot covers per tick
 // so it cannot tunnel past a player. Public so client development overlays can draw the
 // volume damage is resolved against.
-pub const SHOT_RADIUS: f32 = 4.0;
+pub const SHOT_RADIUS: f32 = 6.0;
 
 /// Weapon damage values, in health points. Replace the resource to retune both
 /// weapons at once; `Default` holds the values a session starts with.

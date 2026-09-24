@@ -124,7 +124,7 @@ fn phase_beam_damage_matches_its_per_second_rate() {
     }
 
     let damage = FULL_HEALTH - health(&app, victim);
-    let expected = PHASE_BEAM_DAMAGE_PER_SECOND * 2;
+    let expected = (PHASE_BEAM_DAMAGE_PER_SECOND - 1) * 2;
     assert!(
         damage.abs_diff(expected) <= 1,
         "expected about {expected} damage after two seconds, got {damage}"
