@@ -67,3 +67,7 @@ web:
 # Serve the browser client over LAN HTTPS with a Caddy-managed local certificate.
 web-lan host-ip:
     SPACE_GAME_LAN_IP="{{host-ip}}" bash scripts/web.sh --lan
+
+# Type-check the browser client with the TypeScript compiler.
+web-check:
+    tsc --project tsconfig.json

@@ -10,33 +10,9 @@ const shell = element<HTMLElement>("#game-shell");
 const play = element<HTMLButtonElement>("#play");
 const status = element<HTMLElement>("#status");
 
-// Right-click on the canvas goes to the phase beam, not the browser menu.
-document.addEventListener("contextmenu", (event) => {
-  if (event.target instanceof HTMLCanvasElement) event.preventDefault();
-});
 let requested = false;
 let downloaded = false;
-let initialized = false;
 let failed = false;
-
-function ready(): boolean {
-  return shell.getAttribute("data-game-ready") === "true";
-}
-
-function update(): void {
-  if (failed) return;
-  if (requested && ready()) {
-    document.body.classList.add("entered");
-    return;
-  }
-  status.textContent = !downloaded
-    ? "Downloading game…"
-    : !requested
-      ? ""
-      : !initialized
-        ? "Starting game…"
-        : "Waiting for your player…";
-}
 
 function fail(error: unknown, message: string): void {
   console.error(message, error);
@@ -46,7 +22,7 @@ function fail(error: unknown, message: string): void {
   status.textContent = message;
 }
 
-// Download the Wasm immediately, without initializing Bevy or connecting yet.
+// Fetch early, but leave client initialization until Play is clicked.
 const wasmDownload: Promise<ArrayBuffer | null> = fetch("./space_game_client_bg.wasm")
   .then((response) => {
     if (!response.ok) throw new Error(`Wasm download: HTTP ${response.status}`);
@@ -54,7 +30,7 @@ const wasmDownload: Promise<ArrayBuffer | null> = fetch("./space_game_client_bg.
   })
   .then((bytes) => {
     downloaded = true;
-    update();
+    status.textContent = requested ? "Starting game…" : "";
     return bytes;
   })
   .catch((error: unknown) => {
@@ -62,22 +38,35 @@ const wasmDownload: Promise<ArrayBuffer | null> = fetch("./space_game_client_bg.
     return null;
   });
 
-new MutationObserver(update).observe(shell, {
+function enterWhenReady(): void {
+  if (requested && !failed && shell.dataset.gameReady === "true") {
+    document.body.classList.add("entered");
+  }
+}
+
+new MutationObserver(enterWhenReady).observe(shell, {
   attributes: true,
   attributeFilter: ["data-game-ready"],
 });
+
+document.addEventListener("contextmenu", (event) => {
+  // Right-click on the canvas fires the phase beam.
+  if (event.target instanceof HTMLCanvasElement) event.preventDefault();
+});
+
 play.addEventListener("click", async () => {
-  if (requested || failed) return;
+  if (play.disabled) return;
   requested = true;
   play.disabled = true;
-  update();
+  enterWhenReady();
+  if (downloaded) status.textContent = "Starting game…";
+
   const bytes = await wasmDownload;
   if (bytes === null) return;
+
   try {
-    // The wasm-bindgen start hook runs the client; Play is the only startup path.
     await init({ module_or_path: bytes });
-    initialized = true;
-    update();
+    status.textContent = "Waiting for your player…";
   } catch (error) {
     fail(error, "Failed to start game. Check the browser console.");
   }

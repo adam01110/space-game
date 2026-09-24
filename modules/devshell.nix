@@ -68,11 +68,12 @@
 
       packages = with pkgs; [
         rustToolchain
-        caddy
         wasmBindgenCli
 
         # keep-sorted start
         binaryen
+        bun
+        caddy
         cargo-audit
         cargo-modules
         cargo-mutants
@@ -80,6 +81,7 @@
         cargoCrap
         just
         pkg-config
+        typescript
         # keep-sorted end
       ];
 
