@@ -53,9 +53,11 @@ impl Plugin for NativeHudPlugin {
         // The framework's index entrypoint owns HUD creation.
         assert!(app.is_plugin_added::<ExtendedUiPlugin>());
         let component = &crate::hud_component::HUD_COMPONENT;
+
         debug_assert_eq!(component.template_name, "app-hud");
         debug_assert_eq!(component.template_file, "hud.component.html");
         debug_assert_eq!(component.styles, &["hud.css"]);
+
         app.add_plugins(FrameTimeDiagnosticsPlugin::default())
             .add_systems(Update, (update_hud, update_hud_health))
             .add_systems(Update, (update_hud_map, update_hud_visibility).chain());
@@ -107,25 +109,22 @@ fn update_hud_visibility(
             _ => continue,
         };
 
-        let wanted = match shown {
-            true => Visibility::Inherited,
-            false => Visibility::Hidden,
-        };
-
-        if *visibility != wanted {
-            *visibility = wanted;
-        }
+        set_visibility(&mut visibility, shown);
     }
 
-    let wanted = match blips_shown {
+    for mut visibility in &mut blips {
+        set_visibility(&mut visibility, blips_shown);
+    }
+}
+
+fn set_visibility(visibility: &mut Visibility, shown: bool) {
+    let wanted = match shown {
         true => Visibility::Inherited,
         false => Visibility::Hidden,
     };
 
-    for mut visibility in &mut blips {
-        if *visibility != wanted {
-            *visibility = wanted;
-        }
+    if *visibility != wanted {
+        *visibility = wanted;
     }
 }
 
@@ -169,6 +168,7 @@ pub(super) fn update_hud_map(
         .map(|(entity, _)| entity);
     let local = local.single().ok();
     let mut visible = HashSet::new();
+
     if let (Some(ring), Some(local)) = (ring, local) {
         let scale = MAP_RADIUS_PX / map_range(window.width(), window.height());
         let origin = local.translation.truncate();
@@ -180,43 +180,61 @@ pub(super) fn update_hud_map(
             }
 
             visible.insert(player);
-            match entities.get(&player) {
-                Some(&blip) => {
-                    if let Ok(mut node) = blips.get_mut(blip) {
-                        position_blip(&mut node, offset);
-                    }
-                }
-                None => {
-                    let mut node = Node {
-                        position_type: PositionType::Absolute,
-                        width: Val::Px(BLIP_SIZE_PX),
-                        height: Val::Px(BLIP_SIZE_PX),
-                        ..default()
-                    };
-                    position_blip(&mut node, offset);
-                    let blip = commands
-                        .spawn((
-                            HudMapBlip,
-                            node,
-                            BackgroundColor(Color::srgb_u8(0xa6, 0x63, 0x72)),
-                            UiTransform::from_rotation(Rot2::degrees(45.0)),
-                            Pickable::IGNORE,
-                        ))
-                        .id();
-                    commands.entity(ring).add_child(blip);
-                    entities.insert(player, blip);
-                }
-            }
+            update_map_blip(
+                &mut commands,
+                &mut blips,
+                &mut entities,
+                ring,
+                player,
+                offset,
+            );
         }
     }
 
-    entities.retain(|player, blip| match visible.contains(player) {
-        true => true,
-        false => {
-            commands.entity(*blip).despawn();
-            false
+    entities.retain(|player, blip| {
+        if visible.contains(player) {
+            return true;
         }
+        commands.entity(*blip).despawn();
+        false
     });
+}
+
+fn update_map_blip(
+    commands: &mut Commands,
+    blips: &mut Query<&mut Node, With<HudMapBlip>>,
+    entities: &mut HashMap<Entity, Entity>,
+    ring: Entity,
+    player: Entity,
+    offset: Vec2,
+) {
+    if let Some(&blip) = entities.get(&player) {
+        if let Ok(mut node) = blips.get_mut(blip) {
+            position_blip(&mut node, offset);
+        }
+        return;
+    }
+
+    let mut node = Node {
+        position_type: PositionType::Absolute,
+        width: Val::Px(BLIP_SIZE_PX),
+        height: Val::Px(BLIP_SIZE_PX),
+        ..default()
+    };
+
+    position_blip(&mut node, offset);
+    let blip = commands
+        .spawn((
+            HudMapBlip,
+            node,
+            BackgroundColor(Color::srgb_u8(0xa6, 0x63, 0x72)),
+            UiTransform::from_rotation(Rot2::degrees(45.0)),
+            Pickable::IGNORE,
+        ))
+        .id();
+
+    commands.entity(ring).add_child(blip);
+    entities.insert(player, blip);
 }
 
 fn position_blip(node: &mut Node, offset: Vec2) {

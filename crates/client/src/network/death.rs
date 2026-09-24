@@ -28,22 +28,19 @@ fn end_dead_session(
 
     if !destroyed {
         *ended = false;
-        return;
-    }
-    if *ended {
-        return;
-    }
-    *ended = true;
+    } else if !*ended {
+        *ended = true;
+        warn!("Player destroyed; returning to the menu");
+        retire_session(&mut commands, &mut connection);
 
-    warn!("Player destroyed; returning to the menu");
-    retire_session(&mut commands, &mut connection);
+        #[cfg(not(target_family = "wasm"))]
+        {
+            // The menu is the native entry point: PLAY starts the next session.
+            connection.started_by_play = false;
+            commands.trigger(crate::menu::ShowMenu);
+        }
 
-    #[cfg(not(target_family = "wasm"))]
-    {
-        // The menu is the native entry point: PLAY starts the next session.
-        connection.started_by_play = false;
-        commands.trigger(crate::menu::ShowMenu);
+        #[cfg(target_family = "wasm")]
+        connection.request(time.elapsed());
     }
-    #[cfg(target_family = "wasm")]
-    connection.request(time.elapsed());
 }
