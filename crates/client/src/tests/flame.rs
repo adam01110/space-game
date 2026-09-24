@@ -3,7 +3,7 @@ use bevy_resvg::resvg::usvg::{Options, Tree};
 
 use space_game_protocol::{PlayerBoost, PlayerInput};
 
-use crate::flame::{flame_color, FlameColor};
+use crate::flame::{FlameColor, flame_color};
 
 #[test]
 fn flame_sprites_are_valid_static_svgs() {
@@ -35,7 +35,11 @@ fn flame_tracks_movement_towards_cursor_and_boost_takes_priority() {
     assert_eq!(flame_color(&input, &boost), None);
 
     input.boost = true;
-    assert_eq!(flame_color(&input, &boost), Some(FlameColor::Blue));
+    assert_eq!(flame_color(&input, &boost), None);
+    input.movement = Vec2::Y;
+    assert_eq!(flame_color(&input, &boost), None);
+    input.movement = Vec2::ZERO;
+    assert_eq!(flame_color(&input, &boost), None);
     input.movement = Vec2::X;
     assert_eq!(flame_color(&input, &boost), Some(FlameColor::Blue));
 

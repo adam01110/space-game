@@ -46,8 +46,13 @@ pub(super) fn move_authoritative_players(
 fn move_players<F: QueryFilter>(players: &mut Query<PlayerMovement, F>, delta: Duration) {
     for (mut velocity, mut rotation, input, phase_beam, mut boost) in players {
         let phase_beam_active = input.0.phase_beam && phase_beam.0.units() > 0;
+
         let mut next_boost = *boost;
-        let boost_active = use_boost(&mut next_boost, input.0.boost, delta);
+        let boost_active = use_boost(
+            &mut next_boost,
+            input.0.boost && input.0.moving_forward(),
+            delta,
+        );
         boost.set_if_neq(next_boost);
 
         apply_movement(

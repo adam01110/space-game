@@ -14,8 +14,14 @@ pub struct PlayerInput {
     pub blaster_reload_requests: u8,
     // Held state; the visual beam disappears when RMB is released.
     pub phase_beam: bool,
-    // Held state; boost consumes its finite charge while Space is pressed.
+    // Held state; boost consumes its finite charge while Space is pressed and moving forward.
     pub boost: bool,
+}
+
+impl PlayerInput {
+    pub fn moving_forward(&self) -> bool {
+        self.movement.is_finite() && self.movement.dot(self.aim) > 0.0
+    }
 }
 
 impl Default for PlayerInput {

@@ -60,6 +60,68 @@ fn phase_beam_reduces_movement_and_turn_speeds() {
 }
 
 #[test]
+fn boost_only_activates_while_moving_forward() {
+    let mut app = simulation();
+    let player = spawn_turning_player(&mut app, false);
+
+    for (movement, expected_speed) in [(Vec2::ZERO, 0.0), (Vec2::Y, 512.0), (Vec2::NEG_X, 512.0)] {
+        let mut input = app
+            .world_mut()
+            .get_mut::<ActionState<PlayerInput>>(player)
+            .expect("player input");
+        input.0.boost = true;
+        input.0.movement = movement;
+
+        for _ in 0..60 {
+            app.update();
+        }
+        assert_eq!(
+            app.world()
+                .get::<PlayerBoost>(player)
+                .expect("boost charge")
+                .0
+                .units(),
+            50
+        );
+        assert!(
+            (app.world()
+                .get::<LinearVelocity>(player)
+                .expect("player velocity")
+                .length()
+                - expected_speed)
+                .abs()
+                < 0.001
+        );
+    }
+
+    app.world_mut()
+        .get_mut::<ActionState<PlayerInput>>(player)
+        .expect("player input")
+        .0
+        .movement = Vec2::X;
+    for _ in 0..60 {
+        app.update();
+    }
+    assert_eq!(
+        app.world()
+            .get::<PlayerBoost>(player)
+            .expect("boost charge")
+            .0
+            .units(),
+        48
+    );
+    assert!(
+        (app.world()
+            .get::<LinearVelocity>(player)
+            .expect("boost velocity")
+            .length()
+            - 512.0 * 1.5)
+            .abs()
+            < 0.001
+    );
+}
+
+#[test]
 fn boost_is_finite_and_multiplies_movement_speed() {
     let mut app = simulation();
     let player = spawn_turning_player(&mut app, false);

@@ -154,8 +154,12 @@ fn update_flame(
 }
 
 pub(super) fn flame_color(input: &PlayerInput, boost: &PlayerBoost) -> Option<FlameColor> {
+    if !input.moving_forward() {
+        return None;
+    }
+
     match input.boost && boost.0.units() > 0 {
         true => Some(FlameColor::Blue),
-        false => (input.movement.dot(input.aim) > 0.0).then_some(FlameColor::Red),
+        false => Some(FlameColor::Red),
     }
 }

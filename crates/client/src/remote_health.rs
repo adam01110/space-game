@@ -57,9 +57,11 @@ impl BarView<'_, '_> {
             .0
             .world_to_viewport(self.gameplay.1, world)
             .ok()?;
+
         let size = self.gameplay.0.logical_target_size()?;
         let on_sprite = Vec3::new(on_image.x - size.x / 2.0, size.y / 2.0 - on_image.y, 0.0);
         let on_canvas = self.image.transform_point(on_sprite);
+
         self.canvas
             .0
             .world_to_viewport(self.canvas.1, on_canvas)
@@ -74,6 +76,7 @@ impl BarView<'_, '_> {
             top - BAR_HEIGHT,
             ship.z,
         ))?;
+
         Some(BarLayout::between(first, second, health))
             .filter(|layout| layout.overlaps(self.window.size()))
     }
@@ -88,6 +91,7 @@ struct BarLayout {
 impl BarLayout {
     fn between(first: Vec2, second: Vec2, health: PlayerHealth) -> Self {
         let size = (second - first).abs();
+
         Self {
             position: first.min(second),
             size,
@@ -133,10 +137,10 @@ impl BarState {
             .0
             .get(&player)
             .and_then(|bar| nodes.get_many_mut((bar.track, bar.fill).into()).ok());
-        if let Some([mut track, mut fill]) = existing {
-            layout.apply(&mut track, &mut fill);
-        } else {
-            self.spawn(commands, root, player, layout);
+
+        match existing {
+            Some([mut track, mut fill]) => layout.apply(&mut track, &mut fill),
+            _ => self.spawn(commands, root, player, layout),
         }
     }
 
@@ -147,6 +151,7 @@ impl BarState {
         };
         let mut fill_node = Node::default();
         layout.apply(&mut track_node, &mut fill_node);
+
         let track = commands
             .spawn((
                 RemoteHealthBar,
@@ -162,16 +167,17 @@ impl BarState {
                 Pickable::IGNORE,
             ))
             .id();
+
         commands.entity(track).add_child(fill);
         commands.entity(root).add_child(track);
+
         self.0.insert(player, BarEntities { track, fill });
     }
 
     fn remove_unseen(&mut self, commands: &mut Commands, seen: &HashSet<Entity>) {
-        self.0.retain(|player, bar| {
-            if seen.contains(player) {
-                true
-            } else {
+        self.0.retain(|player, bar| match seen.contains(player) {
+            true => true,
+            false => {
                 commands.entity(bar.track).despawn();
                 false
             }
