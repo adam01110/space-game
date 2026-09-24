@@ -3,10 +3,10 @@ use std::collections::{HashMap, HashSet};
 use bevy::diagnostic::{Diagnostic, DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
-use bevy_extended_ui::{styles::CssID, widgets::Paragraph, ExtendedUiPlugin};
+use bevy_extended_ui::{ExtendedUiPlugin, styles::CssID, widgets::Paragraph};
+use lightyear::prelude::PingManager;
 use lightyear::prelude::client::Client;
 use lightyear::prelude::input::native::InputMarker;
-use lightyear::prelude::PingManager;
 
 use space_game_protocol::{
     Player, PlayerBlasters, PlayerBoost, PlayerHealth, PlayerInput, PlayerPhaseBeam,

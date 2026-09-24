@@ -68,6 +68,7 @@ fn assert_clean_before_receive(
     assert!(connection.pending.is_none());
     assert!(!keyboard.pressed(KeyCode::Space));
     assert!(!mouse.pressed(MouseButton::Left));
+    assert!(!mouse.pressed(MouseButton::Right));
     assert!(!sync.is_synced());
 }
 
@@ -119,6 +120,9 @@ fn retirement_cleans_replication_inputs_and_pending_credentials_before_preupdate
     app.world_mut()
         .resource_mut::<ButtonInput<MouseButton>>()
         .press(MouseButton::Left);
+    app.world_mut()
+        .resource_mut::<ButtonInput<MouseButton>>()
+        .press(MouseButton::Right);
     app.world_mut()
         .resource_mut::<LocalTimelineSync>()
         .set_synced(true);

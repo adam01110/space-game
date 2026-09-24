@@ -3,6 +3,11 @@ import init from "./space_game_client.js";
 const shell = document.querySelector("#game-shell");
 const play = document.querySelector("#play");
 const status = document.querySelector("#status");
+
+// Keep right-click available to the phase beam instead of opening the browser menu.
+document.addEventListener("contextmenu", (event) => {
+  if (event.target instanceof HTMLCanvasElement) event.preventDefault();
+});
 let requested = false;
 let downloaded = false;
 let initialized = false;

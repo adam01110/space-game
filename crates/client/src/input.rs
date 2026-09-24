@@ -128,7 +128,40 @@ fn capture_ability_inputs(
         .blaster_reload_requests
         .wrapping_add(u8::from(keyboard.just_pressed(KeyCode::KeyR)));
 
-    inputs.phase_beam = keyboard.pressed(KeyCode::Space);
+    inputs.phase_beam = mouse.pressed(MouseButton::Right);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn phase_beam_tracks_right_mouse_button_not_space() {
+        let mut app = App::new();
+        app.init_resource::<AbilityInputs>()
+            .init_resource::<ButtonInput<KeyCode>>()
+            .init_resource::<ButtonInput<MouseButton>>()
+            .add_systems(Update, capture_ability_inputs);
+        app.world_mut().spawn(InputMarker::<PlayerInput>::default());
+        app.world_mut()
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .press(KeyCode::Space);
+
+        app.update();
+        assert!(!app.world().resource::<AbilityInputs>().phase_beam);
+
+        app.world_mut()
+            .resource_mut::<ButtonInput<MouseButton>>()
+            .press(MouseButton::Right);
+        app.update();
+        assert!(app.world().resource::<AbilityInputs>().phase_beam);
+
+        app.world_mut()
+            .resource_mut::<ButtonInput<MouseButton>>()
+            .release(MouseButton::Right);
+        app.update();
+        assert!(!app.world().resource::<AbilityInputs>().phase_beam);
+    }
 }
 
 fn buffer_player_input(
