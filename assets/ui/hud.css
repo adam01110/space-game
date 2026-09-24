@@ -123,17 +123,19 @@ body {
   pointer-events: none;
 }
 
-.hud-ability-name {
-  width: 73px;
+/* Each row reads amount, bind, name. The charge box holds a three-digit value, so it is
+   wider than its glyphs to keep the digits clear of the bind column. */
+.hud-ability-charge {
+  width: 26px;
+  text-align: left;
 }
 
 .hud-ability-key {
   width: 52px;
 }
 
-.hud-ability-charge {
-  width: 20px;
-  text-align: right;
+.hud-ability-name {
+  width: 67px;
 }
 
 /* Match readout */
