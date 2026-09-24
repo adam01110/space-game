@@ -12,8 +12,8 @@ use crate::beacons::{
 
 const FRAME: Duration = Duration::from_millis(16);
 const RADIUS: f32 = 1200.0;
-// Every placement this test pins is built from the same small constants, so the comparison is
-// only a tolerance to keep the equality off the float lints.
+// Every placement this test pins is built from the same small constants, so the tolerance only
+// keeps the equality off the float lints.
 const TOLERANCE: f32 = 1e-3;
 
 // Runs the beacon plugin without a render app: placement and visibility are plain data.

@@ -4,8 +4,8 @@ use bevy::{prelude::*, time::TimeSystems};
 
 use super::{GuestConnection, connection::retire_session};
 
-// Bevy clamps virtual time at 250 ms by default. Retire before repeatedly clamped
-// frames can leave the input timeline permanently behind wall time.
+// Bevy clamps virtual time at 250 ms by default; retire before repeatedly clamped frames can
+// leave the input timeline permanently behind wall time.
 pub(crate) const MAX_FRAME_GAP: Duration = Duration::from_millis(250);
 
 #[derive(Debug, PartialEq, Eq)]
@@ -102,9 +102,9 @@ fn recover_suspended_session(
     );
 }
 
-// An unfocused native window normally continues at 60 Hz. Only suspend it if
-// its compositor actually throttles updates; avoid reconnecting every throttled
-// frame while it remains unfocused.
+// An unfocused native window normally continues at 60 Hz; suspend it only if its compositor
+// actually throttles updates, and avoid reconnecting every throttled frame while it stays
+// unfocused.
 fn client_inactive(
     windows: &Query<&Window, With<bevy::window::PrimaryWindow>>,
     time: &Time<Real>,

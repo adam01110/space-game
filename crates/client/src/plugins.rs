@@ -28,7 +28,7 @@ impl Plugin for ClientAppPlugin {
             Startup,
             (ClientStartup::Camera, ClientStartup::Connection).chain(),
         );
-        // Physics gizmo rendering is a development-only diagnostic. Overlays follow the
+        // Physics gizmo rendering is a development-only diagnostic; overlays follow the
         // interpolated presentation, so they run after the frame interpolation pass.
         #[cfg(feature = "dev")]
         app.add_systems(

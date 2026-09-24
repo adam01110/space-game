@@ -43,7 +43,7 @@ impl Plugin for ClientCameraPlugin {
 // Size of one rendered pixel in world and window units.
 pub(super) const PIXEL_SIZE: f32 = 4.0;
 
-// Scale of the camera that displays the pixel-art canvas on the window. The canvas holds the
+// Scale of the camera that shows the pixel-art canvas on the window. The canvas holds the
 // gameplay view at one pixel per `PIXEL_SIZE` world units, so this undoes that downscale.
 pub(super) const CANVAS_CAMERA_SCALE: f32 = 1.0 / PIXEL_SIZE;
 
@@ -52,7 +52,6 @@ pub(super) const CANVAS_CAMERA_SCALE: f32 = 1.0 / PIXEL_SIZE;
 #[cfg(feature = "dev")]
 pub(super) const DEBUG_ZOOM_FACTOR: f32 = 2.0;
 
-// How quickly the camera approaches the player position.
 const CAMERA_DECAY_RATE: f32 = 6.0;
 const GAMEPLAY_LAYERS: RenderLayers = RenderLayers::layer(0);
 const CANVAS_LAYERS: RenderLayers = RenderLayers::layer(1);
@@ -133,9 +132,8 @@ fn setup_camera(
         IsDefaultUiCamera,
     ));
 
-    // Draw diagnostics directly to the window instead of baking them into the
-    // low-resolution pixel-art canvas. This preserves smooth subpixel lines.
-    // Only the physics debug build renders this extra camera pass.
+    // Draw diagnostics directly to the window instead of baking them into the low-resolution
+    // pixel-art canvas, which preserves smooth subpixel lines.
     #[cfg(feature = "dev")]
     commands.spawn((
         Camera2d,
@@ -148,22 +146,22 @@ fn setup_camera(
             scale: 1.0,
             ..OrthographicProjection::default_2d()
         }),
-        // All cameras targeting the window must use the same sample count. Native
-        // resolution still avoids the 4x pixelation from the gameplay canvas.
+        // All cameras targeting the window must use the same sample count; native resolution still
+        // avoids the 4x pixelation from the gameplay canvas.
         Msaa::Off,
         DebugCamera,
         DEBUG_RENDER_LAYERS,
     ));
 }
 
-// Debug keybind: `Z` pulls the view back by `DEBUG_ZOOM_FACTOR`, so the game view shrinks to a
+// Debug keybind: `Z` pulls the view back by `DEBUG_ZOOM_FACTOR`, shrinking the game view to a
 // fifth of the window with the streamed backdrop still visible around it.
 //
-// The one camera the zoom deliberately leaves alone is the gameplay camera: the backdrop streamer
-// reads its projection as the view it has to cover, so zooming it out would stream several times
-// the chunks and push the edge of what is spawned off screen, which is the one thing this keybind
-// is for looking at. Shrinking what displays the canvas instead keeps the whole streamed region
-// inside the window around the smaller view of the game.
+// The gameplay camera is deliberately left alone: the backdrop streamer reads its projection as
+// the view it has to cover, so zooming it out would stream several times the chunks and push the
+// edge of what is spawned off screen, which is what this keybind is for looking at. Shrinking what
+// displays the canvas instead keeps the whole streamed region inside the window around the smaller
+// view of the game.
 //
 // The scale is applied every frame from the toggle, so a camera spawned after the key was pressed
 // is zoomed too.
@@ -189,15 +187,14 @@ pub(super) fn toggle_debug_zoom(
         set_scale(&mut projection, CANVAS_CAMERA_SCALE * factor);
     }
 
-    // Diagnostics are drawn to the window rather than through the canvas, so they zoom on the same
+    // Diagnostics are drawn to the window rather than through the canvas, so they zoom by the same
     // factor with their own scale to stay aligned with the canvas they annotate.
     for mut projection in &mut debug_cameras {
         set_scale(&mut projection, 1.0 * factor);
     }
 }
 
-// Only the orthographic canvas and diagnostic views are zoomable; any other projection is left as
-// it was spawned.
+// Only orthographic projections are zoomable; any other is left as spawned.
 #[cfg(feature = "dev")]
 const fn set_scale(projection: &mut Projection, scale: f32) {
     if let Projection::Orthographic(orthographic) = projection {

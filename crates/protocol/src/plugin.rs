@@ -16,9 +16,9 @@ impl Plugin for ProtocolPlugin {
             config: input::InputConfig {
                 // All colliding players run on the prediction timeline, including remote ones.
                 rebroadcast_inputs: true,
-                // About 250 ms at 60 packets/s versus the default 5 (~83 ms).
-                // More redundant history tolerates short loss bursts, at the cost of
-                // larger client packets and server rebroadcast traffic.
+                // About 250 ms at 60 packets/s versus the default 5 (~83 ms); more redundant
+                // history tolerates short loss bursts at the cost of larger client packets and
+                // server rebroadcast traffic.
                 packet_redundancy: 15,
                 ..default()
             },
@@ -36,10 +36,10 @@ impl Plugin for ProtocolPlugin {
         app.component::<PlayerHealth>().replicate().predict();
         app.component::<PlayerPhaseBeam>().replicate().predict();
         // Presence is authoritative for remote beam presentation and predicted locally so the
-        // controlling player does not wait for a server round trip.
+        // controlling player skips a server round trip.
         app.component::<PhaseBeamSegment>().replicate().predict();
-        // Configuration is immutable during predicted simulation. Runtime shape changes must
-        // gain prediction/rollback support before being used as gameplay.
+        // Configuration is immutable during predicted simulation; runtime shape changes must gain
+        // prediction/rollback support before being used as gameplay.
         app.component::<CircleBody>().replicate();
         // GamePlugin installs the Avian pose/velocity protocol on both client and server.
     }

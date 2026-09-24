@@ -19,9 +19,9 @@ use space_game_protocol::{BlasterShot, PhaseBeamSegment};
 #[cfg(feature = "dev")]
 use crate::palette::Palette;
 
-// Overlays are drawn on the same native-resolution debug layer as the arena outline and the
-// backdrop chunk outlines. Every swatch here comes from the game palette, so diagnostics stay part
-// of the game's picture instead of wearing gizmo default colours that mean nothing in it.
+// Overlays are drawn on the same native-resolution debug layer as the arena and backdrop chunk
+// outlines. Every swatch comes from the game palette, so diagnostics stay part of the game's
+// picture instead of wearing gizmo default colours.
 
 // Outline of the server-owned play area, drawn by `arena::draw_arena`.
 #[cfg(feature = "dev")]
@@ -42,9 +42,8 @@ pub(super) const fn shot_hitbox(shot: &BlasterShot) -> (Vec2, f32) {
 }
 
 // The capsule a beam damages with: `BEAM_WIDTH` swept along the finite segment from the muzzle to
-// `BEAM_LENGTH` along the firing direction, which also rounds both ends the way the damage query
-// clamps the segment. Returned as the isometry of a capsule whose axis is +Y, its length, and its
-// radius.
+// `BEAM_LENGTH` along the firing direction, whose round ends match the way the damage query clamps
+// the segment. Returned as the isometry of a capsule whose axis is +Y, its length, and its radius.
 #[cfg(feature = "dev")]
 pub(super) fn beam_hitbox(segment: &PhaseBeamSegment) -> (Isometry2d, f32, f32) {
     let direction = segment.direction.normalize_or_zero();
@@ -54,8 +53,8 @@ pub(super) fn beam_hitbox(segment: &PhaseBeamSegment) -> (Isometry2d, f32, f32) 
     (Isometry2d::new(center, axis), BEAM_LENGTH, BEAM_WIDTH / 2.0)
 }
 
-// One entity carries `BlasterShot`, whether it is the client's own predicted shot or a replicated
-// one, so this outlines exactly the projectiles that are drawn.
+// One entity carries `BlasterShot`, predicted or replicated, so this outlines exactly the
+// projectiles that are drawn.
 #[cfg(feature = "dev")]
 pub(super) fn draw_shot_hitboxes(shots: Query<&BlasterShot>, mut gizmos: Gizmos<PhysicsGizmos>) {
     for shot in &shots {
@@ -64,8 +63,8 @@ pub(super) fn draw_shot_hitboxes(shots: Query<&BlasterShot>, mut gizmos: Gizmos<
     }
 }
 
-// Every beam is predicted on this client, local and remote alike, so the drawn volume is the one
-// this client simulates and the server resolves damage with.
+// Every beam is predicted on this client, local and remote alike, so the drawn volume is what this
+// client simulates and the server resolves damage with.
 #[cfg(feature = "dev")]
 pub(super) fn draw_beam_hitboxes(
     beams: Query<&PhaseBeamSegment, With<Predicted>>,

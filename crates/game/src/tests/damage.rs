@@ -9,8 +9,8 @@ use super::support::simulation;
 
 const FULL_HEALTH: u8 = 100;
 
-// The server tags players and their shots with the connection that owns them, which is what
-// keeps a player's own weapons harmless.
+// The server tags players and their shots with the owning connection, so a player's own weapons
+// stay harmless.
 fn owner(app: &mut App) -> Entity {
     app.world_mut().spawn_empty().id()
 }
@@ -117,8 +117,8 @@ fn phase_beam_damage_matches_its_per_second_rate() {
     app.world_mut().entity_mut(attacker).insert(held_beam());
     let victim = target(&mut app, Vec2::new(0.0, 300.0));
 
-    // Two seconds of contact at the configured rate. The fixed clock can advance an extra
-    // step at a boundary, so allow the single damage unit that comes with it.
+    // Two seconds of contact at the configured rate; the fixed clock can advance an extra step at a
+    // boundary, so allow the one damage unit that comes with it.
     for _ in 0..120 {
         app.update();
     }

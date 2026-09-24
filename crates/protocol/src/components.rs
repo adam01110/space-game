@@ -3,8 +3,8 @@ use std::time::Duration;
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 
-// Server-owned circular play area centered at the world origin. Predicted with rollback
-// so population changes use the authoritative radius, never a client's visible player count.
+// Server-owned circular play area centered at the origin. Predicted with rollback so population
+// changes use the authoritative radius, never a client's visible player count.
 #[derive(Component, Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ArenaBoundary {
     pub radius: f32,
@@ -53,15 +53,14 @@ pub struct BlasterTrajectory {
     pub direction: Vec2,
 }
 
-// World-space phase beam state produced by the authoritative and predicted simulations.
-// Component presence means the beam is active.
+// World-space phase beam state from the authoritative and predicted simulations; component
+// presence means the beam is active.
 #[derive(Component, Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PhaseBeamSegment {
     pub origin: Vec2,
     pub direction: Vec2,
 }
 
-// Current health of a player.
 #[derive(Component, Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct PlayerHealth(pub u8);
 
@@ -76,9 +75,9 @@ impl Default for PlayerHealth {
     }
 }
 
-// Shape and motion configuration shared by all solid world objects, not just players.
-// Radii are gameplay approximations in world units, independent of sprite geometry.
-// Networked dynamic objects must be predicted by every client that simulates them.
+// Shape and motion configuration shared by every solid world object, not just players. Radii are
+// gameplay approximations in world units, independent of sprite geometry. Networked dynamic
+// objects must be predicted by every client that simulates them.
 #[derive(Component, Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct CircleBody {
     pub radius: f32,

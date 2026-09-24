@@ -12,8 +12,8 @@ use space_game_protocol::{
     Player, PlayerBlasters, PlayerBoost, PlayerHealth, PlayerInput, PlayerPhaseBeam,
 };
 
-// Charged abilities are read from the local player's predicted components, so the
-// readout matches the ship the client actually flies.
+// Charged abilities are read from the local player's predicted components, so the readout
+// matches the ship the client flies.
 type RemoteShips<'w, 's> =
     Query<'w, 's, (Entity, &'static Transform), (With<Player>, Without<InputMarker<PlayerInput>>)>;
 
@@ -28,8 +28,8 @@ type LocalCharges<'w, 's> = Query<
     With<InputMarker<PlayerInput>>,
 >;
 
-// The minimap covers the view the client renders plus a margin, so a blip at the
-// ring is a ship just off screen. The ring's inner radius is that range.
+// The minimap covers the rendered view plus a margin, so a blip at the ring is a ship just off
+// screen; the ring's inner radius is that range.
 const MAP_RADIUS_PX: f32 = 38.0;
 const MAP_RANGE_MARGIN: f32 = 1.1;
 const BLIP_SIZE_PX: f32 = 8.0;
@@ -40,8 +40,8 @@ pub(super) const HEALTH_BAR_WIDTH_PX: f32 = 140.0;
 #[derive(Component)]
 pub(super) struct HudMapBlip;
 
-// The blips fade out for twice as long as they show, so the map never reads as a
-// static icon sitting in the corner.
+// The blips fade out for twice as long as they show, so the map never reads as a static icon in
+// the corner.
 const MAP_VISIBLE_SECONDS: f32 = 0.5;
 const MAP_HIDDEN_SECONDS: f32 = 1.0;
 const MAP_CYCLE_SECONDS: f32 = MAP_VISIBLE_SECONDS + MAP_HIDDEN_SECONDS;
@@ -90,8 +90,8 @@ fn update_hud(
     write_line(&mut hud, "hud-beam", &charge_text(beam.0.units()));
 }
 
-// The readouts belong to a running match: the menu owns the screen until a player
-// exists, and the blips then blink on their own cycle.
+// The readouts belong to a running match: the menu owns the screen until a player exists, and the
+// blips blink on their own cycle.
 fn update_hud_visibility(
     local_player: Query<(), (With<Player>, With<InputMarker<PlayerInput>>)>,
     time: Res<Time>,
@@ -128,8 +128,8 @@ fn set_visibility(visibility: &mut Visibility, shown: bool) {
     }
 }
 
-// The hull readout follows the local ship's predicted health, so it reacts on the tick the
-// client sees the damage. Before that ship exists the menu covers the overlay.
+// The hull readout follows the local ship's predicted health, so it reacts on the tick the client
+// sees the damage; the menu covers the overlay before that ship exists.
 pub(super) fn update_hud_health(
     health: Query<&PlayerHealth, (With<Player>, With<InputMarker<PlayerInput>>)>,
     mut hud: Query<(&CssID, &mut Paragraph)>,
@@ -243,9 +243,8 @@ fn position_blip(node: &mut Node, offset: Vec2) {
     node.top = Val::Px(MAP_RADIUS_PX - offset.y - half);
 }
 
-// The rendered view is one world unit per window pixel: the gameplay camera draws
-// `PIXEL_SIZE` world units per canvas pixel and the canvas is the window divided by
-// the same factor.
+// The rendered view is one world unit per window pixel: the gameplay camera draws `PIXEL_SIZE`
+// world units per canvas pixel, and the canvas is the window divided by the same factor.
 fn map_range(width: f32, height: f32) -> f32 {
     Vec2::new(width, height).length() / 2.0 * MAP_RANGE_MARGIN
 }

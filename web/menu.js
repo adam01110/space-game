@@ -4,7 +4,7 @@ const shell = document.querySelector("#game-shell");
 const play = document.querySelector("#play");
 const status = document.querySelector("#status");
 
-// Keep right-click available to the phase beam instead of opening the browser menu.
+// Right-click on the canvas goes to the phase beam, not the browser menu.
 document.addEventListener("contextmenu", (event) => {
   if (event.target instanceof HTMLCanvasElement) event.preventDefault();
 });

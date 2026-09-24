@@ -4,8 +4,8 @@
   --hud-dim: #bf9684;
 }
 
-/* The overlay never takes pointer input: the menu owns clicks before the match
-   starts and the game owns them afterwards. */
+/* The overlay never takes pointer input: the menu owns clicks before the match, the game
+   after. */
 #hud {
   position: absolute;
   left: 0;
@@ -34,8 +34,8 @@
   pointer-events: none;
 }
 
-/* Minimap. The ring is the map's range, not the arena wall: the HUD system
-   scales every blip by the visible area; ships blink independently. */
+/* Minimap. The ring is the map's range, not the arena wall: the HUD system scales every
+   blip by the visible area; ships blink independently. */
 
 #hud-map {
   position: absolute;
@@ -130,10 +130,9 @@
 
 /* Match readout */
 
-/* Hull readout. It sits in the frame's bottom band, below the border, so it never
-   covers the play area. The bar is a box the HUD system resizes from the local ship's
-   health, and the number repeats the same value for players who read numbers faster
-   than lengths. */
+/* Hull readout. It sits in the frame's bottom band, below the border, so it never covers
+   the play area. The bar is a box the HUD system resizes from the local ship's health,
+   and the number repeats the same value. */
 #hud-health {
   position: absolute;
   left: 0;

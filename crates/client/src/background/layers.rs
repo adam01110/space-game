@@ -1,5 +1,5 @@
-// One depth of the backdrop, painted as a grid of square chunks that streams with the camera at
-// the layer's own parallax rate.
+// One depth of the backdrop, a grid of square chunks that streams with the camera at the layer's
+// parallax rate.
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct BackdropLayer {
     pub(crate) sprites: &'static [&'static str],
@@ -8,8 +8,8 @@ pub(crate) struct BackdropLayer {
     pub(crate) parallax: f32,
 }
 
-// Painted furthest first, so the nearest layer is drawn last. The geometry is crate-visible
-// because the client tests pin it without a render app.
+// Painted furthest first, so the nearest layer is drawn last. Crate-visible because the client
+// tests pin it without a render app.
 pub(crate) const BACKDROP_LAYERS: [BackdropLayer; 4] = [
     BackdropLayer {
         sprites: &[

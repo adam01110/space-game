@@ -54,7 +54,6 @@ fn consume_counter(previous: &mut u8, current: u8) -> u8 {
     pending
 }
 
-// Both prediction and authority use the same reload and firing rules.
 // Consume inputs during reload without queuing shots or restarting the timer.
 fn tick_reload(charge: &mut PlayerBlasters, reload: &mut BlasterReload, delta: Duration) {
     reload.remaining = reload.remaining.saturating_sub(delta);
@@ -168,8 +167,8 @@ pub(super) fn shoot_authoritative_players(
     }
 }
 
-// Bevy tracks mutable access, not value differences. Do not replicate idle weapon
-// state every tick merely because the simulation inspected it.
+// Bevy tracks mutable access, not value differences, so unchanged weapon state must
+// not be marked replicated merely because the simulation inspected it.
 fn tick_blasters(
     mut charge: Mut<PlayerBlasters>,
     mut trigger: Mut<BlasterTrigger>,

@@ -15,8 +15,8 @@ pub(crate) fn install(app: &mut App) {
     app.add_systems(Update, end_dead_session.before(update_connection));
 }
 
-// Health reaches zero in the authoritative simulation, so the client only reacts to it.
-// Retiring the session leaves the server to despawn the destroyed player.
+// Health reaches zero in the authoritative simulation, so the client only reacts. Retiring
+// the session leaves the server to despawn the destroyed player.
 fn end_dead_session(
     mut commands: Commands,
     mut connection: ResMut<GuestConnection>,

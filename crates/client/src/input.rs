@@ -42,8 +42,8 @@ impl Plugin for ClientInputPlugin {
 }
 
 // Lightyear cannot process rebroadcast inputs until the local timeline is synchronized, but its
-// end-of-frame cleanup warns about every unread message. These packets cannot be retained across
-// frames and later packets contain redundant state, so explicitly discard them during startup.
+// end-of-frame cleanup warns about every unread message. Those packets cannot be retained across
+// frames and later ones carry redundant state, so discard them during startup.
 fn discard_remote_inputs_before_sync(
     timeline_sync: Res<LocalTimelineSync>,
     mut receivers: Query<&mut MessageReceiver<InputMessage<NativeStateSequence<PlayerInput>>>>,
@@ -57,8 +57,8 @@ fn discard_remote_inputs_before_sync(
     }
 }
 
-// Use the last rendered player and camera poses together. Physics Position has already
-// been restored to the current tick here and would mix timelines during catch-up ticks.
+// Use the last rendered player and camera poses together: Physics Position has already been
+// restored to the current tick here and would mix timelines during catch-up ticks.
 type PlayerInputQuery<'w, 's> = Query<
     'w,
     's,
@@ -79,8 +79,8 @@ struct AbilityInputs {
 #[derive(Resource, Default)]
 struct SessionInputReset(bool);
 
-// Run during retirement, before packet receive. Also clear events that accumulated
-// during the pause; otherwise Bevy could turn an old key-down back into held input.
+// Run during retirement, before packet receive. Also clear events that accumulated during the
+// pause; otherwise an old key-down could come back as held input.
 pub(super) fn reset_session_inputs(world: &mut World) {
     world.insert_resource(AbilityInputs::default());
     world.insert_resource(SessionInputReset(true));
@@ -94,8 +94,8 @@ pub(super) fn reset_session_inputs(world: &mut World) {
     world.resource_mut::<ButtonInput<MouseButton>>().reset_all();
 }
 
-// OS input can arrive after First; clear again after Bevy processes it, before
-// capturing abilities. Ordinary frames must NOT reset the captured click counters.
+// OS input can arrive after First, so clear again after Bevy processes it, before capturing
+// abilities. Ordinary frames must NOT reset the captured click counters.
 fn finish_session_input_reset(
     mut reset: ResMut<SessionInputReset>,
     mut keyboard: ResMut<ButtonInput<KeyCode>>,
@@ -107,8 +107,8 @@ fn finish_session_input_reset(
     }
 }
 
-// Capture ability controls once per render frame. Counters preserve discrete presses across
-// zero or multiple fixed ticks, while the beam retains its current held state.
+// Capture ability controls once per render frame. Counters preserve discrete presses across zero
+// or multiple fixed ticks, while the beam keeps its current held state.
 fn capture_ability_inputs(
     mouse: Res<ButtonInput<MouseButton>>,
     keyboard: Res<ButtonInput<KeyCode>>,

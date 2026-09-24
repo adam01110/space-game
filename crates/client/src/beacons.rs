@@ -8,11 +8,11 @@ use space_game_protocol::ArenaBoundary;
 
 use crate::palette::Palette;
 
-// Number of pylons spaced evenly around the rim. A fixed count keeps the pylon entities stable
-// while the radius animates, so nothing is spawned or despawned mid-game.
+// Pylons spaced evenly around the rim. A fixed count keeps the entities stable while the radius
+// animates, so nothing is spawned or despawned mid-game.
 pub(super) const BEACON_COUNT: usize = 16;
-// Mast rectangle in world units. Its long axis is placed along the radius, with the mast outside
-// the boundary, so it never overlaps a contained body.
+// Mast rectangle in world units. Its long axis lies along the radius, with the mast outside the
+// boundary, so it never overlaps a contained body.
 pub(super) const BEACON_MAST: Vec2 = Vec2::new(6.0, 24.0);
 // Side of the square light on the inner tip of the mast.
 pub(super) const BEACON_LIGHT: f32 = 8.0;
@@ -71,7 +71,7 @@ fn beacon_angle(index: usize) -> f32 {
 }
 
 // Spawned once, hidden, and placed by `follow_arena` as soon as a predicted arena exists. A guest
-// that has not connected yet has no arena, so the pylons stay out of the menu.
+// that has not connected has no arena, so the pylons stay out of the menu.
 fn spawn_beacons(mut commands: Commands) {
     for index in 0..BEACON_COUNT {
         let mast = commands
@@ -97,8 +97,7 @@ fn spawn_beacons(mut commands: Commands) {
 }
 
 // Places every mast on the boundary. The mast centre sits half a mast outside the radius and the
-// light sits on the inner tip, so the lights trace the containment circle exactly while it grows
-// or shrinks.
+// light on the inner tip, so the lights trace the containment circle while it grows or shrinks.
 fn follow_arena(arenas: Query<&ArenaBoundary, With<Predicted>>, mut pylons: PylonQuery) {
     let radius = arenas.single().map(|arena| arena.radius).ok();
 
@@ -120,8 +119,8 @@ fn follow_arena(arenas: Query<&ArenaBoundary, With<Predicted>>, mut pylons: Pylo
     }
 }
 
-// Dims and brightens each light on its own phase, which reads as a signal chasing around the rim
-// rather than the whole ring blinking in unison.
+// Dims and brightens each light on its own phase, so the signal chases around the rim instead of
+// the whole ring blinking in unison.
 fn pulse_lights(time: Res<Time>, mut lights: Query<(&BeaconLight, &mut Sprite)>) {
     let elapsed = time.elapsed_secs();
 

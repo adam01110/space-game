@@ -11,14 +11,14 @@ impl Plugin for ServerAbilitiesPlugin {
         app.init_resource::<ProjectileInterest>()
             .init_resource::<ProjectileVisibility>()
             .add_observer(replicate_blaster_shot)
-            // Fixed simulation creates/moves shots before Update; replication sends
-            // in PostUpdate. New shots and new connections are filtered immediately.
+            // Fixed simulation creates/moves shots before `Update`, replication sends in
+            // `PostUpdate`; new shots and connections are filtered immediately.
             .add_systems(Update, update_projectile_visibility);
     }
 }
 
-// A conservative world-space interest envelope, not a client-provided viewport.
-// Solid players and arena state must remain global for same-tick collision prediction.
+// A conservative world-space interest envelope, not a client-provided viewport. Solid players and
+// arena state stay global for same-tick collision prediction.
 #[derive(Resource)]
 pub(crate) struct ProjectileInterest {
     enter: f32,
@@ -45,8 +45,8 @@ fn replicate_blaster_shot(
     let mut entity = commands.entity(trigger.entity);
     entity.insert((
         Replicate::to_clients(NetworkTarget::All),
-        // Projectiles and colliders share the same predicted timeline. Remote
-        // clients no longer create speculative prespawns from rebroadcast inputs.
+        // Projectiles and colliders share the same predicted timeline; remote clients no longer
+        // create speculative prespawns from rebroadcast inputs.
         PredictionTarget::to_clients(NetworkTarget::All),
         // Affects mutation eligibility, not reliable spawn/despawn delivery.
         ReplicatePriority(0.5),

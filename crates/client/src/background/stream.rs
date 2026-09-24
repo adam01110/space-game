@@ -8,19 +8,19 @@ use super::chunks::{BackdropChunk, chunk_range, chunk_translation, chunk_variati
 use super::layers::{BACKDROP_LAYERS, BackdropLayer};
 use super::tiles::BackdropTiles;
 
-// Travel the backdrop carries on its own, in world units per second. Each layer scales it by its
-// parallax, so the depths separate here exactly as they do when the camera flies.
+// Travel the backdrop carries on its own, in world units per second; each layer scales it by its
+// parallax.
 pub(crate) const BACKDROP_DRIFT: Vec2 = Vec2::new(-8.0, 4.0);
 
-// How far the backdrop has travelled on its own. Held in the space a camera position lives in,
-// rather than in a layer's, so every layer scales the one offset by its parallax.
+// How far the backdrop has travelled on its own. Held in camera space rather than a layer's
+// space, so every layer scales the one offset by its parallax.
 #[derive(Resource, Default)]
 pub(crate) struct BackdropDrift {
     pub(crate) offset: Vec2,
 }
 
-// The chunks that are currently spawned, so travel only spawns what entered the view and only
-// despawns what left it.
+// The chunks that are currently spawned, so travel spawns only what entered the view and
+// despawns only what left it.
 #[derive(Resource, Default)]
 pub(super) struct BackdropChunks {
     live: HashMap<(usize, IVec2), Entity>,
@@ -33,9 +33,9 @@ pub(super) fn drift_backdrop(time: Res<Time>, mut drift: ResMut<BackdropDrift>) 
     drift.offset += BACKDROP_DRIFT * time.delta_secs();
 }
 
-// Keep the chunks covering the view around the camera, wherever it travels. Cells are remembered
-// rather than recomputed from scratch, so crossing a chunk border spawns one row or column
-// instead of rebuilding the backdrop.
+// Keep the chunks covering the view around the camera. Cells are remembered rather than
+// recomputed, so crossing a chunk border spawns one row or column instead of rebuilding the
+// backdrop.
 pub(super) fn layout_backdrop(
     mut commands: Commands,
     camera: Single<(&Transform, &Projection), CameraViewFilter>,
@@ -77,11 +77,10 @@ pub(crate) fn world_view(projection: &Projection, window: &Window) -> Vec2 {
     from_projection.max(from_window)
 }
 
-// One layer's streaming pass. A layer is streamed in its own space, as if the camera sat at
-// `(position - drift) * parallax` inside it, and the difference back to the camera position is
-// added to every chunk as a world `anchor` offset. That offset is what makes a layer trail the
-// world, and the drift rides the same offset, so a layer slides by its parallax fraction of it
-// too.
+// One layer's streaming pass. The layer is streamed in its own space, as if the camera sat at
+// `(position - drift) * parallax` inside it; the difference back to the camera position is added
+// to every chunk as a world `anchor` offset. The drift rides that same offset, so a layer slides
+// by its parallax fraction of it.
 struct LayerStream<'a> {
     index: usize,
     layer: BackdropLayer,
@@ -92,9 +91,9 @@ struct LayerStream<'a> {
 }
 
 impl LayerStream<'_> {
-    // Retire the cells the layer position left, then spawn or re-place every cell the view around
-    // it needs. Chunks are placed in the world, so re-placing them by the anchor offset is what
-    // makes a layer trail the camera by `(1 - parallax) * camera travel`.
+    // Retire the cells the layer position left, then spawn or re-place every cell the view needs.
+    // Chunks live in the world, so re-placing them by the anchor offset makes a layer trail the
+    // camera by `(1 - parallax) * camera travel`.
     fn layout(
         &mut self,
         view: Vec2,
@@ -103,7 +102,6 @@ impl LayerStream<'_> {
     ) {
         let range = chunk_range(self.layer_position, view, self.layer.chunk);
 
-        // Chunks the camera left behind.
         self.chunks.retain(|&(chunk_layer, cell), &mut entity| {
             let keep = chunk_layer != self.index || range.contains(cell);
             if !keep {
@@ -121,8 +119,8 @@ impl LayerStream<'_> {
         }
     }
 
-    // Bring one cell up to date: a live chunk only has to follow the anchor, everything else is
-    // spawned once and stays fixed by its cell.
+    // Bring one cell up to date. A live chunk only follows the anchor; everything else is spawned
+    // once and stays fixed by its cell.
     fn place(
         &mut self,
         cell: IVec2,

@@ -3,7 +3,7 @@ use bevy::prelude::Color;
 use crate::palette::Palette;
 
 // The sixteen swatches exactly as lospec publishes them, so a mistyped channel in
-// `Palette::color` fails the test below instead of quietly shifting a hue.
+// `Palette::color` fails the test below.
 const PUBLISHED: [(&str, Palette); 16] = [
     ("0a401a", Palette::Forest),
     ("6d852c", Palette::Moss),
@@ -35,7 +35,7 @@ fn every_swatch_matches_the_published_palette() {
 }
 
 // `None` for anything that is not exactly three byte pairs, so a malformed table entry fails the
-// comparison above instead of panicking here.
+// comparison above.
 fn color_from_hex(hex: &str) -> Option<Color> {
     let (pairs, _) = hex.as_bytes().as_chunks::<2>();
     let [first, second, third] = pairs else {
@@ -46,7 +46,6 @@ fn color_from_hex(hex: &str) -> Option<Color> {
     Some(Color::srgb_u8(red, green, blue))
 }
 
-// One byte pair of a swatch as a channel.
 fn channel(pair: [u8; 2]) -> Option<u8> {
     let [high, low] = pair;
     Some(nibble(high)? * 16 + nibble(low)?)

@@ -11,16 +11,15 @@ use crate::{
     phase_beam::{BEAM_LENGTH, BEAM_WIDTH},
 };
 
-// Damage one blaster shot deals to the player it hits.
 pub const BULLET_DAMAGE: u8 = 10;
 
 // Damage a phase beam deals per second of contact.
 pub const PHASE_BEAM_DAMAGE_PER_SECOND: u8 = 25;
 
-// Hit circle of a shot. The rendered projectile is a 4 x 16 rectangle, so its width is
-// the closer approximation, and the resulting circle stays wider than the 20 units a
-// shot covers per tick so it cannot tunnel past a player. Public so the client's
-// development overlays can draw the volume damage is resolved against.
+// Hit circle of a shot. The rendered projectile is a 4 x 16 rectangle, so its width is the
+// closer approximation, and the circle stays wider than the 20 units a shot covers per tick
+// so it cannot tunnel past a player. Public so client development overlays can draw the
+// volume damage is resolved against.
 pub const SHOT_RADIUS: f32 = 4.0;
 
 /// Weapon damage values, in health points. Replace the resource to retune both
@@ -40,8 +39,8 @@ impl Default for DamageConfig {
     }
 }
 
-// Sub-unit beam damage carried between ticks, so a rate below one damage unit per
-// tick still lands. Server-only bookkeeping and never replicated.
+// Sub-unit beam damage carried between ticks, so a rate below one damage unit per tick still
+// lands. Server-only bookkeeping, never replicated.
 #[derive(Component, Default)]
 pub struct BeamDamageCarry(Duration);
 
@@ -80,8 +79,8 @@ fn segment_hit(segment: &PhaseBeamSegment, target: Vec2) -> bool {
     circle_hit(closest, BEAM_WIDTH / 2.0, target, PLAYER_RADIUS)
 }
 
-// Turn a per-second rate into whole damage units, keeping the fraction for the next
-// tick. Whole-unit damage keeps health integral and rollback-friendly.
+// Turn a per-second rate into whole damage units, keeping the fraction for the next tick.
+// Whole-unit damage keeps health integral and rollback-friendly.
 fn accrue_damage(remainder: &mut Duration, units_per_second: u8, delta: Duration) -> u8 {
     let accrued = remainder.saturating_add(delta.saturating_mul(u32::from(units_per_second)));
     *remainder = Duration::new(0, accrued.subsec_nanos());
@@ -123,7 +122,7 @@ pub(super) fn apply_phase_beam_damage(
             .any(|(segment, beam)| !same_owner(beam, target) && segment_hit(segment, position.0));
 
         if !beamed {
-            // Contact ended: a fresh hit starts its own fraction.
+            // Contact ended, so a fresh hit starts its own fraction.
             carry.0 = Duration::ZERO;
             continue;
         }

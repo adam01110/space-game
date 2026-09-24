@@ -12,8 +12,7 @@ use space_game_protocol::PlayerInput;
 
 use crate::network::GuestConnection;
 
-// Registry key of the framework entry point. The menu owns the key because it also removes
-// the source once the game starts.
+// Registry key of the framework entry point, removed by the menu once the game starts.
 const FRAMEWORK_INDEX: &str = "framework-index";
 
 pub(super) struct NativeMenuPlugin;
@@ -33,8 +32,8 @@ impl Plugin for NativeMenuPlugin {
     }
 }
 
-// Whether the framework menu is currently on screen. The menu is retired when the local
-// player joins and rebuilt when the session ends.
+// Whether the framework menu is on screen: retired when the local player joins, rebuilt when
+// the session ends.
 #[derive(Resource, Default)]
 pub(super) struct MenuState {
     retired: bool,

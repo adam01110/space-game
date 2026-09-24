@@ -11,8 +11,8 @@ use space_game_protocol::{BlasterShot, PhaseBeamSegment};
 
 use crate::gizmos::{beam_hitbox, shot_hitbox};
 
-// Capsule geometry runs through the trigonometry that builds its rotation, so the comparisons
-// that touch it keep a tolerance while the ones that do not stay exact.
+// Capsule geometry runs through the trigonometry that builds its rotation, so comparisons that
+// touch it keep a tolerance while the ones that do not stay exact.
 const TOLERANCE: f32 = 1e-3;
 
 fn assert_close(actual: f32, expected: f32, what: &str) {

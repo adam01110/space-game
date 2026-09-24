@@ -53,8 +53,8 @@ use crate::camera::DEBUG_RENDER_LAYERS;
 use crate::plugins::ClientAppPlugin;
 
 // Bevy resolves assets from `CARGO_MANIFEST_DIR`, which cargo sets to this crate, so the
-// workspace-level assets directory has to be addressed from there. The browser build serves
-// assets from the web root and keeps the default path.
+// workspace-level assets directory must be addressed from there. The browser build serves assets
+// from the web root and keeps the default path.
 #[cfg(not(target_family = "wasm"))]
 const ASSET_PATH: &str = "../../assets";
 #[cfg(target_family = "wasm")]
@@ -105,8 +105,8 @@ fn main() {
             })
             .set(WindowPlugin {
                 primary_window: Some(Window {
-                    // VSync bounds rendering to the display refresh rate instead of
-                    // spinning the GPU and CPU at an unbounded frame rate.
+                    // VSync bounds rendering to the display refresh rate instead of spinning
+                    // the GPU and CPU at an unbounded frame rate.
                     present_mode: PresentMode::AutoVsync,
                     ..default()
                 }),

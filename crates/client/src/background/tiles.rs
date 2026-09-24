@@ -22,8 +22,8 @@ pub(super) fn load_backdrop_tiles(mut commands: Commands, asset_server: Res<Asse
     commands.insert_resource(BackdropTiles(tiles));
 }
 
-// A chunk is spawned with a bare sprite, so the size and the mirroring of its cell are applied
-// here. The pass runs every frame, which also covers a chunk spawned after it in the same frame.
+// A chunk spawns with a bare sprite, so its cell's size and mirroring are applied here. The pass
+// runs every frame, which also covers a chunk spawned later in the same frame.
 pub(super) fn shape_backdrop_chunks(mut chunks: Query<(&BackdropChunk, &mut Sprite)>) {
     for (chunk, mut sprite) in &mut chunks {
         let Some(layer) = BACKDROP_LAYERS.get(chunk.layer) else {

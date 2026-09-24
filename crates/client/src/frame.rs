@@ -31,8 +31,8 @@ impl Plugin for NativeFramePlugin {
     }
 }
 
-// Keep the authored SVG in assets and replace only its paths and viewBox at resize.
-// The source remains a valid, viewable 800x600 SVG on its own.
+// Keep the authored SVG in assets and replace only its paths and viewBox at resize, so the
+// source stays a valid, viewable 800x600 SVG.
 fn replace_path(svg: &str, id: &str, path: &str) -> Option<String> {
     let marker = format!("id=\"{id}\" d=\"");
     let (prefix, remainder) = svg.split_once(&marker)?;

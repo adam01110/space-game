@@ -5,7 +5,7 @@ use crate::{
     phase_beam::{add_phase_beam_visuals, update_phase_beam_visuals},
 };
 
-// Central registration for ability presentation, including future boost effects.
+// Central registration for ability presentation.
 pub(super) struct ClientAbilitiesPlugin;
 
 impl Plugin for ClientAbilitiesPlugin {

@@ -59,8 +59,8 @@ pub(super) fn retire_session(commands: &mut Commands, connection: &mut GuestConn
         // including predicted entities and their input/history buffers.
         commands.entity(entity).try_despawn();
     }
-    // Receiver cleanup only visits active replicated entities. Local unmatched
-    // prespawns and prediction-disabled copies must also leave the old session.
+    // Receiver cleanup only visits active replicated entities; local unmatched prespawns
+    // and prediction-disabled copies must also leave the old session.
     commands.queue(|world: &mut World| {
         let stale: Vec<_> = world
             .query_filtered::<Entity, (

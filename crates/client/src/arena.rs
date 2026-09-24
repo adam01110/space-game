@@ -11,9 +11,8 @@ use space_game_protocol::ArenaBoundary;
 #[cfg(feature = "dev")]
 use crate::gizmos::ARENA_BORDER;
 
-// Presentation is deliberately separate from the gameplay constraint. Reuse the
+// Presentation is deliberately separate from the gameplay constraint, drawn on the
 // existing native-resolution debug layer without changing any camera/MSAA settings.
-// Only compiled into the physics debug build.
 #[cfg(feature = "dev")]
 pub(super) fn draw_arena(
     arenas: Query<&ArenaBoundary, With<Predicted>>,

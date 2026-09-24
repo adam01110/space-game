@@ -1,7 +1,7 @@
 // Public connection bootstrap data. No server secrets belong in this crate.
 
-// Bearer credentials delivered by the authenticated guest endpoint.
-// Deliberately does not implement Debug to avoid accidental token logging.
+// Bearer credentials delivered by the authenticated guest endpoint; deliberately does not
+// implement `Debug` to avoid accidental token logging.
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct GuestCredentials {

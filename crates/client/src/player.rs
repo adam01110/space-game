@@ -63,7 +63,7 @@ fn add_player_visuals(
             false => Palette::Rose.color(),
         };
         // `SvgPlugin` inserts the `Sprite` once the raster is ready, so the ship stays invisible
-        // instead of wearing a placeholder for the frames the asset loads.
+        // instead of wearing a placeholder while the asset loads.
         let sprite: Handle<SvgFile> = asset_server.load(PLAYER_SPRITE);
 
         commands
@@ -73,7 +73,7 @@ fn add_player_visuals(
 }
 
 // The SVG rasterises at its declared size, so the sprite would inherit the SVG's pixel
-// dimensions; the ship keeps the rectangle the collider was tuned against instead.
+// dimensions; the ship keeps the rectangle the collider was tuned against.
 fn size_player_sprites(mut sprites: Query<&mut Sprite, (With<Player>, Added<Sprite>)>) {
     for mut sprite in &mut sprites {
         sprite.custom_size = Some(PLAYER_SIZE);

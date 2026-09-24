@@ -104,10 +104,10 @@ fn contain_bodies<F: QueryFilter>(arena: &ArenaBoundary, bodies: &mut Query<Boun
     }
 }
 
-// An analytic interior constraint, not a polygon or a solid disk collider. Apply after
-// contact solving and before pose writeback/history on both timelines. No wall thickness,
-// gaps or tunnelling: even a boost or a shrinking arena cannot leave a body outside.
-// Remove only outward velocity so inward movement and tangential sliding remain free.
+// An analytic interior constraint, applied after contact solving and before pose
+// writeback/history on both timelines. With no wall thickness there are no gaps or
+// tunnelling, and only outward velocity is removed, so inward movement and tangential
+// sliding remain free.
 pub fn contain_circle(radius: f32, body_radius: f32, position: &mut Vec2, velocity: &mut Vec2) {
     let limit = (radius - body_radius).max(0.0);
     let distance = position.length();

@@ -30,9 +30,9 @@ pub(super) fn spawn_shots(
     let direction = *rotation * Vec2::Y;
 
     for shot_index in 0..shots {
-        // A retransmitted click can be consumed on a different server tick. Match
-        // the action, not the consumption tick. Counters cannot wrap within this
-        // one-second lifetime: a magazine holds 50 shots then reloads for 5 s.
+        // A retransmitted click can be consumed on a different server tick, so match the
+        // action, not the consumption tick. Counters cannot wrap within the one-second
+        // lifetime: a magazine holds 50 shots then reloads for 5 s.
         let click = last_click.wrapping_sub(shots - 1 - shot_index);
         let hash = identity
             .0

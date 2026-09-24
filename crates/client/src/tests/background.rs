@@ -19,7 +19,7 @@ use crate::{
 const WINDOW: Vec2 = Vec2::new(1280.0, 720.0);
 
 // Starts a client with the backdrop plugin, a window and a gameplay camera, but no render app:
-// the layout runs against the same data it sees in the game.
+// the layout runs against the same data as in the game.
 fn backdrop_app() -> App {
     let mut app = App::new();
     app.insert_resource(crate::network::GuestConnection {
@@ -55,7 +55,7 @@ fn backdrop_app() -> App {
     ));
 
     // The layout tests pin where chunks land, so the clock is fixed: time only moves when a test
-    // steps it, and the backdrop drift stays where the test put it.
+    // steps it.
     app.insert_resource(TimeUpdateStrategy::ManualDuration(Duration::ZERO));
 
     app
@@ -85,8 +85,7 @@ fn chunks(app: &mut App) -> Vec<(usize, Vec2)> {
 
 // Every layer has to hold exactly the cells that cover the view around `position`, and its tiles
 // have to reach past the edges of that view. Chunks are placed in the world, but a layer streams
-// its grid in the layer's own space, so the parallax offset and the drift are removed before
-// comparing.
+// its grid in its own space, so the parallax offset and drift are removed before comparing.
 fn assert_covered(app: &mut App, position: Vec2) {
     let found = chunks(app);
     let travelled = drift(app);
@@ -242,7 +241,7 @@ fn chunk_variation_is_stable_and_spread_over_the_tile_set() {
     }
 
     // Three tiles, two mirrorings and four quarter turns are twenty-four treatments; a small
-    // patch of the grid has to use most of them or the backdrop reads as one repeated tile.
+    // patch of the grid has to use most of them.
     let mut variants: Vec<usize> = seen.iter().map(|entry| entry.tile).collect();
     variants.sort_unstable();
     variants.dedup();
@@ -251,8 +250,8 @@ fn chunk_variation_is_stable_and_spread_over_the_tile_set() {
     assert!(seen.len() >= 12, "{seen:?}");
 }
 
-// A layer that holds a single tile draws all of its variety from the mirroring and the quarter
-// turn of the chunk, so neighbouring cells still have to look different.
+// A layer of one tile draws its variety from the chunk's mirroring and quarter turn, so
+// neighbouring cells still have to look different.
 #[test]
 fn a_layer_of_one_tile_still_varies_how_its_chunks_are_treated() {
     for (index, layer) in BACKDROP_LAYERS.iter().enumerate() {
@@ -291,8 +290,8 @@ fn backdrop_rasters_match_their_chunk_size() {
     }
 }
 
-// Width and height out of the PNG header: behind the signature the format pins its first chunk to
-// IHDR, whose two big-endian dimensions sit right after the chunk name.
+// Width and height out of the PNG header: the format pins its first chunk to IHDR, whose two
+// big-endian dimensions sit right after the chunk name.
 fn png_size(source: &[u8]) -> Vec2 {
     const SIGNATURE: [u8; 8] = [137, b'P', b'N', b'G', 13, 10, 26, 10];
 
@@ -312,8 +311,8 @@ fn png_size(source: &[u8]) -> Vec2 {
 }
 
 // The backdrop carries its own travel, so the layers keep sliding while the camera holds still.
-// The travel is shared and every layer scales it by its parallax, which keeps the depth
-// separation the same as when the camera flies: the nearest layer slides furthest.
+// The travel is shared and every layer scales it by its parallax, so the nearest layer slides
+// furthest.
 #[test]
 fn the_backdrop_slides_in_one_direction_scaled_by_its_parallax() {
     let mut app = backdrop_app();
@@ -364,8 +363,8 @@ fn the_backdrop_slides_in_one_direction_scaled_by_its_parallax() {
     }
 }
 
-// The layers have to separate visually: each one trails the camera by its own factor instead of
-// travelling with the world, and the nearer the layer, the more of the camera travel it follows.
+// The layers have to separate visually: each trails the camera by its own factor instead of
+// travelling with the world, and the nearer the layer the more of the camera travel it follows.
 #[test]
 fn every_layer_trails_the_camera_by_its_parallax_factor() {
     let mut app = backdrop_app();
@@ -459,8 +458,8 @@ fn travelling_spawns_only_the_chunks_that_enter_the_view() {
         assert_covered(&mut app, travelled);
     }
 
-    // Chunks left behind are gone. The rasters load asynchronously, so wait for them before
-    // checking that every live chunk is painted at its chunk size, mirrored as its cell asks for.
+    // Chunks left behind are gone. Rasters load asynchronously, so wait for them before checking
+    // that every live chunk is painted at its chunk size, mirrored as its cell asks for.
     let mut waited = 0;
     while loaded_tiles(&mut app) < chunks(&mut app).len() {
         waited += 1;

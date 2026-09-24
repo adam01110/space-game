@@ -43,7 +43,7 @@ pub(crate) fn chunk_range(position: Vec2, view: Vec2, chunk: f32) -> IRect {
 }
 
 // Derived from the chunk coordinate, so every client paints the same backdrop without storing
-// anything per chunk, and neighbouring chunks get different treatment.
+// per-chunk state.
 pub(crate) fn chunk_variation(layer: usize, cell: IVec2, tiles: usize) -> ChunkVariation {
     let layer = u32::try_from(layer).unwrap_or(u32::MAX);
     let tiles = u32::try_from(tiles).unwrap_or(1).max(1);
@@ -85,9 +85,9 @@ const CHUNK_OUTLINE_COLORS: [Color; 4] = [
     Palette::Tan.color(),
 ];
 
-// Outlines of every live backdrop chunk, on the debug render layer. Runs after the layout pass
-// so the outlines follow the same anchor offsets the chunks move by that frame. Gizmos are only
-// available where the gizmo plugin runs, so the outlines idle in gizmo-less apps such as tests.
+// Outlines of every live backdrop chunk, on the debug render layer. Runs after the layout pass,
+// so the outlines follow the anchor offsets the chunks move by that frame. The gizmos are
+// optional because they only exist where the gizmo plugin runs.
 #[cfg(feature = "dev")]
 pub(crate) fn draw_chunk_outlines(
     chunks: Query<(&BackdropChunk, &Transform)>,
