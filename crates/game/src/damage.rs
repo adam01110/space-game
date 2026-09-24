@@ -19,8 +19,9 @@ pub const PHASE_BEAM_DAMAGE_PER_SECOND: u8 = 25;
 
 // Hit circle of a shot. The rendered projectile is a 4 x 16 rectangle, so its width is
 // the closer approximation, and the resulting circle stays wider than the 20 units a
-// shot covers per tick so it cannot tunnel past a player.
-const SHOT_RADIUS: f32 = 4.0;
+// shot covers per tick so it cannot tunnel past a player. Public so the client's
+// development overlays can draw the volume damage is resolved against.
+pub const SHOT_RADIUS: f32 = 4.0;
 
 /// Weapon damage values, in health points. Replace the resource to retune both
 /// weapons at once; `Default` holds the values a session starts with.

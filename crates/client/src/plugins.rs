@@ -8,9 +8,9 @@ use bevy_resvg::prelude::SvgPlugin;
 #[cfg(feature = "dev")]
 use lightyear::frame_interpolation::FrameInterpolationSystems;
 
-#[cfg(feature = "dev")]
-use crate::arena;
 use crate::{abilities, background, beacons, camera, input, network, player};
+#[cfg(feature = "dev")]
+use crate::{arena, gizmos};
 #[cfg(not(target_family = "wasm"))]
 use crate::{frame, hud, menu};
 
@@ -28,11 +28,17 @@ impl Plugin for ClientAppPlugin {
             Startup,
             (ClientStartup::Camera, ClientStartup::Connection).chain(),
         );
-        // Physics gizmo rendering is a development-only diagnostic.
+        // Physics gizmo rendering is a development-only diagnostic. Overlays follow the
+        // interpolated presentation, so they run after the frame interpolation pass.
         #[cfg(feature = "dev")]
         app.add_systems(
             PostUpdate,
-            arena::draw_arena.after(FrameInterpolationSystems::Interpolate),
+            (
+                arena::draw_arena,
+                gizmos::draw_shot_hitboxes,
+                gizmos::draw_beam_hitboxes,
+            )
+                .after(FrameInterpolationSystems::Interpolate),
         );
         #[cfg(not(target_family = "wasm"))]
         app.insert_resource(ExtendedUiConfiguration {

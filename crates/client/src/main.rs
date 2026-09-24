@@ -9,6 +9,7 @@ mod frame;
 #[cfg(not(target_family = "wasm"))]
 #[path = "frame.component.rs"]
 mod frame_component;
+mod gizmos;
 mod guest;
 #[cfg(not(target_family = "wasm"))]
 mod hud;

@@ -9,7 +9,7 @@ use lightyear::prelude::Predicted;
 use space_game_protocol::ArenaBoundary;
 
 #[cfg(feature = "dev")]
-use crate::palette::Palette;
+use crate::gizmos::ARENA_BORDER;
 
 // Presentation is deliberately separate from the gameplay constraint. Reuse the
 // existing native-resolution debug layer without changing any camera/MSAA settings.
@@ -21,7 +21,7 @@ pub(super) fn draw_arena(
 ) {
     if let Ok(arena) = arenas.single() {
         gizmos
-            .circle_2d(Vec2::ZERO, arena.radius, Palette::Olive.color())
+            .circle_2d(Vec2::ZERO, arena.radius, ARENA_BORDER)
             .resolution(512);
     }
 }

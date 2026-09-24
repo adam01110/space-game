@@ -15,6 +15,6 @@ pub use arena::{
     ARENA_GROWTH_MULTIPLIER, ARENA_RESIZE_SPEED, BASE_ARENA_RADIUS, advance_arena, arena_radius,
     contain_circle, contain_predicted_bodies, install_arena_interpolation,
 };
-pub use damage::{BULLET_DAMAGE, DamageConfig, PHASE_BEAM_DAMAGE_PER_SECOND};
+pub use damage::{BULLET_DAMAGE, DamageConfig, PHASE_BEAM_DAMAGE_PER_SECOND, SHOT_RADIUS};
 pub use player::{PLAYER_RADIUS, PlayerBundle};
 pub use plugins::{ClientSimulationPlugin, GamePlugin, SERVER_UPS, ServerSimulationPlugin};
