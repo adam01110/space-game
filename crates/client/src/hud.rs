@@ -1,3 +1,5 @@
+use std::collections::{HashMap, HashSet};
+
 use bevy::diagnostic::{Diagnostic, DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
@@ -12,6 +14,9 @@ use space_game_protocol::{
 
 // Charged abilities are read from the local player's predicted components, so the
 // readout matches the ship the client actually flies.
+type RemoteShips<'w, 's> =
+    Query<'w, 's, (Entity, &'static Transform), (With<Player>, Without<InputMarker<PlayerInput>>)>;
+
 type LocalCharges<'w, 's> = Query<
     'w,
     's,
@@ -31,16 +36,9 @@ const BLIP_SIZE_PX: f32 = 8.0;
 
 // Full width of the hull bar; the readout scales the filled box by the ship's health.
 pub(super) const HEALTH_BAR_WIDTH_PX: f32 = 140.0;
-const MAP_BLIP_IDS: [&str; 8] = [
-    "hud-map-blip-0",
-    "hud-map-blip-1",
-    "hud-map-blip-2",
-    "hud-map-blip-3",
-    "hud-map-blip-4",
-    "hud-map-blip-5",
-    "hud-map-blip-6",
-    "hud-map-blip-7",
-];
+
+#[derive(Component)]
+pub(super) struct HudMapBlip;
 
 // The blips fade out for twice as long as they show, so the map never reads as a
 // static icon sitting in the corner.
@@ -59,15 +57,8 @@ impl Plugin for NativeHudPlugin {
         debug_assert_eq!(component.template_file, "hud.component.html");
         debug_assert_eq!(component.styles, &["hud.css"]);
         app.add_plugins(FrameTimeDiagnosticsPlugin::default())
-            .add_systems(
-                Update,
-                (
-                    update_hud,
-                    update_hud_health,
-                    update_hud_map,
-                    update_hud_visibility,
-                ),
-            );
+            .add_systems(Update, (update_hud, update_hud_health))
+            .add_systems(Update, (update_hud_map, update_hud_visibility).chain());
     }
 }
 
@@ -91,6 +82,7 @@ fn update_hud(
     let Ok((boost, blasters, beam)) = charges.single() else {
         return;
     };
+
     write_line(&mut hud, "hud-boost", &charge_text(boost.0.units()));
     write_line(&mut hud, "hud-blaster", &charge_text(blasters.0.units()));
     write_line(&mut hud, "hud-beam", &charge_text(beam.0.units()));
@@ -103,26 +95,34 @@ fn update_hud_visibility(
     time: Res<Time>,
     mut cycle: Local<f32>,
     mut hud: Query<(&CssID, &mut Visibility)>,
+    mut blips: Query<&mut Visibility, With<HudMapBlip>>,
 ) {
     *cycle = (*cycle + time.delta_secs()) % MAP_CYCLE_SECONDS;
     let playing = !local_player.is_empty();
     let blips_shown = playing && *cycle < MAP_VISIBLE_SECONDS;
 
     for (css_id, mut visibility) in hud.iter_mut() {
-        let shown = if is_blip(&css_id.0) {
-            blips_shown
-        } else if matches!(
-            css_id.0.as_str(),
-            "hud-map" | "hud-status" | "hud-abilities" | "hud-health" | "hud-alert"
-        ) {
-            playing
-        } else {
-            continue;
+        let shown = match css_id.0.as_str() {
+            "hud-map" | "hud-status" | "hud-abilities" | "hud-health" | "hud-alert" => playing,
+            _ => continue,
         };
+
         let wanted = match shown {
             true => Visibility::Inherited,
             false => Visibility::Hidden,
         };
+
+        if *visibility != wanted {
+            *visibility = wanted;
+        }
+    }
+
+    let wanted = match blips_shown {
+        true => Visibility::Inherited,
+        false => Visibility::Hidden,
+    };
+
+    for mut visibility in &mut blips {
         if *visibility != wanted {
             *visibility = wanted;
         }
@@ -144,6 +144,7 @@ pub(super) fn update_hud_health(
 
     let filled = f32::from(health.0.min(PlayerHealth::FULL)) / f32::from(PlayerHealth::FULL)
         * HEALTH_BAR_WIDTH_PX;
+
     for (css_id, mut node) in nodes.iter_mut() {
         if css_id.0 == "hud-health-fill" && node.width != Val::Px(filled) {
             node.width = Val::Px(filled);
@@ -151,44 +152,77 @@ pub(super) fn update_hud_health(
     }
 }
 
-// Only the ships blink; the ring, the grid and the label stay put.
-fn is_blip(id: &str) -> bool {
-    MAP_BLIP_IDS.contains(&id)
-}
-
 // Places every replicated ship on the ring. The map is centred on the local ship,
 // so it reads as the view from that ship rather than the arena.
-fn update_hud_map(
+pub(super) fn update_hud_map(
+    mut commands: Commands,
     window: Single<&Window, With<PrimaryWindow>>,
     local: Query<&Transform, (With<Player>, With<InputMarker<PlayerInput>>)>,
-    remotes: Query<&Transform, (With<Player>, Without<InputMarker<PlayerInput>>)>,
-    mut nodes: Query<(&CssID, &mut Node)>,
+    remotes: RemoteShips,
+    ring: Query<(Entity, &CssID)>,
+    mut blips: Query<&mut Node, With<HudMapBlip>>,
+    mut entities: Local<HashMap<Entity, Entity>>,
 ) {
-    let Ok(local) = local.single() else {
-        return;
-    };
-    let range = map_range(window.width(), window.height());
-    let scale = MAP_RADIUS_PX / range;
-    let origin = local.translation.truncate();
+    let ring = ring
+        .iter()
+        .find(|(_, id)| id.0 == "hud-map-ring")
+        .map(|(entity, _)| entity);
+    let local = local.single().ok();
+    let mut visible = HashSet::new();
+    if let (Some(ring), Some(local)) = (ring, local) {
+        let scale = MAP_RADIUS_PX / map_range(window.width(), window.height());
+        let origin = local.translation.truncate();
 
-    // The local ship sits at the centre of its own map, so it gets no blip.
-    // Interest management only replicates nearby ships, so the pool takes whatever
-    // the client knows about and hides the rest. Ships past the map's range are left
-    // off entirely instead of piling up on the ring.
-    let mut free = MAP_BLIP_IDS.iter();
-    for transform in &remotes {
-        let offset = (transform.translation.truncate() - origin) * scale;
-        if offset.length() > MAP_RADIUS_PX {
-            continue;
+        for (player, transform) in &remotes {
+            let offset = (transform.translation.truncate() - origin) * scale;
+            if offset.length() > MAP_RADIUS_PX {
+                continue;
+            }
+
+            visible.insert(player);
+            match entities.get(&player) {
+                Some(&blip) => {
+                    if let Ok(mut node) = blips.get_mut(blip) {
+                        position_blip(&mut node, offset);
+                    }
+                }
+                None => {
+                    let mut node = Node {
+                        position_type: PositionType::Absolute,
+                        width: Val::Px(BLIP_SIZE_PX),
+                        height: Val::Px(BLIP_SIZE_PX),
+                        ..default()
+                    };
+                    position_blip(&mut node, offset);
+                    let blip = commands
+                        .spawn((
+                            HudMapBlip,
+                            node,
+                            BackgroundColor(Color::srgb_u8(0xa6, 0x63, 0x72)),
+                            UiTransform::from_rotation(Rot2::degrees(45.0)),
+                            Pickable::IGNORE,
+                        ))
+                        .id();
+                    commands.entity(ring).add_child(blip);
+                    entities.insert(player, blip);
+                }
+            }
         }
-        let Some(id) = free.next() else {
-            break;
-        };
-        place(&mut nodes, id, offset, BLIP_SIZE_PX);
     }
-    for id in free {
-        hide(&mut nodes, id);
-    }
+
+    entities.retain(|player, blip| match visible.contains(player) {
+        true => true,
+        false => {
+            commands.entity(*blip).despawn();
+            false
+        }
+    });
+}
+
+fn position_blip(node: &mut Node, offset: Vec2) {
+    let half = BLIP_SIZE_PX / 2.0;
+    node.left = Val::Px(MAP_RADIUS_PX + offset.x - half);
+    node.top = Val::Px(MAP_RADIUS_PX - offset.y - half);
 }
 
 // The rendered view is one world unit per window pixel: the gameplay camera draws
@@ -203,26 +237,6 @@ fn write_line(hud: &mut Query<(&CssID, &mut Paragraph)>, id: &str, text: &str) {
     for (css_id, mut paragraph) in hud.iter_mut() {
         if css_id.0 == id && paragraph.text != text {
             text.clone_into(&mut paragraph.text);
-        }
-    }
-}
-
-// Maps a world offset onto the ring and writes the blip's box.
-fn place(nodes: &mut Query<(&CssID, &mut Node)>, id: &str, offset: Vec2, size: f32) {
-    let half = size / 2.0;
-    for (css_id, mut node) in nodes.iter_mut() {
-        if css_id.0 == id {
-            node.left = Val::Px(MAP_RADIUS_PX + offset.x - half);
-            node.top = Val::Px(MAP_RADIUS_PX - offset.y - half);
-            node.display = Display::Flex;
-        }
-    }
-}
-
-fn hide(nodes: &mut Query<(&CssID, &mut Node)>, id: &str) {
-    for (css_id, mut node) in nodes.iter_mut() {
-        if css_id.0 == id {
-            node.display = Display::None;
         }
     }
 }

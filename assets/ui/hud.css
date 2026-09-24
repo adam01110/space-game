@@ -2,7 +2,6 @@
   /* Nebulaspace swatches, shared with the menu, the frame and the world sprites. */
   --hud-ink: #d6c2ba;
   --hud-dim: #bf9684;
-  --hud-remote: #a66372;
 }
 
 /* The overlay never takes pointer input: the menu owns clicks before the match
@@ -36,7 +35,7 @@
 }
 
 /* Minimap. The ring is the map's range, not the arena wall: the HUD system
-   scales every blip by the visible area and blinks the whole block. */
+   scales every blip by the visible area; ships blink independently. */
 
 #hud-map {
   position: absolute;
@@ -93,18 +92,6 @@
   font-size: 11px;
   line-height: 12px;
   text-align: center;
-}
-
-/* Blips are placed by the HUD system from world offsets; anything the map has
-   no data for stays hidden. */
-.hud-blip {
-  position: absolute;
-  display: none;
-  width: 8px;
-  height: 8px;
-  background-color: var(--hud-remote);
-  transform: rotate(45deg);
-  pointer-events: none;
 }
 
 /* Ability charges */

@@ -4,7 +4,7 @@ use lightyear::prelude::input::native::InputMarker;
 
 use space_game_protocol::{Player, PlayerHealth, PlayerInput};
 
-use crate::hud::{HEALTH_BAR_WIDTH_PX, update_hud_health};
+use crate::hud::{HEALTH_BAR_WIDTH_PX, HudMapBlip, update_hud_health, update_hud_map};
 
 // The framework builds the HUD from the stylesheet, so the readout only has to find the
 // nodes the stylesheet names.
@@ -37,6 +37,42 @@ fn width(app: &mut App, id: &str) -> Val {
         .find(|(css_id, _)| css_id.0 == id)
         .map(|(_, node)| node.width)
         .expect("hud node")
+}
+
+#[test]
+fn the_map_tracks_every_nearby_remote_and_removes_departed_ships() {
+    let mut app = App::new();
+    app.add_plugins(MinimalPlugins);
+    app.add_systems(Update, update_hud_map);
+    app.world_mut()
+        .spawn((Window::default(), bevy::window::PrimaryWindow));
+    let ring = app
+        .world_mut()
+        .spawn((CssID("hud-map-ring".into()), Node::default()))
+        .id();
+    app.world_mut().spawn((
+        Player,
+        InputMarker::<PlayerInput>::default(),
+        Transform::default(),
+    ));
+    let remotes: Vec<_> = (0..12)
+        .map(|_| app.world_mut().spawn((Player, Transform::default())).id())
+        .collect();
+    app.update();
+
+    let mut blips = app.world_mut().query_filtered::<Entity, With<HudMapBlip>>();
+    assert_eq!(blips.iter(app.world()).count(), 12);
+    assert_eq!(app.world().get::<Children>(ring).unwrap().len(), 12);
+
+    app.world_mut().despawn(remotes[0]);
+    app.world_mut()
+        .entity_mut(remotes[1])
+        .get_mut::<Transform>()
+        .unwrap()
+        .translation
+        .x = 10_000.0;
+    app.update();
+    assert_eq!(blips.iter(app.world()).count(), 10);
 }
 
 #[test]
