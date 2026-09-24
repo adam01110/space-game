@@ -2,6 +2,7 @@
 // area lives under this test module instead of a separate integration test target.
 
 mod background;
+mod beacons;
 mod camera;
 #[cfg(not(target_family = "wasm"))]
 mod hud;

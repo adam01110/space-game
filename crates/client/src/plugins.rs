@@ -10,7 +10,7 @@ use lightyear::frame_interpolation::FrameInterpolationSystems;
 
 #[cfg(feature = "dev")]
 use crate::arena;
-use crate::{abilities, background, camera, input, network, player};
+use crate::{abilities, background, beacons, camera, input, network, player};
 #[cfg(not(target_family = "wasm"))]
 use crate::{frame, hud, menu};
 
@@ -57,6 +57,7 @@ impl Plugin for ClientAppPlugin {
             SvgPlugin,
             abilities::ClientAbilitiesPlugin,
             background::ClientBackgroundPlugin,
+            beacons::ClientBeaconPlugin,
             camera::ClientCameraPlugin,
             input::ClientInputPlugin,
             network::ClientNetworkPlugin,

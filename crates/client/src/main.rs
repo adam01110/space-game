@@ -1,6 +1,7 @@
 mod abilities;
 mod arena;
 mod background;
+mod beacons;
 mod blasters;
 mod camera;
 #[cfg(not(target_family = "wasm"))]
