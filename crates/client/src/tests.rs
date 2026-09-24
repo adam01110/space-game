@@ -13,3 +13,5 @@ mod hud;
 mod network;
 mod palette;
 mod player;
+#[cfg(not(target_family = "wasm"))]
+mod remote_health;

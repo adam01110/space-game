@@ -37,6 +37,17 @@ struct FlameImages {
     blue: [Option<Handle<Image>>; 3],
 }
 
+impl FlameImages {
+    fn frame(&self, color: Option<FlameColor>, index: usize) -> Option<&Handle<Image>> {
+        let frames = match color? {
+            FlameColor::Red => &self.red,
+            FlameColor::Blue => &self.blue,
+        };
+
+        frames.get(index)?.as_ref()
+    }
+}
+
 #[derive(Component)]
 struct PlayerFlame {
     player: Entity,
@@ -115,20 +126,30 @@ fn animate_player_flames(
             .ok()
             .and_then(|(boost, input)| flame_color(&input.0, boost));
 
-        *visibility = match color {
-            Some(_) => Visibility::Inherited,
-            None => Visibility::Hidden,
-        };
+        update_flame(
+            &mut sprite,
+            &mut visibility,
+            color,
+            &sprite_images,
+            sprite_index,
+        );
+    }
+}
 
-        let sprites = match color {
-            Some(FlameColor::Red) => &sprite_images.red,
-            Some(FlameColor::Blue) => &sprite_images.blue,
-            None => continue,
-        };
+fn update_flame(
+    sprite: &mut Sprite,
+    visibility: &mut Visibility,
+    color: Option<FlameColor>,
+    images: &FlameImages,
+    index: usize,
+) {
+    *visibility = match color.is_some() {
+        true => Visibility::Inherited,
+        false => Visibility::Hidden,
+    };
 
-        if let Some(Some(image)) = sprites.get(sprite_index) {
-            sprite.image.clone_from(image);
-        }
+    if let Some(image) = images.frame(color, index) {
+        sprite.image.clone_from(image);
     }
 }
 

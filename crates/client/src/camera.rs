@@ -63,7 +63,7 @@ pub(super) struct GameplayCamera;
 
 // The rendered gameplay canvas, and the camera that displays it on the window.
 #[derive(Component)]
-struct GameplayCanvas;
+pub(super) struct GameplayCanvas;
 
 #[derive(Component)]
 pub(super) struct CanvasCamera;
@@ -128,7 +128,6 @@ fn setup_camera(
         Msaa::Off,
         CanvasCamera,
         CANVAS_LAYERS,
-        #[cfg(not(target_family = "wasm"))]
         IsDefaultUiCamera,
     ));
 

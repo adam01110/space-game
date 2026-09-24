@@ -4,7 +4,7 @@ use lightyear::prelude::input::native::InputMarker;
 
 use space_game_protocol::{Player, PlayerHealth, PlayerInput};
 
-use crate::hud::{update_hud_health, update_hud_map, HudMapBlip, HEALTH_BAR_WIDTH_PX};
+use crate::hud::{HEALTH_BAR_WIDTH_PX, HudMapBlip, update_hud_health, update_hud_map};
 
 // The framework builds the HUD from the stylesheet, so the readout only has to find the
 // nodes the stylesheet names.

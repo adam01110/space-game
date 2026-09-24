@@ -1,18 +1,20 @@
 use bevy::prelude::*;
 #[cfg(not(target_family = "wasm"))]
-use bevy_extended_ui::{
-    ExtendedCam, ExtendedUiConfiguration, ExtendedUiPlugin,
-    framework::ExtendedFrameworkConfiguration,
-};
+use bevy_extended_ui::framework::ExtendedFrameworkConfiguration;
+use bevy_extended_ui::{ExtendedCam, ExtendedUiConfiguration, ExtendedUiPlugin};
+#[cfg(target_family = "wasm")]
+use bevy_extended_ui::{html::HtmlSource, io::HtmlAsset};
 use bevy_resvg::prelude::SvgPlugin;
 #[cfg(feature = "dev")]
 use lightyear::frame_interpolation::FrameInterpolationSystems;
 
-use crate::{abilities, background, beacons, camera, flame, input, network, player};
+use crate::{
+    abilities, background, beacons, camera, flame, hud, input, network, player, remote_health,
+};
 #[cfg(feature = "dev")]
 use crate::{arena, gizmos};
 #[cfg(not(target_family = "wasm"))]
-use crate::{frame, hud, menu};
+use crate::{frame, menu};
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub(super) enum ClientStartup {
@@ -59,7 +61,16 @@ impl Plugin for ClientAppPlugin {
             frame::NativeFramePlugin,
             hud::NativeHudPlugin,
         ));
+        #[cfg(target_family = "wasm")]
+        app.insert_resource(ExtendedUiConfiguration {
+            camera: ExtendedCam::None,
+            assets_path: "assets/ui/".into(),
+            ..default()
+        })
+        .add_plugins((ExtendedUiPlugin, hud::NativeHudPlugin))
+        .add_systems(Startup, load_browser_hud);
         app.add_plugins((
+            remote_health::RemoteHealthPlugin,
             SvgPlugin,
             abilities::ClientAbilitiesPlugin,
             background::ClientBackgroundPlugin,
@@ -71,4 +82,23 @@ impl Plugin for ClientAppPlugin {
             player::ClientPlayerPlugin,
         ));
     }
+}
+
+// The framework's filesystem-based component discovery is native-only. On wasm, load the same
+// HUD template and stylesheet as extended-UI assets without loading the native menu or frame.
+#[cfg(target_family = "wasm")]
+fn load_browser_hud(mut commands: Commands, mut html_assets: ResMut<Assets<HtmlAsset>>) {
+    let handle = html_assets.add(HtmlAsset {
+        html: browser_hud_html(),
+        stylesheets: Vec::new(),
+    });
+    commands.spawn(HtmlSource::from_handle(handle));
+}
+
+#[cfg(any(test, target_family = "wasm"))]
+pub(super) fn browser_hud_html() -> String {
+    format!(
+        "<html><head><meta name=\"browser-hud\"><link rel=\"stylesheet\" href=\"ui/hud.css\"></head><body><div id=\"hud-remote-health\"></div>{}</body></html>",
+        include_str!("../../../assets/ui/hud.component.html")
+    )
 }

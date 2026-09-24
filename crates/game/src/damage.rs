@@ -14,7 +14,7 @@ use crate::{
 pub const BULLET_DAMAGE: u8 = 10;
 
 // Damage a phase beam deals per second of contact.
-pub const PHASE_BEAM_DAMAGE_PER_SECOND: u8 = 15;
+pub const PHASE_BEAM_DAMAGE_PER_SECOND: u8 = 20;
 
 // Hit circle of a shot. The rendered projectile is a 4 x 16 rectangle, so its width is the
 // closer approximation, and the circle stays wider than the 20 units a shot covers per tick

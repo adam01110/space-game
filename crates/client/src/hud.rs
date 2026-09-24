@@ -50,13 +50,15 @@ pub(super) struct NativeHudPlugin;
 
 impl Plugin for NativeHudPlugin {
     fn build(&self, app: &mut App) {
-        // The framework's index entrypoint owns HUD creation.
+        // Extended UI owns HUD creation: the framework entrypoint on native, an HTML asset on wasm.
         assert!(app.is_plugin_added::<ExtendedUiPlugin>());
-        let component = &crate::hud_component::HUD_COMPONENT;
-
-        debug_assert_eq!(component.template_name, "app-hud");
-        debug_assert_eq!(component.template_file, "hud.component.html");
-        debug_assert_eq!(component.styles, &["hud.css"]);
+        #[cfg(not(target_family = "wasm"))]
+        {
+            let component = &crate::hud_component::HUD_COMPONENT;
+            debug_assert_eq!(component.template_name, "app-hud");
+            debug_assert_eq!(component.template_file, "hud.component.html");
+            debug_assert_eq!(component.styles, &["hud.css"]);
+        }
 
         app.add_plugins(FrameTimeDiagnosticsPlugin::default())
             .add_systems(Update, (update_hud, update_hud_health))
@@ -103,18 +105,24 @@ fn update_hud_visibility(
     let playing = !local_player.is_empty();
     let blips_shown = playing && *cycle < MAP_VISIBLE_SECONDS;
 
-    for (css_id, mut visibility) in hud.iter_mut() {
-        let shown = match css_id.0.as_str() {
-            "hud-map" | "hud-status" | "hud-abilities" | "hud-health" | "hud-alert" => playing,
-            _ => continue,
-        };
-
-        set_visibility(&mut visibility, shown);
+    for (_, mut visibility) in hud.iter_mut().filter(|(id, _)| is_match_readout(id)) {
+        set_visibility(&mut visibility, playing);
     }
 
     for mut visibility in &mut blips {
         set_visibility(&mut visibility, blips_shown);
     }
+}
+
+fn is_match_readout(id: &CssID) -> bool {
+    [
+        "hud-map",
+        "hud-status",
+        "hud-abilities",
+        "hud-health",
+        "hud-alert",
+    ]
+    .contains(&id.0.as_str())
 }
 
 fn set_visibility(visibility: &mut Visibility, shown: bool) {

@@ -1,3 +1,11 @@
+/* The browser loads this stylesheet without the native frame stylesheet. */
+body {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  font-family: PixelifySans;
+}
+
 :root {
   /* Nebulaspace swatches, shared with the menu, the frame and the world sprites. */
   --hud-ink: #d6c2ba;
@@ -129,6 +137,16 @@
 }
 
 /* Match readout */
+
+/* Full-screen layer for ship-attached bars. Each remote ship contributes a track and fill. */
+#hud-remote-health {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
 
 /* Hull readout. It sits in the frame's bottom band, below the border, so it never covers
    the play area. The bar is a box the HUD system resizes from the local ship's health,

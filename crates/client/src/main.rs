@@ -1,3 +1,6 @@
+// The headless camera integration test initializes wgpu's ManualTextureViews resource.
+#![cfg_attr(test, recursion_limit = "256")]
+
 mod abilities;
 mod arena;
 mod background;
@@ -12,7 +15,6 @@ mod frame;
 mod frame_component;
 mod gizmos;
 mod guest;
-#[cfg(not(target_family = "wasm"))]
 mod hud;
 #[cfg(not(target_family = "wasm"))]
 #[path = "hud.component.rs"]
@@ -28,6 +30,7 @@ mod palette;
 mod phase_beam;
 mod player;
 mod plugins;
+mod remote_health;
 
 #[cfg(test)]
 mod tests;
