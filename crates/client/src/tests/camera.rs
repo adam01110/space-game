@@ -4,8 +4,8 @@
 use bevy::{ecs::query::QueryFilter, prelude::*};
 
 use crate::camera::{
-    toggle_debug_zoom, CanvasCamera, DebugCamera, DebugZoom, GameplayCamera, CANVAS_CAMERA_SCALE,
-    DEBUG_ZOOM_FACTOR, PIXEL_SIZE,
+    CANVAS_CAMERA_SCALE, CanvasCamera, DEBUG_ZOOM_FACTOR, DebugCamera, DebugZoom, GameplayCamera,
+    PIXEL_SIZE, toggle_debug_zoom,
 };
 
 fn orthographic(scale: f32) -> Projection {

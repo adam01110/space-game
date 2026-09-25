@@ -6,7 +6,7 @@ use bevy_resvg::resvg::{
     usvg::{Options, Transform, Tree},
 };
 
-use crate::frame::{frame_svg, update_frame, CORNER, FRAME_SVG, INSET};
+use crate::frame::{CORNER, FRAME_SVG, INSET, frame_svg, update_frame};
 
 #[test]
 fn the_frameworks_existing_image_node_receives_the_rendered_frame() {

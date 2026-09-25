@@ -1,10 +1,10 @@
 use bevy::prelude::*;
-use lightyear::prelude::{input::native::InputMarker, Controlled};
+use lightyear::prelude::{Controlled, input::native::InputMarker};
 
 use space_game_protocol::{Player, PlayerHealth, PlayerInput};
 
 use crate::menu::ShowMenu;
-use crate::network::{death, GuestConnection};
+use crate::network::{GuestConnection, death};
 
 // The menu owns its own rebuilding; this only records that it was asked to come back.
 #[derive(Resource, Default)]

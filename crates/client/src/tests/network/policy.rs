@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::network::policy::{prediction_manager, sync_config, timeline_config, PREDICTION_TICKS};
+use crate::network::policy::{PREDICTION_TICKS, prediction_manager, sync_config, timeline_config};
 
 #[test]
 fn rollback_and_timeline_share_a_bounded_budget() {

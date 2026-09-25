@@ -42,8 +42,7 @@ body {
   pointer-events: none;
 }
 
-/* Minimap. The ring is the map's range, not the arena wall: the HUD system scales every
-   blip by the visible area; ships blink independently. */
+/* Arena map. The ring is the arena boundary; the marker shows the local ship. */
 
 #hud-map {
   position: absolute;
@@ -65,34 +64,14 @@ body {
   pointer-events: none;
 }
 
-#hud-map-range {
+#hud-map-player {
   position: absolute;
-  left: 12px;
-  top: 12px;
-  width: 52px;
-  height: 52px;
-  border: 1px var(--hud-dim);
+  left: 35px;
+  top: 35px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  pointer-events: none;
-}
-
-#hud-map-axis-x {
-  position: absolute;
-  left: 0;
-  top: 37px;
-  width: 76px;
-  height: 1px;
-  background-color: var(--hud-dim);
-  pointer-events: none;
-}
-
-#hud-map-axis-y {
-  position: absolute;
-  left: 37px;
-  top: 0;
-  width: 1px;
-  height: 76px;
-  background-color: var(--hud-dim);
+  background-color: #a66372;
   pointer-events: none;
 }
 

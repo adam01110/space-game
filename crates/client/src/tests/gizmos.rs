@@ -4,8 +4,8 @@
 use bevy::prelude::*;
 
 use space_game_game::{
-    phase_beam::{BEAM_LENGTH, BEAM_WIDTH},
     SHOT_RADIUS,
+    phase_beam::{BEAM_LENGTH, BEAM_WIDTH},
 };
 use space_game_protocol::{BlasterShot, PhaseBeamSegment};
 

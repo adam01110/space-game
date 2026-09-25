@@ -89,7 +89,6 @@ fn batched_connection_observers_spawn_distinct_players() {
     }
 }
 
-
 #[test]
 fn positions_are_bounded_and_full_arena_returns_none() {
     let arena = ArenaBoundary::new(PLAYER_RADIUS + SPAWN_CLEARANCE);

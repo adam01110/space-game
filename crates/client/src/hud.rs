@@ -1,22 +1,16 @@
-use std::collections::{HashMap, HashSet};
-
 use bevy::diagnostic::{Diagnostic, DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
-use bevy_extended_ui::{styles::CssID, widgets::Paragraph, ExtendedUiPlugin};
+use bevy_extended_ui::{ExtendedUiPlugin, styles::CssID, widgets::Paragraph};
 use lightyear::prelude::client::Client;
 use lightyear::prelude::input::native::InputMarker;
-use lightyear::prelude::PingManager;
+use lightyear::prelude::{PingManager, Predicted};
 
 use space_game_protocol::{
-    Player, PlayerBlasters, PlayerBoost, PlayerHealth, PlayerInput, PlayerPhaseBeam,
+    ArenaBoundary, Player, PlayerBlasters, PlayerBoost, PlayerHealth, PlayerInput, PlayerPhaseBeam,
 };
 
 // Charged abilities are read from the local player's predicted components, so the readout
 // matches the ship the client flies.
-type RemoteShips<'w, 's> =
-    Query<'w, 's, (Entity, &'static Transform), (With<Player>, Without<InputMarker<PlayerInput>>)>;
-
 type LocalCharges<'w, 's> = Query<
     'w,
     's,
@@ -28,23 +22,13 @@ type LocalCharges<'w, 's> = Query<
     With<InputMarker<PlayerInput>>,
 >;
 
-// The minimap covers the rendered view plus a margin, so a blip at the ring is a ship just off
-// screen; the ring's inner radius is that range.
-const MAP_RADIUS_PX: f32 = 45.0;
-const MAP_RANGE_MARGIN: f32 = 1.1;
-const BLIP_SIZE_PX: f32 = 8.0;
+// Keep the player marker inside the arena ring, including its own width.
+const MAP_RADIUS_PX: f32 = 35.0;
+const MAP_CENTER_PX: f32 = 39.0;
+const MARKER_HALF_PX: f32 = 4.0;
 
 // Full width of the hull bar; the readout scales the filled box by the ship's health.
 pub(super) const HEALTH_BAR_WIDTH_PX: f32 = 140.0;
-
-#[derive(Component)]
-pub(super) struct HudMapBlip;
-
-// The blips fade out for twice as long as they show, so the map never reads as a static icon in
-// the corner.
-const MAP_VISIBLE_SECONDS: f32 = 0.5;
-const MAP_HIDDEN_SECONDS: f32 = 1.0;
-const MAP_CYCLE_SECONDS: f32 = MAP_VISIBLE_SECONDS + MAP_HIDDEN_SECONDS;
 
 pub(super) struct NativeHudPlugin;
 
@@ -61,8 +45,8 @@ impl Plugin for NativeHudPlugin {
         }
 
         app.add_plugins(FrameTimeDiagnosticsPlugin::default())
-            .add_systems(Update, (update_hud, update_hud_health))
-            .add_systems(Update, (update_hud_map, update_hud_visibility).chain());
+            .add_systems(Update, (update_hud, update_hud_health, update_hud_map))
+            .add_systems(Update, update_hud_visibility);
     }
 }
 
@@ -96,14 +80,9 @@ fn update_hud(
 // its readouts; the frame is a separate sibling in the framework entrypoint.
 pub(super) fn update_hud_visibility(
     local_player: Query<(), (With<Player>, With<InputMarker<PlayerInput>>)>,
-    time: Res<Time>,
-    mut cycle: Local<f32>,
-    mut hud: Query<(&CssID, &mut Visibility), Without<HudMapBlip>>,
-    mut blips: Query<&mut Visibility, With<HudMapBlip>>,
+    mut hud: Query<(&CssID, &mut Visibility)>,
 ) {
-    *cycle = (*cycle + time.delta_secs()) % MAP_CYCLE_SECONDS;
     let playing = !local_player.is_empty();
-    let blips_shown = playing && *cycle < MAP_VISIBLE_SECONDS;
 
     for (id, mut visibility) in &mut hud {
         if matches!(
@@ -118,10 +97,6 @@ pub(super) fn update_hud_visibility(
         ) {
             set_visibility(&mut visibility, playing);
         }
-    }
-
-    for mut visibility in &mut blips {
-        set_visibility(&mut visibility, blips_shown);
     }
 }
 
@@ -159,102 +134,36 @@ pub(super) fn update_hud_health(
     }
 }
 
-// Places every replicated ship on the ring. The map is centred on the local ship,
-// so it reads as the view from that ship rather than the arena.
+// The ring represents the entire arena, centred on the world's origin. Only the local
+// predicted ship is marked; changing arena size rescales its position on the ring.
 pub(super) fn update_hud_map(
-    mut commands: Commands,
-    window: Single<&Window, With<PrimaryWindow>>,
     local: Query<&Transform, (With<Player>, With<InputMarker<PlayerInput>>)>,
-    remotes: RemoteShips,
-    ring: Query<(Entity, &CssID)>,
-    mut blips: Query<&mut Node, With<HudMapBlip>>,
-    mut entities: Local<HashMap<Entity, Entity>>,
+    arenas: Query<&ArenaBoundary, With<Predicted>>,
+    mut markers: Query<(&CssID, &mut Node, &mut Visibility)>,
 ) {
-    let ring = ring
-        .iter()
-        .find(|(_, id)| id.0 == "hud-map-ring")
-        .map(|(entity, _)| entity);
-    let local = local.single().ok();
-    let mut visible = HashSet::new();
+    let position = local
+        .single()
+        .ok()
+        .zip(arenas.single().ok())
+        .and_then(|(player, arena)| {
+            (arena.radius > 0.0).then(|| {
+                (player.translation.truncate() / arena.radius).clamp_length_max(1.0) * MAP_RADIUS_PX
+            })
+        });
 
-    if let (Some(ring), Some(local)) = (ring, local) {
-        let scale = MAP_RADIUS_PX / map_range(window.width(), window.height());
-        let origin = local.translation.truncate();
+    for (id, mut node, mut visibility) in &mut markers {
+        match id.0 != "hud-map-player" {
+            true => continue,
+            false => {
+                set_visibility(&mut visibility, position.is_some());
 
-        for (player, transform) in &remotes {
-            let offset = (transform.translation.truncate() - origin) * scale;
-            if offset.length() > MAP_RADIUS_PX {
-                continue;
+                if let Some(offset) = position {
+                    node.left = Val::Px(MAP_CENTER_PX + offset.x - MARKER_HALF_PX);
+                    node.top = Val::Px(MAP_CENTER_PX - offset.y - MARKER_HALF_PX);
+                }
             }
-
-            visible.insert(player);
-            update_map_blip(
-                &mut commands,
-                &mut blips,
-                &mut entities,
-                ring,
-                player,
-                offset,
-            );
         }
     }
-
-    entities.retain(|player, blip| {
-        if visible.contains(player) {
-            return true;
-        }
-        commands.entity(*blip).despawn();
-        false
-    });
-}
-
-fn update_map_blip(
-    commands: &mut Commands,
-    blips: &mut Query<&mut Node, With<HudMapBlip>>,
-    entities: &mut HashMap<Entity, Entity>,
-    ring: Entity,
-    player: Entity,
-    offset: Vec2,
-) {
-    if let Some(&blip) = entities.get(&player) {
-        if let Ok(mut node) = blips.get_mut(blip) {
-            position_blip(&mut node, offset);
-        }
-        return;
-    }
-
-    let mut node = Node {
-        position_type: PositionType::Absolute,
-        width: Val::Px(BLIP_SIZE_PX),
-        height: Val::Px(BLIP_SIZE_PX),
-        ..default()
-    };
-
-    position_blip(&mut node, offset);
-    let blip = commands
-        .spawn((
-            HudMapBlip,
-            node,
-            BackgroundColor(Color::srgb_u8(0xa6, 0x63, 0x72)),
-            UiTransform::from_rotation(Rot2::degrees(45.0)),
-            Pickable::IGNORE,
-        ))
-        .id();
-
-    commands.entity(ring).add_child(blip);
-    entities.insert(player, blip);
-}
-
-fn position_blip(node: &mut Node, offset: Vec2) {
-    let half = BLIP_SIZE_PX / 2.0;
-    node.left = Val::Px(MAP_RADIUS_PX + offset.x - half);
-    node.top = Val::Px(MAP_RADIUS_PX - offset.y - half);
-}
-
-// The rendered view is one world unit per window pixel: the gameplay camera draws `PIXEL_SIZE`
-// world units per canvas pixel, and the canvas is the window divided by the same factor.
-fn map_range(width: f32, height: f32) -> f32 {
-    Vec2::new(width, height).length() / 2.0 * MAP_RANGE_MARGIN
 }
 
 // Writes only when the rendered text differs, so unchanged values never re-layout.

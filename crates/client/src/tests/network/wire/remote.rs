@@ -119,7 +119,7 @@ impl Observer {
             .find(|(_, id)| id.0 == 7)
             .expect("remote shooter")
             .0
-             .0
+            .0
     }
 }
 

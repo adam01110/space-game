@@ -4,7 +4,7 @@ use std::{collections::VecDeque, time::Duration};
 use avian2d::prelude::Position;
 use bevy::{prelude::*, state::app::StatesPlugin, time::TimeUpdateStrategy};
 use lightyear::{
-    link::{recv_payload_from_bytes, SendPayload},
+    link::{SendPayload, recv_payload_from_bytes},
     prelude::{
         client::*,
         input::native::{ActionState, InputMarker},
@@ -227,11 +227,13 @@ fn delayed_lossy_wire_converges_and_matches_projectiles() {
         }
         harness.frames(600);
         harness.downstream.delay = Duration::from_millis(400);
-        assert!(harness
-            .client
-            .world()
-            .resource::<LocalTimelineSync>()
-            .is_synced());
+        assert!(
+            harness
+                .client
+                .world()
+                .resource::<LocalTimelineSync>()
+                .is_synced()
+        );
         let predicted_player = harness.controlled_player();
         harness
             .client
