@@ -16,13 +16,10 @@ avian2d.workspace = true
 bevy = { workspace = true, features = [
   # keep-sorted start
   "2d",
-  "audio",
-  "bevy_settings",
   "keyboard",
   "mouse",
   "png",
   "ui",
-  "web_asset_cache",
   # keep-sorted end
 ] }
 bevy_resvg.workspace = true
